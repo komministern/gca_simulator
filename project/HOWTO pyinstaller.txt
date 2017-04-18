@@ -1,0 +1,3 @@
+Run this command from within the project catalouge (Windows):
+
+pyinstaller --windowed --icon=gca.ico --name="GCA Analysis Tool" main.py
