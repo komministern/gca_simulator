@@ -1,2 +1,2 @@
-# GCA-Analysis-Tool
-A simple tool for managing history logs on the Harris, previously ITT, GCA  system.
+# gca simulator
+A GCA landing simulator using X-Plane 10.

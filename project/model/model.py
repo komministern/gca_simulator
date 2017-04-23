@@ -21,12 +21,14 @@ class MyModel(QtCore.QObject):
     def __init__(self):
         super(MyModel, self).__init__()
 
-        self.UDP_IP = '127.0.0.1'
+        self.UDP_IP = '192.168.1.88'
         self.UDP_SENDPORT = 5005
         self.UDP_RECEIVEPORT = 5006
 
         self.udp_receive_socket = QtNetwork.QUdpSocket(self)
-        self.udp_receive_socket.bind(QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.ShareAddress|QtNetwork.QUdpSocket.ReuseAddressHint)
+        #self.udp_receive_socket.bind(QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.DefaultForPlatform)
+        self.udp_receive_socket.bind(self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.DefaultForPlatform)
+        #self.udp_receive_socket.bind(QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.ShareAddress|QtNetwork.QUdpSocket.ReuseAddressHint)
         self.udp_receive_socket.readyRead.connect(self.processPendingDatagrams)
 
         self.udp_send_socket = QtNetwork.QUdpSocket(self)     # Necessary???????
@@ -66,6 +68,9 @@ class MyModel(QtCore.QObject):
     def processPendingDatagrams(self):
         while self.udp_receive_socket.hasPendingDatagrams():
             datagram, host, port = self.udp_receive_socket.readDatagram(self.udp_receive_socket.pendingDatagramSize())
+
+            print host
+            print port
 
             try:
                 # Python v3.
