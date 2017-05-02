@@ -23,24 +23,51 @@ class MyPresenter(QtCore.QObject):
         self.connectSignals()
 
         # Initialize buttons
-        self.view.button_select_rangescale_20.mousePressEvent(None)
+        self.view.button_select_rangescale_10.mousePressEvent(None)
+        self.view.button_select_glideslope_28.mousePressEvent(None)
         # ...more to follow
+        
+        
+        self.slask_var = 0
 
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
         self.view.button_shutdown.pressed.connect(self.model.quit)
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
+        
+        self.view.button_slask.pressed.connect(self.slask)
 
         self.connectRunwaySelectButtons()
         self.connectRangeScaleButtons()
         self.connectElScaleButtons()
         self.connectAzScaleButtons()
+        self.connectGlideSlopeButtons()
 
         self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
         self.model.new_airport.connect(self.setupNewAirportWindow)
 
-
+    def connectGlideSlopeButtons(self):
+        self.view.button_select_glideslope_21.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_22.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_23.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_24.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_25.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_26.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_27.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_28.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_29.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_30.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_31.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_32.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_33.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_34.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_35.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_36.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_37.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_38.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_39.pressed.connect(self.newGlideSlopeChosen)
+        self.view.button_select_glideslope_40.pressed.connect(self.newGlideSlopeChosen)
 
     def connectRunwaySelectButtons(self):
         self.view.button_select_runway_1.pressed.connect(self.newRunwayChosen)
@@ -82,6 +109,15 @@ class MyPresenter(QtCore.QObject):
 
 
 
+    def slask(self):
+        
+        self.view.status_window_area.updateDynamicTextItem('airport', str(self.slask_var) )
+        
+        self.slask_var += 1
+        
+
+
+
     def setupNewAirportWindow(self, airport):
         position_when_destroyed = self.view.runwayselect_window.scenePos()
         if not self.view.runwayselect_window.isHidden():
@@ -103,6 +139,9 @@ class MyPresenter(QtCore.QObject):
         if show_window_after_creation:
             self.view.runwayselect_window.showWindow(self.view.button_runway_select)
         self.view.button_select_runway_1.mousePressEvent(None)     # Set runway 1 as active
+        
+        self.view.status_window_area.updateDynamicTextItem('airport', 'Airport:         ' + airport.iata)
+        
 
 
 
@@ -113,27 +152,33 @@ class MyPresenter(QtCore.QObject):
 
 
 
+
 #    def processReceivedPlots(self, listofplots): 
 #        self.view.scene.processReceivedPlots(listofplots)
 
+
+    def newGlideSlopeChosen(self, button):
+        if button.value != self.view.scene.glideslope:
+            self.view.scene.glideslope = button.value
+            self.view.scene.drawGlideSlope()
 
 
     def newRunwayChosen(self, button):
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
+            # Draw something immediately here???
                 
-
-
 
     def newElevationScaleChosen(self, button):
         self.view.scene.elevationscale = button.value
-        self.view.scene.createElevationAxis(button.value)
+        self.view.scene.createElevationAxis()
+        self.view.scene.drawGlideSlope()
 
 
 
     def newAzimuthScaleChosen(self, button):
         self.view.scene.azimuthscale = button.value
-        self.view.scene.createAzimuthAxis(button.value)
+        self.view.scene.createAzimuthAxis()
 
 
 
@@ -157,7 +202,7 @@ class MyPresenter(QtCore.QObject):
         elif button.value == 20:
             self.view.button_select_elscale_16000.mousePressEvent(None)
             self.view.button_select_azscale_32000.mousePressEvent(None)
-        self.view.scene.createElevationAndAzimuthRangeAxis(button.value)
+        self.view.scene.createElevationAndAzimuthRangeAxis()
 
 
 

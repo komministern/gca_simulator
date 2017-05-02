@@ -15,7 +15,8 @@ from airport import Airport
 
 class MyModel(QtCore.QObject):
 
-    new_plot_extracted = QtCore.Signal(object, object, object)
+
+    new_plot_extracted = QtCore.Signal(object, object, object, object)
     new_airport = QtCore.Signal(object)
 
     def __init__(self):
@@ -37,7 +38,6 @@ class MyModel(QtCore.QObject):
 
         self.airport = None         # 1 to 6 (not 0 to 5)
         self.active_runway = None
-
 
 
     def readNewAirport(self, filename):
@@ -69,8 +69,8 @@ class MyModel(QtCore.QObject):
         while self.udp_receive_socket.hasPendingDatagrams():
             datagram, host, port = self.udp_receive_socket.readDatagram(self.udp_receive_socket.pendingDatagramSize())
 
-            print host
-            print port
+            #print host
+            #print port
 
             try:
                 # Python v3.
@@ -111,17 +111,18 @@ class MyModel(QtCore.QObject):
                         z_norm = np.linalg.norm(z_vector)
                         z_unity_vector = z_vector / z_norm
                         y_unity_vector = np.cross(z_unity_vector, x_unity_vector)
-                        
+
                         self.orthonormal_vectors.append( [x_unity_vector, y_unity_vector, z_unity_vector] )
                         self.orthonormal_vectors.append( [-1.0*x_unity_vector, -1.0*y_unity_vector, z_unity_vector] )
 
                         self.coord_counter += 6
 
                     # TD calculated only for active runway
-                   
-                    
 
                     td = self.threshold_points[self.active_runway] + self.orthonormal_vectors[self.active_runway][0] * self.airport.runways[self.active_runway]['td']
+
+                    
+                    # Now calculate all relevant points as coordinates relative to the touchdown point
 
                     airplane_relative_to_td = self.airplane_point - td
                     x = np.dot(self.orthonormal_vectors[ self.active_runway ][0], airplane_relative_to_td)
@@ -143,11 +144,22 @@ class MyModel(QtCore.QObject):
                     y = np.dot(self.orthonormal_vectors[ self.active_runway ][1], eor_relative_to_td)
                     z = np.dot(self.orthonormal_vectors[ self.active_runway ][2], eor_relative_to_td)
                     eor_coordinate = np.array([x, y, z])
+                    
+                    # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
+                    # It is placed some 100.0 meters from the centre of the airstrip.
+                    
+                    if self.active_runway % 2 == 0:
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 - 100.0*np.array([0, 1, 0])
+                    else:
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + 100.0*np.array([0, 1, 0])
 
-                    self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate)
+                    self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate)
 
                 else:
                     print 'Mismatch. Wrong airport data from x-plane plugin.'
+
+                # It seems to be somethong fishy with my naiive approach to defining the local cartesian coordinate system.
+                # Look into this....................
 
    
 

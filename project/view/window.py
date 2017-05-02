@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
@@ -207,7 +206,7 @@ class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.setBrush(brush)
 
         self.ycursor = self.windowframethickness
-        self.xcursor = self.windowleftxcoordinate + self.windowframethickness
+        self.xcursor = self.windowleftxcoordinate + self.windowframethickness + self.distance
 
         self.setAcceptHoverEvents(True)
 
@@ -250,7 +249,7 @@ class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
     def newHalfButtonRow(self, nx):
         self.ycursor += self.distance
         self.presentbuttonheight = self.buttonhalfheight
-        self.xcursor = self.windowleftxcoordinate + self.windowframethickness + self.distance
+        #self.xcursor = self.windowleftxcoordinate + self.windowframethickness + self.distance
         if nx == 2:
             self.presentbuttonwidth = self.buttontwowidth
         elif nx == 3:
@@ -314,17 +313,25 @@ class StatusWindowArea(WindowArea):
 
     def __init__(self):
         super(StatusWindowArea, self).__init__()
+        self.dynamictextitems = {}
+
+    def newTextRowLeft(self, text, dynamic=False, identifier=''):
+
+        self.presentbuttonheight = self.textrowheight
+        textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self)
+        
+        if dynamic and identifier:
+            self.dynamictextitems[identifier] = textitem
+        
+        font = QtGui.QFont("Helvetica", 10)
+        textitem.setFont(font)
+        textitem.setBrush(QtCore.Qt.yellow)
+        wtext = int(textitem.boundingRect().width())
+        htext = int(textitem.boundingRect().height())
+        textitem.setPos(self.xcursor + self.windowframethickness, self.ycursor + self.distance)
 
 
-#    def newTextRow(self, text):
-#        self.presentbuttonheight = self.textrowheight
-#        textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self)
-#        font = QtGui.QFont("Helvetica", 10)
-#        textitem.setFont(font)
-#        textitem.setBrush(QtCore.Qt.yellow)
-#        wtext = int(textitem.boundingRect().width())
-#        htext = int(textitem.boundingRect().height())
-#        textitem.setPos(self.xcursor+(self.windowusablewidth-wtext)/2, self.ycursor+self.distance)
+    def updateDynamicTextItem(self, identifier, text):
+        self.dynamictextitems[identifier].setText(text)
 
 
-    # text is a variable. Change it and call update() or something......?

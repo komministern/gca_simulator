@@ -10,7 +10,7 @@
 
 from PySide import QtGui, QtCore
 from scene import MyScene
-from window import WindowArea, WindowTopBorder
+from window import WindowArea, WindowTopBorder, StatusWindowArea
 from button import Button, InvertingButton, ExpandingButton
 
 
@@ -49,17 +49,25 @@ class MyView(QtGui.QGraphicsView):
 
 
     def createStatusWindow(self):
-        self.status_window_area = WindowArea()
+        self.status_window_area = StatusWindowArea()
         self.scene.addItem(self.status_window_area)
-        self.status_window_area.newTextRow('Airport:')        # Fix some more attractive text row options.
+        self.status_window_area.newTextRowLeft('Airport:', dynamic=True, identifier='airport')        # Fix some more attractive text row options.
         self.status_window_area.endRow()                      # And somw way to update the window i real time.
-        self.status_window_area.newTextRow('Connected:')
+        self.status_window_area.newTextRowLeft('Connected:', dynamic=True, identifier='connected')
+        self.status_window_area.endRow()
+        self.status_window_area.newTextRowLeft('Test:', dynamic=True, identifier='test')
         self.status_window_area.endRow()
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
         self.status_window_area.newFullButtonRow(3)
         self.button_load_new_airport = Button('Load\nAirport')
         self.status_window_area.registerNextButton(self.button_load_new_airport)
+        
+        
+        self.button_slask = Button('Slask')
+        self.status_window_area.registerNextButton(self.button_slask)
+       
+        
         self.status_window_area.endRow()
         self.status_window_area.fixWindow()
         self.status_window_topborder = WindowTopBorder('Status')
