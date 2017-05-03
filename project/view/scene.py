@@ -11,10 +11,10 @@ class MyScene(QtGui.QGraphicsScene):
 
     scenetotaltopleft_x = 0.0
     scenetotaltopleft_y = 0.0
-    scenetotalwidth = 1600
-    scenetotalheight = 1200
+    scenetotalwidth = 1600.0
+    scenetotalheight = 1200.0
 
-    buttonwindowareawidth = 320
+    buttonwindowareawidth = 320.0
     buttonwindowareaheight = scenetotalheight
 
     buttonwindowareatopleft_x = scenetotalwidth - buttonwindowareawidth
@@ -93,36 +93,67 @@ class MyScene(QtGui.QGraphicsScene):
 
         # Pens, brushes and colors
         self.axis_font = QtGui.QFont("Helvetica", 10)
-        self.axis_color = QtGui.QColor(255, 165, 0, 200)
+        self.axis_color = QtGui.QColor(255, 165, 0, 255)
         
         self.axis_pen = QtGui.QPen(self.axis_color)
         self.axis_pen.setWidth(2.0)
 
-        self.runway_pen = QtGui.QPen(QtCore.Qt.darkCyan)
+        self.runway_color = QtCore.Qt.darkCyan
+        self.runway_pen = QtGui.QPen(self.runway_color)
         self.runway_pen.setWidth(2)
         
-        self.glideslope_pen = QtGui.QPen(QtCore.Qt.cyan)
+        self.runway_font = QtGui.QFont(self.axis_font)
+        self.runway_brush = QtGui.QBrush(self.runway_color)
+        
+        self.glideslope_pen = QtGui.QPen(QtGui.QColor(60, 179, 113, 255))
         self.glideslope_pen.setWidth(2)
+        
+        self.gca_color = QtGui.QColor(139,0,139,255)
+        self.gca_brush = QtGui.QBrush(self.gca_color)
+        
+        self.coverage_pen = QtGui.QPen(self.gca_color)
+        self.coverage_pen.setStyle(QtCore.Qt.DashLine)
+        
+        self.az_ant_elevation_pen = QtGui.QPen(self.coverage_pen)
+        
 
         # Attributes relevant for the display
         self.rangescale = None
         self.elevationscale = None
         self.azimuthscale = None
         self.glideslope = None
+        self.azantelev = None
+        
+        self.active_airport = None
+        self.active_runway = None
 
         # Windows related stuff
         self.movablewindowZval = 0.0
         self.activewindowtopborders = []
         
+        # Coordinates
+        self.airplane_coordinate = np.array([])
+        self.threshold_coordinate = np.array([])
+        self.eor_coordinate = np.array([])
+        self.gca_coordinate = np.array([])
+        self.mti_1_coordinate = np.array([])
+        self.mti_2_coordinate = np.array([])
         
         # Points
-        self.touchdown_elevation_point, self.touchdown_azimuth_point = None, None
-        self.aiplane_elevation_point, self.airplane_azimuth_point = None, None
-        self.threshold_elevation_point, self.threshold_azimuth_point = None, None
-        self.eor_elevation_point, self.eor_azimuth_point = None, None
-        self.gca_elevation_point, self.gca_azimuth_point = None, None
-        self.mti_1_elevation_point, self.mti_1_azimuth_point = None, None
-        self.mti_2_elevation_point, self.mti_2_azimuth_point = None, None
+        self.touchdown_elevation_point = None
+        self.touchdown_azimuth_point = None
+        self.airplane_elevation_point = None
+        self.airplane_azimuth_point = None
+        self.threshold_elevation_point = None
+        self.threshold_azimuth_point = None
+        self.eor_elevation_point = None
+        self.eor_azimuth_point = None
+        self.gca_elevation_point = None
+        self.gca_azimuth_point = None
+        self.mti_1_elevation_point = None
+        self.mti_1_azimuth_point = None
+        self.mti_2_elevation_point = None
+        self.mti_2_azimuth_point = None
         
         
         # Graphic items
@@ -135,15 +166,20 @@ class MyScene(QtGui.QGraphicsScene):
         self.glideslope_item = None
         self.elevation_coverage_item = None
         self.azimuth_coverage_item = None
+        self.elevation_gca_item = None
+        self.azimuth_gca_item = None
+        self.az_ant_elevation_item = None
         
         self.item_el = None
         self.item_az = None
         
         # Z Values
-        self.axis_zvalue = 0.0
+        self.axis_zvalue = 0.5
         self.runway_zvalue = 1.0
-        self.glideslope_zvalue = 2.0
-        self.coverage_zvalue = 3.0
+        self.gca_zvalue = 2.0
+        self.coverage_zvalue = 2.0
+        self.az_ant_elevation_zvalue = 2.0
+        self.glideslope_zvalue = 3.0
         self.historic_plot_zvalue = 9.0
         self.plot_zvalue = 10.0
 
@@ -152,27 +188,248 @@ class MyScene(QtGui.QGraphicsScene):
     # METHODS
 
 
-    def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate=np.array([]), mti_1_coordinate=np.array([]), mti_2_coordinate=np.array([])):
+    def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate):
 
-        self.touchdown_elevation_point, self.touchdown_azimuth_point = self.getPoints(np.array([0.0, 0.0, 0.0]))
-        self.aiplane_elevation_point, self.airplane_azimuth_point = self.getPoints(airplane_coordinate)
-        self.threshold_elevation_point, self.threshold_azimuth_point = self.getPoints(threshold_coordinate)
-        self.eor_elevation_point, self.eor_azimuth_point = self.getPoints(eor_coordinate)
-        self.gca_elevation_point, self.gca_azimuth_point = self.getPoints(gca_coordinate)
-        self.mti_1_elevation_point, self.mti_1_azimuth_point = self.getPoints(mti_1_coordinate)
-        self.mti_2_elevation_point, self.mti_2_azimuth_point = self.getPoints(mti_2_coordinate)
+        self.airplane_coordinate = airplane_coordinate
+        self.threshold_coordinate = threshold_coordinate
+        self.eor_coordinate = eor_coordinate
+        self.gca_coordinate = gca_coordinate
+        self.mti_1_coordinate = mti_1_coordinate
+        self.mti_2_coordinate = mti_2_coordinate
 
-        self.drawElevationRunway()
-        self.drawAzimuthRunway()
-        
-        self.drawGlideSlope()
+        self.calculatePoints()
+
+        self.drawElevationGraphics()
+        self.drawAzimuthGraphics()
+
+        self.drawTextInfo()
 
         self.drawPlot()
 
+    def calculatePoints(self):
+        self.touchdown_elevation_point, self.touchdown_azimuth_point = self.getPoints(np.array([0.0, 0.0, 0.0]))
+        self.airplane_elevation_point, self.airplane_azimuth_point = self.getPoints(self.airplane_coordinate)
+        self.threshold_elevation_point, self.threshold_azimuth_point = self.getPoints(self.threshold_coordinate)
+        self.eor_elevation_point, self.eor_azimuth_point = self.getPoints(self.eor_coordinate)
+        self.gca_elevation_point, self.gca_azimuth_point = self.getPoints(self.gca_coordinate)
+        self.mti_1_elevation_point, self.mti_1_azimuth_point = self.getPoints(self.mti_1_coordinate)
+        self.mti_2_elevation_point, self.mti_2_azimuth_point = self.getPoints(self.mti_2_coordinate)
+
+    def newAirport(self, airport):
+        self.active_airport = airport
+
+
+    def drawElevationGraphics(self):
+        
+        self.calculatePoints()  # Hmmmmmmmmmmmmmmm
+        
+        self.drawElevationRunway()
+        self.drawGlideSlope()
+        self.drawElevationGCA()
+        self.drawElevationCoverage()
+        self.drawAzAntElev()
+
+    
+    def drawAzimuthGraphics(self):
+        
+        self.calculatePoints()
+        
+        self.drawAzimuthRunway()
+        self.drawAzimuthGCA()
+        self.drawAzimuthCoverage()
+
+
+
+    def drawTextInfo(self):
+            
+        if self.textinfo_item:
+            self.removeItem(self.textinfo_item)
+            del self.textinfo_item
+
+        if self.active_airport and self.glideslope:
+
+            self.textinfo_item = QtGui.QGraphicsSimpleTextItem('GS: ' + str(self.glideslope), parent=None, scene=self)
+            self.textinfo_item.setFont(self.runway_font)
+            self.textinfo_item.setBrush(self.runway_brush)
+            textitemwidth = self.textinfo_item.boundingRect().width()
+            textitemheight = self.textinfo_item.boundingRect().height()
+            self.textinfo_item.setPos(self.textgraphicsareatopleft_x + self.textgraphicsareawidth/9, self.textgraphicsareatopleft_y)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+    def drawAzAntElev(self):
+        if self.az_ant_elevation_item:
+            self.removeItem(self.az_ant_elevation_item)
+            del self.az_ant_elevation_item
+
+        if self.rangescale and self.elevationscale and self.gca_elevation_point and (self.azantelev != None):
+
+            m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
+            m_per_y_pixel = self.elevationscale*0.3048 / (self.elevationaxiszero_y - self.elevationaxismax_y)
+
+            start_point = self.gca_elevation_point
+
+            #print self.azantelev
+
+            slope = np.tan(self.azantelev*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y() - slope*(self.rangeaxismax_x - self.gca_elevation_point.x()))
+            line = QtCore.QLineF(start_point, end_point)
+
+            self.az_ant_elevation_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
+            self.az_ant_elevation_item.setPen(self.az_ant_elevation_pen)
+            self.az_ant_elevation_item.setZValue(self.az_ant_elevation_zvalue)
+
+
+    def drawElevationCoverage(self):
+        if self.elevation_coverage_item:
+            self.removeItem(self.elevation_coverage_item)
+            del self.elevation_coverage_item
+            
+        if self.rangescale and self.elevationscale and self.gca_elevation_point:
+        
+            m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
+            m_per_y_pixel = self.elevationscale*0.3048 / (self.elevationaxiszero_y - self.elevationaxismax_y)
+            
+            start_point = self.gca_elevation_point
+            
+            slope = np.tan(7.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            upper_end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y() - slope*(self.rangeaxismax_x - self.gca_elevation_point.x()))
+            upper_line = QtCore.QLineF(start_point, upper_end_point)
+            
+            self.elevation_coverage_item = QtGui.QGraphicsLineItem(upper_line, parent=None, scene=self)
+            self.elevation_coverage_item.setPen(self.coverage_pen)
+            self.elevation_coverage_item.setZValue(self.coverage_zvalue)
+            
+            slope = np.tan(-1.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            lower_end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y() - slope*(self.rangeaxismax_x - self.gca_elevation_point.x()))
+            
+            # Keep lower coverage line inside the elevation graphics area
+            if lower_end_point.y() > self.elevationgraphicsareabottomright_y:
+                new_x = -1.0 * (self.elevationgraphicsareabottomright_y - start_point.y()) / slope + start_point.x()
+                if new_x > self.rangeaxismax_x:
+                    new_x = self.rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                
+                lower_end_point = QtCore.QPointF(new_x, start_point.y() - slope*delta_x)
+                
+            lower_line = QtCore.QLineF(start_point, lower_end_point)
+            
+            lower_line_item = QtGui.QGraphicsLineItem(lower_line, parent=self.elevation_coverage_item)
+            lower_line_item.setPen(self.coverage_pen)
+            lower_line_item.setZValue(self.coverage_zvalue)
+
+
+
+    def drawAzimuthCoverage(self):
+        if self.azimuth_coverage_item:
+            self.removeItem(self.azimuth_coverage_item)
+            del self.azimuth_coverage_item
+            
+        if self.gca_azimuth_point:
+        
+            m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
+            m_per_y_pixel = self.azimuthscale*0.3048 / (self.azimuthaxiszero_y - self.azimuthaxismax_y)
+        
+            start_point = self.gca_azimuth_point
+            
+            slope = np.tan(15.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            delta_x = self.rangeaxismax_x - start_point.x()
+            
+            upper_end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y() - slope*delta_x)
+            
+            # Keep upper coverage line inside the azimuth graphics area
+            if upper_end_point.y() < self.azimuthgraphicsareatopleft_y:
+
+                new_x = -1.0 * (self.azimuthgraphicsareatopleft_y - start_point.y()) / slope + start_point.x()
+                if new_x > self.rangeaxismax_x:
+                    new_x = self.rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                upper_end_point = QtCore.QPointF(new_x, start_point.y() - slope*delta_x)
+            
+            upper_line = QtCore.QLineF(start_point, upper_end_point)
+            
+            self.azimuth_coverage_item = QtGui.QGraphicsLineItem(upper_line, parent=None, scene=self)
+            self.azimuth_coverage_item.setPen(self.coverage_pen)
+            self.azimuth_coverage_item.setZValue(self.coverage_zvalue)
+            
+            lower_end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y() + slope*(self.rangeaxismax_x - self.gca_azimuth_point.x()))
+            lower_line = QtCore.QLineF(start_point, lower_end_point)
+            
+            lower_line_item = QtGui.QGraphicsLineItem(lower_line, parent=self.azimuth_coverage_item)
+            lower_line_item.setPen(self.coverage_pen)
+            lower_line_item.setZValue(self.coverage_zvalue)
+            
+            middle_end_point = QtCore.QPointF(self.rangeaxismax_x, start_point.y())
+            middle_line = QtCore.QLineF(start_point, middle_end_point)
+            
+            middle_line_item = QtGui.QGraphicsLineItem(middle_line, parent=self.azimuth_coverage_item)
+            middle_line_item.setPen(self.coverage_pen)
+            middle_line_item.setZValue(self.coverage_zvalue)
+            
+            
+
+    def drawElevationGCA(self):
+        if self.elevation_gca_item:
+            self.removeItem(self.elevation_gca_item)
+            del self.elevation_gca_item
+
+            
+        if self.gca_elevation_point:
+            rect = QtCore.QRectF(self.gca_elevation_point.x()-7.5, self.gca_elevation_point.y()-10.0, 15.0, 10.0)
+            self.elevation_gca_item = QtGui.QGraphicsRectItem(rect, parent=None, scene=self)
+            self.elevation_gca_item.setBrush(self.gca_brush)
+            self.elevation_gca_item.setZValue(self.gca_zvalue)
+            
+    def drawAzimuthGCA(self):
+        if self.azimuth_gca_item:
+            self.removeItem(self.azimuth_gca_item)
+            del self.azimuth_gca_item
+
+        if self.gca_azimuth_point:
+            rect = QtCore.QRectF(self.gca_azimuth_point.x()-7.5, self.gca_azimuth_point.y()-5.0, 15.0, 10.0)
+            self.azimuth_gca_item = QtGui.QGraphicsRectItem(rect, parent=None, scene=self)
+            self.azimuth_gca_item.setBrush(self.gca_brush)
+            self.azimuth_gca_item.setZValue(self.gca_zvalue)
 
     def getPoints(self, np_coord):
             
-        if len(np_coord) == 3:
+        if len(np_coord) == 3 and (self.azimuthscale != None) and (self.elevationscale != None):
             
             range_m = np_coord[0]
             altitude_m = np_coord[2]
@@ -219,11 +476,14 @@ class MyScene(QtGui.QGraphicsScene):
             elif self.rangescale == 20:
                 numberoffullmarkings = 5
 
+            slope = (glideslope_end_point.y() - self.touchdown_elevation_point.y()) / (glideslope_end_point.x() - self.touchdown_elevation_point.x())
             delta_x = (self.elevationrangeaxismax_x - self.elevationrangeaxiszero_x) / (numberoffullmarkings - 1)
+            delta_y = delta_x * slope
 
             for c in range(numberoffullmarkings):
                 x = self.elevationrangeaxiszero_x + c * delta_x
-                lineitem = QtGui.QGraphicsLineItem(x, np.tan(self.glideslope*np.pi/180)*c*delta_x + self.axismarkinglength / 2, x, np.tan(self.glideslope*np.pi/180)*c*delta_x - self.axismarkinglength / 2, parent=self.glideslope_item)
+                y = self.elevationrangeaxis_y + c * delta_y
+                lineitem = QtGui.QGraphicsLineItem(x, y + self.axismarkinglength / 2, x, y - self.axismarkinglength / 2, parent=self.glideslope_item)
                 lineitem.setPen(self.glideslope_pen)
 
 
@@ -234,17 +494,28 @@ class MyScene(QtGui.QGraphicsScene):
             self.removeItem(self.elevation_runway_item)
             del self.elevation_runway_item
 
-        # Adjust the height in the eor point to have the same heiht as the threshold point.
-        cheat_eor_elevation_point = QtCore.QPointF(self.eor_elevation_point)
-        cheat_eor_elevation_point.setY(self.threshold_elevation_point.y())
-        # This (above) is not correct, but it gives a nicer look.
+        if self.eor_elevation_point and self.threshold_elevation_point:
 
-        line = QtCore.QLineF(self.threshold_elevation_point, cheat_eor_elevation_point)
-        self.elevation_runway_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
-        self.elevation_runway_item.setPen(self.runway_pen)
-        self.elevation_runway_item.setZValue(self.runway_zvalue)
+            # Adjust the height in the eor point to have the same heiht as the threshold point.
+            cheat_eor_elevation_point = QtCore.QPointF(self.eor_elevation_point)
+            cheat_eor_elevation_point.setY(self.threshold_elevation_point.y())
+            # This (above) is not correct, but it gives a nicer look.
+        
+            # Limit the drawing area leftwards
+            if cheat_eor_elevation_point.x() < self.elevationminrangegraphicsrange:
+                cheat_eor_elevation_point.setX(self.elevationminrangegraphicsrange)
 
-        # Draw text here.
+            line = QtCore.QLineF(self.threshold_elevation_point, cheat_eor_elevation_point)
+            self.elevation_runway_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
+            self.elevation_runway_item.setPen(self.runway_pen)
+            self.elevation_runway_item.setZValue(self.runway_zvalue)
+                        
+            textitem = QtGui.QGraphicsSimpleTextItem(self.active_airport.runways[self.active_runway]['name'], parent=self.elevation_runway_item)
+            textitem.setFont(self.runway_font)
+            textitem.setBrush(self.runway_brush)
+            textitemwidth = textitem.boundingRect().width()
+            textitemheight = textitem.boundingRect().height()
+            textitem.setPos(self.elevationgraphicsareatopleft_x, self.elevationrangeaxis_y - textitemheight / 2)
             
 
 
@@ -252,30 +523,36 @@ class MyScene(QtGui.QGraphicsScene):
         if self.azimuth_runway_item:
             self.removeItem(self.azimuth_runway_item)
             del self.azimuth_runway_item
-            
-        line = QtCore.QLineF(self.threshold_azimuth_point, self.eor_azimuth_point)
-        self.azimuth_runway_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
-        self.azimuth_runway_item.setPen(self.runway_pen)
-        self.azimuth_runway_item.setZValue(self.runway_zvalue)
         
-        # Draw text here.
+        if self.eor_azimuth_point and self.threshold_azimuth_point:
+        
+            modified_eor_azimuth_point = QtCore.QPointF(self.eor_azimuth_point)
+            if self.eor_azimuth_point.x() < self.azimuthminrangegraphicsrange:
+                modified_eor_azimuth_point.setX(self.azimuthminrangegraphicsrange)
+        
+            line = QtCore.QLineF(self.threshold_azimuth_point, modified_eor_azimuth_point)
+            self.azimuth_runway_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
+            self.azimuth_runway_item.setPen(self.runway_pen)
+            self.azimuth_runway_item.setZValue(self.runway_zvalue)
+        
+            textitem = QtGui.QGraphicsSimpleTextItem(self.active_airport.runways[self.active_runway]['name'], parent=self.elevation_runway_item)
+            textitem.setFont(self.runway_font)
+            textitem.setBrush(self.runway_brush)
+            textitemwidth = textitem.boundingRect().width()
+            textitemheight = textitem.boundingRect().height()
+            textitem.setPos(self.azimuthgraphicsareatopleft_x, self.azimuthrangeaxis_y - textitemheight / 2)
 
 
+
+    #def drawElevationTrackPlot(self):
         
+
 
     
     def drawPlot(self):
         # Draw the plot
 
-        if self.airplane_coordinate.any():      # ?????
-
-            range_m = self.airplane_coordinate[0]
-            altitude_m = self.airplane_coordinate[2]
-            azimuth_m = self.airplane_coordinate[1]
-
-            range_x_pixel = self.range_to_scenexcoord(range_m)
-            altitude_y_pixel = self.altitude_to_sceneycoord(altitude_m)
-            azimuth_y_pixel = self.azimuth_to_sceneycoord(azimuth_m)
+        if self.airplane_elevation_point and self.airplane_azimuth_point:
 
             self.brush = QtGui.QBrush(QtCore.Qt.white)
 
@@ -283,19 +560,21 @@ class MyScene(QtGui.QGraphicsScene):
                 self.removeItem(self.item_el)
                 self.item_el = None
 
-            if range_x_pixel and altitude_y_pixel:
-                self.item_el = QtGui.QGraphicsEllipseItem(range_x_pixel-4.0, altitude_y_pixel-4.0, 8.0, 8.0, parent=None, scene=self)
-                self.item_el.setBrush(self.brush)
-                self.item_el.setZValue(self.plot_zvalue)
+            #if range_x_pixel and altitude_y_pixel:
+            
+            
+            self.item_el = QtGui.QGraphicsEllipseItem(self.airplane_elevation_point.x()-4.0, self.airplane_elevation_point.y()-4.0, 8.0, 8.0, parent=None, scene=self)
+            self.item_el.setBrush(self.brush)
+            self.item_el.setZValue(self.plot_zvalue)
         
             if self.item_az:
                 self.removeItem(self.item_az)
                 self.item_az = None
 
-            if range_x_pixel and azimuth_y_pixel:
-                self.item_az = QtGui.QGraphicsEllipseItem(range_x_pixel-4.0, azimuth_y_pixel-4.0, 8.0, 8.0, parent=None, scene=self)
-                self.item_az.setBrush(self.brush)
-                self.item_az.setZValue(self.plot_zvalue)
+            #if range_x_pixel and azimuth_y_pixel:
+            self.item_az = QtGui.QGraphicsEllipseItem(self.airplane_azimuth_point.x()-4.0, self.airplane_azimuth_point.y()-4.0, 8.0, 8.0, parent=None, scene=self)
+            self.item_az.setBrush(self.brush)
+            self.item_az.setZValue(self.plot_zvalue)
 
 
 

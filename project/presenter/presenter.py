@@ -25,6 +25,7 @@ class MyPresenter(QtCore.QObject):
         # Initialize buttons
         self.view.button_select_rangescale_10.mousePressEvent(None)
         self.view.button_select_glideslope_28.mousePressEvent(None)
+        self.view.button_select_azantalev_020.mousePressEvent(None)
         # ...more to follow
         
         
@@ -36,17 +37,50 @@ class MyPresenter(QtCore.QObject):
         self.view.button_shutdown.pressed.connect(self.model.quit)
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
         
-        self.view.button_slask.pressed.connect(self.slask)
+        #self.view.button_slask.pressed.connect(self.slask)
 
         self.connectRunwaySelectButtons()
         self.connectRangeScaleButtons()
         self.connectElScaleButtons()
         self.connectAzScaleButtons()
         self.connectGlideSlopeButtons()
+        self.connectAzAntElevButtons()
 
         self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
         self.model.new_airport.connect(self.setupNewAirportWindow)
+        self.model.new_airport.connect(self.view.scene.newAirport)
 
+
+    def connectAzAntElevButtons(self):
+        self.view.button_select_azantalev_000.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_005.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_010.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_015.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_020.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_025.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_030.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_035.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_040.pressed.connect(self.newAzAntElevChosen)
+        self.view.button_select_azantalev_045.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_050.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_055.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_060.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_065.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_070.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_075.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_080.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_085.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_090.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_095.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_100.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_105.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_110.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_115.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_120.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_125.pressed.connect(self.newAzAntElevChosen)        
+        self.view.button_select_azantalev_130.pressed.connect(self.newAzAntElevChosen)        
+        
+        
     def connectGlideSlopeButtons(self):
         self.view.button_select_glideslope_21.pressed.connect(self.newGlideSlopeChosen)
         self.view.button_select_glideslope_22.pressed.connect(self.newGlideSlopeChosen)
@@ -156,6 +190,11 @@ class MyPresenter(QtCore.QObject):
 #    def processReceivedPlots(self, listofplots): 
 #        self.view.scene.processReceivedPlots(listofplots)
 
+    def newAzAntElevChosen(self, button):
+        if button.value != self.view.scene.azantelev:
+            self.view.scene.azantelev = button.value
+            self.view.scene.drawAzAntElev()
+
 
     def newGlideSlopeChosen(self, button):
         if button.value != self.view.scene.glideslope:
@@ -166,24 +205,31 @@ class MyPresenter(QtCore.QObject):
     def newRunwayChosen(self, button):
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
-            # Draw something immediately here???
+            self.view.scene.active_runway = button.value
+            
+            #self.view.scene.drawElevationGraphics()
+            #self.view.scene.drawAzimuthGraphics()
                 
 
     def newElevationScaleChosen(self, button):
         self.view.scene.elevationscale = button.value
+        
         self.view.scene.createElevationAxis()
-        self.view.scene.drawGlideSlope()
-
+        
+        self.view.scene.drawElevationGraphics()
 
 
     def newAzimuthScaleChosen(self, button):
         self.view.scene.azimuthscale = button.value
+        
         self.view.scene.createAzimuthAxis()
-
+        
+        self.view.scene.drawAzimuthGraphics()
 
 
     def newRangeScaleChosen(self, button):
         self.view.scene.rangescale = button.value
+
         if button.value == 1:
             self.view.button_select_elscale_1000.mousePressEvent(None)
             self.view.button_select_azscale_2000.mousePressEvent(None)

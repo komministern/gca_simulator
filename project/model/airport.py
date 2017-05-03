@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -50,6 +50,9 @@ class Airport(object):
 
             elif self.words[counter] == 'GS':
                 self.runways[runway_number]['gs'] = float(self.words[counter + 1])
+                
+            elif self.words[counter] == 'TRUE':
+                self.runways[runway_number]['true'] = float(self.words[counter + 1])
 
             else:
                 raise Exception('Error in airport file ' + filename)

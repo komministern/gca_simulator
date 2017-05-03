@@ -16,7 +16,7 @@ from airport import Airport
 class MyModel(QtCore.QObject):
 
 
-    new_plot_extracted = QtCore.Signal(object, object, object, object)
+    new_plot_extracted = QtCore.Signal(object, object, object, object, object, object)
     new_airport = QtCore.Signal(object)
 
     def __init__(self):
@@ -149,11 +149,16 @@ class MyModel(QtCore.QObject):
                     # It is placed some 100.0 meters from the centre of the airstrip.
                     
                     if self.active_runway % 2 == 0:
-                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 - 100.0*np.array([0, 1, 0])
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, -100.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
                     else:
-                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + 100.0*np.array([0, 1, 0])
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, 100.0, 4.0])
 
-                    self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate)
+                    mti_1_coordinate = gca_coordinate + np.array([750.0, 0.0, 5.0])
+                    mti_2_coordinate = gca_coordinate + np.array([-900.0, 0.0, 3.5])
+
+
+
+                    self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate)
 
                 else:
                     print 'Mismatch. Wrong airport data from x-plane plugin.'
