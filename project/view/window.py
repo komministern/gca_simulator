@@ -152,7 +152,7 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
     def mousePressEvent(self, event):
         
         if self.closeRect.rect().contains(event.pos()):
-            print 'kuk'
+            
             if self.activatingbutton:
                 self.activatingbutton.toggleExpanded()
                 self.activatingbutton = None

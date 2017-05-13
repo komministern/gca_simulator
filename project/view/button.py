@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.

@@ -6,6 +6,7 @@
 
 from PySide import QtGui, QtCore
 import numpy as np
+import time
 
 class MyScene(QtGui.QGraphicsScene):
 
@@ -58,7 +59,7 @@ class MyScene(QtGui.QGraphicsScene):
     elevationrangeaxismax_x = rangeaxismax_x
     elevationrangeaxis_y = 8.0 / 9.0 * elevationgraphicsareaheight + elevationgraphicsareatopleft_y
 
-    elevationminrangegraphicsrange = elevationrangeaxiszero_x / 2
+    elevationminrangegraphicsrange = elevationrangeaxiszero_x / 3.0
 
     # **** AZIMUTH RANGE AXIS
 
@@ -67,6 +68,8 @@ class MyScene(QtGui.QGraphicsScene):
     azimuthrangeaxis_y = azimuthgraphicsareaheight / 2 + azimuthgraphicsareatopleft_y
 
     axismarkinglength = 16.0    # Absolute value
+
+    glideslopemarkinglength = axismarkinglength - 2.0
     
     azimuthminrangegraphicsrange = elevationminrangegraphicsrange
 
@@ -105,7 +108,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.runway_font = QtGui.QFont(self.axis_font)
         self.runway_brush = QtGui.QBrush(self.runway_color)
         
-        self.glideslope_pen = QtGui.QPen(QtGui.QColor(60, 179, 113, 255))
+        self.glideslope_color = QtGui.QColor(60, 179, 113, 255)
+        self.glideslope_pen = QtGui.QPen(self.glideslope_color)
         self.glideslope_pen.setWidth(2)
         
         self.gca_color = QtGui.QColor(139,0,139,255)
@@ -115,6 +119,9 @@ class MyScene(QtGui.QGraphicsScene):
         self.coverage_pen.setStyle(QtCore.Qt.DashLine)
         
         self.az_ant_elevation_pen = QtGui.QPen(self.coverage_pen)
+        
+        self.textinfo_font = QtGui.QFont(self.axis_font)
+        self.textinfo_brush = QtGui.QBrush(self.glideslope_color)
         
 
         # Attributes relevant for the display
@@ -126,6 +133,16 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.active_airport = None
         self.active_runway = None
+        
+        self.wx_active = False
+        self.obs_active = False
+        self.map_active = False
+        self.whi_active = False
+        self.hist_active = False
+        self.radarcover_active = False
+        self.synvid_active = False
+        
+        
 
         # Windows related stuff
         self.movablewindowZval = 0.0
@@ -169,24 +186,95 @@ class MyScene(QtGui.QGraphicsScene):
         self.elevation_gca_item = None
         self.azimuth_gca_item = None
         self.az_ant_elevation_item = None
+        self.textinfo_item = None
         
         self.item_el = None
         self.item_az = None
         
         # Z Values
         self.axis_zvalue = 0.5
-        self.runway_zvalue = 1.0
-        self.gca_zvalue = 2.0
-        self.coverage_zvalue = 2.0
-        self.az_ant_elevation_zvalue = 2.0
-        self.glideslope_zvalue = 3.0
+        self.runway_zvalue = 3.0
+        self.gca_zvalue = 2.5
+        self.coverage_zvalue = 2.5
+        self.az_ant_elevation_zvalue = 2.5
+        self.glideslope_zvalue = 2.0
         self.historic_plot_zvalue = 9.0
         self.plot_zvalue = 10.0
+        
+        self.decisionheight_zvalue = self.glideslope_zvalue
 
+        # Timer
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.periodic)
+        self.timer.start(1000)
 
 
     # METHODS
 
+
+
+    # Radar Control buttons
+    
+    def toggleRadiation(self, button):          # To model?
+        self.radiation_active = button.inverted
+        print 'toggle radiate'
+        
+    def toggleAntennaDrive(self, button):       # To model?
+        self.antennadrive_active = button.inverted
+        print 'toggle antennadrive'
+        
+    def toggleRainMode(self, button):
+        self.rainmode_active = button.inverted  # Send to model???
+        print 'toggle rainmode'
+        
+    def toggleMaintMode(self, button):
+        self.maintmode_active = button.inverted
+        print 'toggle maintmode'
+        
+
+    # Display Control buttons
+
+    def toggleWx(self, button):
+        self.wx_active = button.inverted
+        print 'toggle wx'
+
+    def toggleObs(self, button):
+        self.obs_active = button.inverted
+        print 'toggle obs'
+
+    def toggleMap(self, button):
+        self.map_active = button.inverted
+        print 'toggle map'
+
+    def toggleWhi(self, button):
+        self.whi_active = button.inverted
+        print 'toggle whi'
+
+    def toggleRadarCover(self, button):
+        self.radarcover_active = button.inverted
+        self.drawElevationCoverage()
+        self.drawAzimuthCoverage()
+        self.drawAzAntElev()
+
+    def toggleHist(self, button):
+        self.hist_active = button.inverted
+        print 'toggle hist'
+
+    def toggleSynVideo(self, button):
+        self.synvid_active = button.inverted
+        print 'toggle syn vid'
+
+
+
+
+
+
+
+
+
+
+    def periodic(self):
+        self.drawTextInfo()
 
     def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate):
 
@@ -240,24 +328,78 @@ class MyScene(QtGui.QGraphicsScene):
 
 
 
+
+    def drawMapSymbols(self):
+        
+        if self.mapsymbols_item:
+            self.removeItem(self.mapsymbols_item)
+            del self.mapsymbols_item
+            
+        if self.map_active:
+            
+            self.mapsymbols_item = QtGui.QGraphicsItemGroup(parent=None, scene=self)
+            
+            lineitem = QtGui.QGraphicsLineItem(0.0, 0.0, 100.0, 100.0, parent=self.mapsymbols_item)
+            lineitem.setPen(self.axis_pen)
+            
+            
+
+
+
     def drawTextInfo(self):
             
         if self.textinfo_item:
             self.removeItem(self.textinfo_item)
             del self.textinfo_item
 
-        if self.active_airport and self.glideslope:
+        if self.glideslope:
+            gs_text = str(self.glideslope)
+        else:
+            gs_text = ''
+            
+        dh_text = '0 FT'        # Hmmm.... How to do the DH?????
+            
+        if self.active_airport != None and self.active_runway != None:
+            try:
+                rwy_direction_text = str(self.active_airport.runways[self.active_runway]['true'])
+            except Exception:
+                #print e
+                rwy_direction_text = '---'
+        else:
+            rwy_direction_text = ''
+            
+        time_text = time.strftime('%H:%M:%S', time.gmtime())
 
-            self.textinfo_item = QtGui.QGraphicsSimpleTextItem('GS: ' + str(self.glideslope), parent=None, scene=self)
-            self.textinfo_item.setFont(self.runway_font)
-            self.textinfo_item.setBrush(self.runway_brush)
-            textitemwidth = self.textinfo_item.boundingRect().width()
-            textitemheight = self.textinfo_item.boundingRect().height()
-            self.textinfo_item.setPos(self.textgraphicsareatopleft_x + self.textgraphicsareawidth/9, self.textgraphicsareatopleft_y)
-        
-        
-        
-        
+
+        #if self.active_airport and self.glideslope:
+
+        self.textinfo_item = QtGui.QGraphicsSimpleTextItem('GS: ' + gs_text, parent=None, scene=self)
+        self.textinfo_item.setFont(self.textinfo_font)
+        self.textinfo_item.setBrush(self.textinfo_brush)
+        #textitemwidth = self.textinfo_item.boundingRect().width()
+        #textitemheight = self.textinfo_item.boundingRect().height()
+        self.textinfo_item.setPos(self.textgraphicsareatopleft_x + 1.0*self.textgraphicsareawidth/8, self.textgraphicsareatopleft_y)
+
+        rwytextinfo_item = QtGui.QGraphicsSimpleTextItem('RWY: ' + rwy_direction_text, parent=self.textinfo_item)#, scene=self)
+        rwytextinfo_item.setFont(self.textinfo_font)
+        rwytextinfo_item.setBrush(self.textinfo_brush)
+        #textitemwidth = self.textinfo_item.boundingRect().width()
+        #textitemheight = self.textinfo_item.boundingRect().height()
+        rwytextinfo_item.setPos(1.0*self.textgraphicsareawidth/8, 0.0) #self.textgraphicsareatopleft_y)
+
+        dhtextinfo_item = QtGui.QGraphicsSimpleTextItem('DH: ' + dh_text, parent=self.textinfo_item)#, scene=self)
+        dhtextinfo_item.setFont(self.textinfo_font)
+        dhtextinfo_item.setBrush(self.textinfo_brush)
+        #textitemwidth = self.textinfo_item.boundingRect().width()
+        #textitemheight = self.textinfo_item.boundingRect().height()
+        dhtextinfo_item.setPos(2.0*self.textgraphicsareawidth/8, 0.0) #self.textgraphicsareatopleft_y)
+
+        timetextinfo_item = QtGui.QGraphicsSimpleTextItem('TIME: ' + time_text, parent=self.textinfo_item)#, scene=self)
+        timetextinfo_item.setFont(self.textinfo_font)
+        timetextinfo_item.setBrush(self.textinfo_brush)
+        #textitemwidth = self.textinfo_item.boundingRect().width()
+        #textitemheight = self.textinfo_item.boundingRect().height()
+        timetextinfo_item.setPos(3.0*self.textgraphicsareawidth/8, 0.0) #self.textgraphicsareatopleft_y)
         
         
         
@@ -295,8 +437,9 @@ class MyScene(QtGui.QGraphicsScene):
         if self.az_ant_elevation_item:
             self.removeItem(self.az_ant_elevation_item)
             del self.az_ant_elevation_item
+            self.az_ant_elevation_item = None
 
-        if self.rangescale and self.elevationscale and self.gca_elevation_point and (self.azantelev != None):
+        if self.rangescale and self.elevationscale and self.gca_elevation_point and (self.azantelev != None) and self.radarcover_active:
 
             m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
             m_per_y_pixel = self.elevationscale*0.3048 / (self.elevationaxiszero_y - self.elevationaxismax_y)
@@ -318,8 +461,9 @@ class MyScene(QtGui.QGraphicsScene):
         if self.elevation_coverage_item:
             self.removeItem(self.elevation_coverage_item)
             del self.elevation_coverage_item
+            self.elevation_coverage_item = None
             
-        if self.rangescale and self.elevationscale and self.gca_elevation_point:
+        if self.rangescale and self.elevationscale and self.gca_elevation_point and self.radarcover_active:
         
             m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
             m_per_y_pixel = self.elevationscale*0.3048 / (self.elevationaxiszero_y - self.elevationaxismax_y)
@@ -359,8 +503,9 @@ class MyScene(QtGui.QGraphicsScene):
         if self.azimuth_coverage_item:
             self.removeItem(self.azimuth_coverage_item)
             del self.azimuth_coverage_item
+            self.azimuth_coverage_item = None
             
-        if self.gca_azimuth_point:
+        if self.rangescale and self.elevationscale and self.gca_azimuth_point and self.radarcover_active:
         
             m_per_x_pixel = self.rangescale*1852.0 / (self.rangeaxismax_x - self.rangeaxiszero_x)
             m_per_y_pixel = self.azimuthscale*0.3048 / (self.azimuthaxiszero_y - self.azimuthaxismax_y)
@@ -483,7 +628,7 @@ class MyScene(QtGui.QGraphicsScene):
             for c in range(numberoffullmarkings):
                 x = self.elevationrangeaxiszero_x + c * delta_x
                 y = self.elevationrangeaxis_y + c * delta_y
-                lineitem = QtGui.QGraphicsLineItem(x, y + self.axismarkinglength / 2, x, y - self.axismarkinglength / 2, parent=self.glideslope_item)
+                lineitem = QtGui.QGraphicsLineItem(x, y + self.glideslopemarkinglength / 2, x, y - self.glideslopemarkinglength / 2, parent=self.glideslope_item)
                 lineitem.setPen(self.glideslope_pen)
 
 
@@ -511,12 +656,21 @@ class MyScene(QtGui.QGraphicsScene):
             self.elevation_runway_item.setZValue(self.runway_zvalue)
                         
             textitem = QtGui.QGraphicsSimpleTextItem(self.active_airport.runways[self.active_runway]['name'], parent=self.elevation_runway_item)
-            textitem.setFont(self.runway_font)
-            textitem.setBrush(self.runway_brush)
+            
+            textitem.setFont(self.textinfo_font)
+            textitem.setBrush(self.textinfo_brush)
             textitemwidth = textitem.boundingRect().width()
             textitemheight = textitem.boundingRect().height()
             textitem.setPos(self.elevationgraphicsareatopleft_x, self.elevationrangeaxis_y - textitemheight / 2)
             
+            painterpath = QtGui.QPainterPath()
+            painterpath.addEllipse(self.threshold_elevation_point.x() - 3.0, self.threshold_elevation_point.y(), 6.0, 20.0)
+            painterpath.addEllipse(self.threshold_elevation_point.x() - 3.0, self.threshold_elevation_point.y() - 20.0, 6.0, 20.0)
+        
+            self.path_item = QtGui.QGraphicsPathItem(painterpath, parent=self.elevation_runway_item, scene=self)
+            self.path_item.setPen(self.runway_pen)
+
+            # Make this a bit nicer perhaps
 
 
     def drawAzimuthRunway(self):
@@ -536,11 +690,21 @@ class MyScene(QtGui.QGraphicsScene):
             self.azimuth_runway_item.setZValue(self.runway_zvalue)
         
             textitem = QtGui.QGraphicsSimpleTextItem(self.active_airport.runways[self.active_runway]['name'], parent=self.elevation_runway_item)
-            textitem.setFont(self.runway_font)
-            textitem.setBrush(self.runway_brush)
+            textitem.setFont(self.textinfo_font)
+            textitem.setBrush(self.textinfo_brush)
             textitemwidth = textitem.boundingRect().width()
             textitemheight = textitem.boundingRect().height()
             textitem.setPos(self.azimuthgraphicsareatopleft_x, self.azimuthrangeaxis_y - textitemheight / 2)
+
+            painterpath = QtGui.QPainterPath()
+            painterpath.addEllipse(self.threshold_azimuth_point.x() - 3.0, self.threshold_azimuth_point.y(), 6.0, 20.0)
+            painterpath.addEllipse(self.threshold_azimuth_point.x() - 3.0, self.threshold_azimuth_point.y() - 20.0, 6.0, 20.0)
+        
+            self.path_item = QtGui.QGraphicsPathItem(painterpath, parent=self.azimuth_runway_item, scene=self)
+            self.path_item.setPen(self.runway_pen)
+            
+            
+            # Make this a bit nicer perhaps
 
 
 
@@ -819,4 +983,8 @@ class MyScene(QtGui.QGraphicsScene):
                 line.setPen(self.axis_pen)
                 line2 = QtGui.QGraphicsLineItem(x + delta_x / 2, self.azimuthrangeaxis_y + self.axismarkinglength / 4, x + delta_x / 2, self.azimuthrangeaxis_y - self.axismarkinglength / 4, parent=self.azimuth_x_axis_item)
                 line2.setPen(self.axis_pen)
+
+
+
+
 

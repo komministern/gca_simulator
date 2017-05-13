@@ -26,6 +26,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_rangescale_10.mousePressEvent(None)
         self.view.button_select_glideslope_28.mousePressEvent(None)
         self.view.button_select_azantalev_020.mousePressEvent(None)
+        
+        self.view.button_radarcover.mousePressEvent(None)
         # ...more to follow
         
         
@@ -34,10 +36,27 @@ class MyPresenter(QtCore.QObject):
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
-        self.view.button_shutdown.pressed.connect(self.model.quit)
+        
+        # Status buttons
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
         
-        #self.view.button_slask.pressed.connect(self.slask)
+        # Radar Control buttons
+        self.view.button_ant_drive.pressed.connect(self.view.scene.toggleAntennaDrive)
+        self.view.button_radiate.pressed.connect(self.view.scene.toggleRadiation)
+        self.view.button_rain_mode.pressed.connect(self.view.scene.toggleRainMode)
+        self.view.button_maint_mode.pressed.connect(self.view.scene.toggleMaintMode)
+        
+        # Display Control buttons
+        self.view.button_wx.pressed.connect(self.view.scene.toggleWx)
+        self.view.button_obs.pressed.connect(self.view.scene.toggleObs)
+        self.view.button_map.pressed.connect(self.view.scene.toggleMap)
+        self.view.button_whi.pressed.connect(self.view.scene.toggleWhi)
+        self.view.button_hist.pressed.connect(self.view.scene.toggleHist)
+        self.view.button_radarcover.pressed.connect(self.view.scene.toggleRadarCover)
+        self.view.button_syn_video.pressed.connect(self.view.scene.toggleSynVideo)
+        self.view.button_shutdown.pressed.connect(self.model.quit)
+
+
 
         self.connectRunwaySelectButtons()
         self.connectRangeScaleButtons()
@@ -281,3 +300,6 @@ class MyPresenter(QtCore.QObject):
                 sortedscaleexclusivegrouplist[index + 1].mousePressEvent(None)
             else:
                 sortedscaleexclusivegrouplist[index].mousePressEvent(None)
+    
+    
+
