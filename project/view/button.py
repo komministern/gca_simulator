@@ -174,7 +174,9 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         #self.toggleExpanded()
         self.pressed.emit(self)
         #print self.pressedsignal
-        self.parentItem().setFocused()
+        
+        
+        #self.parentItem().setFocused()  # Buttons has no parents?!?
         
         
         
@@ -201,7 +203,7 @@ class InvertingButton(Button):
                     if each.inverted and each != self:
                         each.toggleInverted()
 
-            Button.mousePressEvent(self, event)
+            #Button.mousePressEvent(self, event)
 
             #else:
 
@@ -209,7 +211,8 @@ class InvertingButton(Button):
         else:
 
             self.toggleInverted()
-            Button.mousePressEvent(self, event)
+            
+        Button.mousePressEvent(self, event)
 
 
 class ExpandingButton(Button):
@@ -226,7 +229,8 @@ class ExpandingButton(Button):
 
         else:
             self.window.hideWindow()
-            Button.mousePressEvent(self, event)
+            
+        Button.mousePressEvent(self, event)
         
         
 

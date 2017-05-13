@@ -36,10 +36,7 @@ class MyPresenter(QtCore.QObject):
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
-        
-        # Status buttons
-        self.view.button_load_new_airport.pressed.connect(self.loadAirport)
-        
+                
         # Radar Control buttons
         self.view.button_ant_drive.pressed.connect(self.view.scene.toggleAntennaDrive)
         self.view.button_radiate.pressed.connect(self.view.scene.toggleRadiation)
@@ -57,7 +54,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_shutdown.pressed.connect(self.model.quit)
 
 
-
+        self.connectStatusButtons()
         self.connectRunwaySelectButtons()
         self.connectRangeScaleButtons()
         self.connectElScaleButtons()
@@ -66,8 +63,12 @@ class MyPresenter(QtCore.QObject):
         self.connectAzAntElevButtons()
 
         self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
-        self.model.new_airport.connect(self.setupNewAirportWindow)
+        self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
+        self.model.new_airport.connect(self.setupNewStatusWindow)
         self.model.new_airport.connect(self.view.scene.newAirport)
+
+    def connectStatusButtons(self):
+        self.view.button_load_new_airport.pressed.connect(self.loadAirport)
 
 
     def connectAzAntElevButtons(self):
@@ -171,14 +172,16 @@ class MyPresenter(QtCore.QObject):
 
 
 
-    def setupNewAirportWindow(self, airport):
+    def setupNewRunwaySelectWindow(self, airport):
         position_when_destroyed = self.view.runwayselect_window.scenePos()
         if not self.view.runwayselect_window.isHidden():
             self.view.runwayselect_window.hideWindow()
             show_window_after_creation = True
         else:
             show_window_after_creation = False
+            
         self.view.scene.removeItem(self.view.runwayselect_window)
+        
         rwy_names = []
         for each in airport.runways:
             rwy_names.append(each['name'])
@@ -186,6 +189,7 @@ class MyPresenter(QtCore.QObject):
             rwy_names.append('')
         self.view.runwayselect_window = self.view.createRunwaySelectWindow(rwy_names[0], rwy_names[1], rwy_names[2], rwy_names[3], rwy_names[4], rwy_names[5])
         # Let the garbage collector deal with the old window.
+        
         self.view.button_runway_select.window = self.view.runwayselect_window      # Important. Feed the ExpandingButton its needed parameter.
         self.connectRunwaySelectButtons()
         self.view.runwayselect_window.setPos(position_when_destroyed)
@@ -193,8 +197,16 @@ class MyPresenter(QtCore.QObject):
             self.view.runwayselect_window.showWindow(self.view.button_runway_select)
         self.view.button_select_runway_1.mousePressEvent(None)     # Set runway 1 as active
         
-        self.view.status_window_area.updateDynamicTextItem('airport', 'Airport:         ' + airport.iata)
-        
+        #self.view.status_window_area.updateDynamicTextItem('airport', 'Airport:         ' + airport.iata)
+
+
+
+    def setupNewStatusWindow(self, airport):
+        self.view.scene.removeItem(self.view.status_window)
+        self.view.status_window = self.view.createStatusWindow(airport)
+        self.view.button_status.window = self.view.status_window      # Important. Feed the ExpandingButton its needed parameter.
+        self.connectStatusButtons()
+        self.view.status_window.showWindow(self.view.button_status)
 
 
 

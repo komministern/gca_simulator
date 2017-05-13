@@ -47,8 +47,76 @@ class MyView(QtGui.QGraphicsView):
 
         # **** CREATE THE 
 
+    def createStatusWindow(self, airport=None):
 
-    def createStatusWindow(self):
+        self.status_window_area = StatusWindowArea()
+        self.scene.addItem(self.status_window_area)
+        
+        if airport:
+        
+            self.status_window_area.newTextRowLeft('ICAO/IATA: ' + airport.icao + '/' + airport.iata)
+            self.status_window_area.endRow()
+        
+            counter = 1
+            for each in airport.runways:
+                
+                self.status_window_area.newTextRowLeft('RWY' + str(counter) + ': ' + each['name'])
+                self.status_window_area.endRow()
+                
+                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(each['lon']) + ', ' + str(each['lat']) + ', ' + str(each['el']) )
+                self.status_window_area.endRow()
+                self.status_window_area.newTextRowLeft('  Dist to TD (m): ' + str(each['td']))
+                self.status_window_area.endRow()
+                
+                #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
+                #self.status_window_area.endRow()
+                #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
+                #self.status_window_area.endRow()
+                
+                
+                counter += 1
+        
+            self.status_window_area.newTextRowLeft('Plot Bias Z (ft): ' + '0.0')
+            self.status_window_area.endRow()
+        
+        else:
+            self.status_window_area.newTextRowLeft('ICAO/IATA: ')
+            self.status_window_area.endRow()
+
+        self.status_window_area.newWhiteLineSeparator()
+        self.status_window_area.endRow()
+        
+        self.status_window_area.newFullButtonRow(3)
+        self.button_load_new_airport = Button('Load\nAirport')
+        self.status_window_area.registerNextButton(self.button_load_new_airport)
+        
+        self.button_connect = Button('Connect')
+        self.status_window_area.registerNextButton(self.button_connect)
+        self.status_window_area.endRow()
+
+        self.status_window_area.newWhiteLineSeparator()
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('Message count:  ', dynamic=True, identifier='count')
+        self.status_window_area.endRow()
+        self.status_window_area.newTextRowLeft('Time delay:     ', dynamic=True, identifier='delay')
+        self.status_window_area.endRow()
+        self.status_window_area.newTextRowLeft('Std dev:        ', dynamic=True, identifier='stddev')
+        self.status_window_area.endRow()
+        
+        self.status_window_area.fixWindow()
+        
+        self.status_window_topborder = WindowTopBorder('Status')
+        self.scene.addItem(self.status_window_topborder)
+        self.scene.registerWindowTopBorder(self.status_window_topborder)
+        self.status_window_area.attachTo(self.status_window_topborder)
+        return self.status_window_topborder
+
+
+
+
+
+    def createStatusWindow2(self):
         self.status_window_area = StatusWindowArea()
         self.scene.addItem(self.status_window_area)
         self.status_window_area.newTextRowLeft('Airport:', dynamic=True, identifier='airport')        # Fix some more attractive text row options.

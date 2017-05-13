@@ -147,7 +147,8 @@ class MyScene(QtGui.QGraphicsScene):
         # Windows related stuff
         self.movablewindowZval = 0.0
         self.activewindowtopborders = []
-        
+
+
         # Coordinates
         self.airplane_coordinate = np.array([])
         self.threshold_coordinate = np.array([])
@@ -155,7 +156,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.gca_coordinate = np.array([])
         self.mti_1_coordinate = np.array([])
         self.mti_2_coordinate = np.array([])
-        
+
+
         # Points
         self.touchdown_elevation_point = None
         self.touchdown_azimuth_point = None
@@ -190,7 +192,8 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.item_el = None
         self.item_az = None
-        
+
+
         # Z Values
         self.axis_zvalue = 0.5
         self.runway_zvalue = 3.0
@@ -202,6 +205,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.plot_zvalue = 10.0
         
         self.decisionheight_zvalue = self.glideslope_zvalue
+
 
         # Timer
         self.timer = QtCore.QTimer()
@@ -794,6 +798,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     def registerWindowTopBorder(self, windowtopborder):
         self.activewindowtopborders.append(windowtopborder)
+        
+#    def unRegisterWindowTopBorder(self, windowtopborder):
+#        self.activewindowtopborders.remove(windowtopborder)
 
 
     def unFocusAllWindowTopBorders(self):

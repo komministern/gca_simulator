@@ -7,7 +7,7 @@
 #    This file is part of GCA Simulator.
 
 
-import sys
+import sys, time
 from PySide import QtCore, QtGui, QtNetwork
 import numpy as np
 from airport import Airport
@@ -22,8 +22,8 @@ class MyModel(QtCore.QObject):
     def __init__(self):
         super(MyModel, self).__init__()
 
-        self.UDP_IP = '172.20.10.2'
-        #self.UDP_IP = '192.168.1.88'
+        #self.UDP_IP = '172.20.10.2'
+        self.UDP_IP = '192.168.1.88'
         self.UDP_SENDPORT = 5005
         self.UDP_RECEIVEPORT = 5006
 
@@ -37,7 +37,7 @@ class MyModel(QtCore.QObject):
 
 
 
-        self.airport = None         # 1 to 6 (not 0 to 5)
+        self.airport = None         # 1 to 6 (not 0 to 5)?????????
         self.active_runway = None
 
 
