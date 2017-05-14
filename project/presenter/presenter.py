@@ -67,9 +67,14 @@ class MyPresenter(QtCore.QObject):
         self.model.new_airport.connect(self.setupNewStatusWindow)
         self.model.new_airport.connect(self.view.scene.newAirport)
 
+        self.model.new_communication_data.connect(self.updateStatusWindow)
+        self.model.new_connected_state.connect(self.updateConnectButton)
+
+
     def connectStatusButtons(self):
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
-
+        self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin_)
+        
 
     def connectAzAntElevButtons(self):
         self.view.button_select_azantalev_000.pressed.connect(self.newAzAntElevChosen)
@@ -163,11 +168,6 @@ class MyPresenter(QtCore.QObject):
 
 
 
-    def slask(self):
-        
-        self.view.status_window_area.updateDynamicTextItem('airport', str(self.slask_var) )
-        
-        self.slask_var += 1
         
 
 
@@ -206,14 +206,36 @@ class MyPresenter(QtCore.QObject):
         self.view.status_window = self.view.createStatusWindow(airport)
         self.view.button_status.window = self.view.status_window      # Important. Feed the ExpandingButton its needed parameter.
         self.connectStatusButtons()
+        if self.model.connected:
+            self.view.button_connect.toggleInverted()
         self.view.status_window.showWindow(self.view.button_status)
 
+
+    def updateStatusWindow(self, count, latest_delay, mean_delay, std_delay):
+        self.view.status_window_area.updateDynamicTextItem('count', 'Message count:\t' + str(count) )
+        self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:\t\t{0:.3f}'.format(latest_delay) )
+        self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:\t\t{0:.3f}'.format(mean_delay) )
+        self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:\t\t{0:.3f}'.format(std_delay) )
+
+
+    def updateConnectButton(self, connected):
+        if self.view.button_connect.inverted ^ connected:
+            self.view.button_connect.toggleInverted()
+            
+        if not connected:
+            self.view.status_window_area.updateDynamicTextItem('count', 'Message count:')
+            self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:')
+            self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:')
+            self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:')
 
 
     def loadAirport(self):
         filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', '~', 'Airport Files (*.apt)')
         if filename:
             self.model.readNewAirport(filename)
+
+
+        
 
 
 

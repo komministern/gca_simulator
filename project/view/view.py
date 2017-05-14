@@ -99,9 +99,11 @@ class MyView(QtGui.QGraphicsView):
 
         self.status_window_area.newTextRowLeft('Message count:  ', dynamic=True, identifier='count')
         self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Time delay:     ', dynamic=True, identifier='delay')
+        self.status_window_area.newTextRowLeft('Latest delay:   ', dynamic=True, identifier='delay')
         self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Std dev:        ', dynamic=True, identifier='stddev')
+        self.status_window_area.newTextRowLeft('Mean delay:     ', dynamic=True, identifier='mean')
+        self.status_window_area.endRow()
+        self.status_window_area.newTextRowLeft('Std:            ', dynamic=True, identifier='std')
         self.status_window_area.endRow()
         
         self.status_window_area.fixWindow()

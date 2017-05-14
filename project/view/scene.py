@@ -720,13 +720,23 @@ class MyScene(QtGui.QGraphicsScene):
     def drawPlot(self):
         # Draw the plot
 
+        if self.item_el:
+            self.removeItem(self.item_el)
+            self.item_el = None
+            
+        if self.item_az:
+                self.removeItem(self.item_az)
+                self.item_az = None
+                
+                
+
         if self.airplane_elevation_point and self.airplane_azimuth_point:
 
             self.brush = QtGui.QBrush(QtCore.Qt.white)
 
-            if self.item_el:
-                self.removeItem(self.item_el)
-                self.item_el = None
+            #if self.item_el:
+             #   self.removeItem(self.item_el)
+              #  self.item_el = None
 
             #if range_x_pixel and altitude_y_pixel:
             
@@ -735,9 +745,9 @@ class MyScene(QtGui.QGraphicsScene):
             self.item_el.setBrush(self.brush)
             self.item_el.setZValue(self.plot_zvalue)
         
-            if self.item_az:
-                self.removeItem(self.item_az)
-                self.item_az = None
+            #if self.item_az:
+             #   self.removeItem(self.item_az)
+              #  self.item_az = None
 
             #if range_x_pixel and azimuth_y_pixel:
             self.item_az = QtGui.QGraphicsEllipseItem(self.airplane_azimuth_point.x()-4.0, self.airplane_azimuth_point.y()-4.0, 8.0, 8.0, parent=None, scene=self)
