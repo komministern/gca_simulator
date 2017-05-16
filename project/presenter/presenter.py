@@ -26,12 +26,14 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_rangescale_10.mousePressEvent(None)
         self.view.button_select_glideslope_28.mousePressEvent(None)
         self.view.button_select_azantalev_020.mousePressEvent(None)
-        
+        self.view.button_select_nhist_10.mousePressEvent(None)
+        self.view.button_hist.mousePressEvent(None)
         self.view.button_radarcover.mousePressEvent(None)
+        
         # ...more to follow
         
         
-        self.slask_var = 0
+        #self.slask_var = 0
 
 
     def connectSignals(self):
@@ -53,7 +55,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_syn_video.pressed.connect(self.view.scene.toggleSynVideo)
         self.view.button_shutdown.pressed.connect(self.model.quit)
 
-
+        
+        self.connectNHistButtons()
         self.connectStatusButtons()
         self.connectRunwaySelectButtons()
         self.connectRangeScaleButtons()
@@ -69,6 +72,25 @@ class MyPresenter(QtCore.QObject):
 
         self.model.new_communication_data.connect(self.updateStatusWindow)
         self.model.new_connected_state.connect(self.updateConnectButton)
+
+
+    def connectNHistButtons(self):
+        self.view.button_select_nhist_1.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_2.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_3.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_4.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_5.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_6.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_7.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_8.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_9.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_10.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_11.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_12.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_13.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_14.pressed.connect(self.newNHistChosen)
+        self.view.button_select_nhist_15.pressed.connect(self.newNHistChosen)
+
 
 
     def connectStatusButtons(self):
@@ -243,6 +265,14 @@ class MyPresenter(QtCore.QObject):
 #    def processReceivedPlots(self, listofplots): 
 #        self.view.scene.processReceivedPlots(listofplots)
 
+    def newNHistChosen(self, button):
+        if button.value != self.view.scene.nhist:
+            self.view.scene.nhist = button.value
+            self.view.scene.drawAllElevationTracks()
+            self.view.scene.drawAllAzimuthTracks()
+
+
+
     def newAzAntElevChosen(self, button):
         if button.value != self.view.scene.azantelev:
             self.view.scene.azantelev = button.value
@@ -260,6 +290,12 @@ class MyPresenter(QtCore.QObject):
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
             
+            self.view.scene.airplane_track.clear()
+            self.view.scene.mti_1_track.clear()
+            self.view.scene.mti_2_track.clear()
+            
+            
+            #self.view.scene.airplane_elevation_track.clear()
             #self.view.scene.drawElevationGraphics()
             #self.view.scene.drawAzimuthGraphics()
                 
@@ -269,6 +305,8 @@ class MyPresenter(QtCore.QObject):
         
         self.view.scene.createElevationAxis()
         
+        #self.view.scene.airplane_elevation_track.clear()           # Get rid of obsolete history plots
+        
         self.view.scene.drawElevationGraphics()
 
 
@@ -276,6 +314,8 @@ class MyPresenter(QtCore.QObject):
         self.view.scene.azimuthscale = button.value
         
         self.view.scene.createAzimuthAxis()
+        
+        #self.view.scene.airplane_azimuth_track.clear()
         
         self.view.scene.drawAzimuthGraphics()
 

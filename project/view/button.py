@@ -232,5 +232,19 @@ class ExpandingButton(Button):
             
         Button.mousePressEvent(self, event)
         
-        
+
+
+class FlashingButton(Button):
+    
+    def __init__(self, text):
+        super(FlashingButton, self).__init__(text)
+        self.timer = QtCore.QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.toggleInverted)
+
+    def mousePressEvent(self, event):
+        self.toggleInverted()
+        self.timer.start(100)
+            
+        Button.mousePressEvent(self, event)
 

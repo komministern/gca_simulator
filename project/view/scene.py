@@ -7,6 +7,7 @@
 from PySide import QtGui, QtCore
 import numpy as np
 import time
+from track import Track
 
 class MyScene(QtGui.QGraphicsScene):
 
@@ -87,6 +88,12 @@ class MyScene(QtGui.QGraphicsScene):
     azimuthaxismax_y = azimuthgraphicsareatopleft_y
     azimuthaxiszero_y = azimuthrangeaxis_y
 
+    # **** PLOT SIZE
+    
+    plot_radius = 4.0
+
+
+
 
     def __init__(self):
         super(MyScene, self).__init__()
@@ -123,6 +130,11 @@ class MyScene(QtGui.QGraphicsScene):
         self.textinfo_font = QtGui.QFont(self.axis_font)
         self.textinfo_brush = QtGui.QBrush(self.glideslope_color)
         
+        self.plot_brush = QtGui.QBrush(QtCore.Qt.white)
+        self.plot_pen = QtGui.QPen(QtCore.Qt.white)
+        
+        self.historic_plot_brush = QtGui.QBrush(QtCore.Qt.darkGray)
+        self.historic_plot_pen = QtGui.QPen(QtCore.Qt.darkGray)
 
         # Attributes relevant for the display
         self.rangescale = None
@@ -130,6 +142,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.azimuthscale = None
         self.glideslope = None
         self.azantelev = None
+        self.nhist = None
         
         self.active_airport = None
         self.active_runway = None
@@ -190,8 +203,14 @@ class MyScene(QtGui.QGraphicsScene):
         self.az_ant_elevation_item = None
         self.textinfo_item = None
         
-        self.item_el = None
-        self.item_az = None
+        self.elevation_plot_items = []
+        self.elevation_historic_plot_items = []
+        
+        self.azimuth_plot_items = []
+        self.azimuth_historic_plot_items = []
+        
+        #self.item_el = None
+        #self.item_az = None
 
 
         # Z Values
@@ -209,8 +228,15 @@ class MyScene(QtGui.QGraphicsScene):
 
         # Timer
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.periodic)
+        self.timer.timeout.connect(self.drawTextInfo)
         self.timer.start(1000)
+
+
+        # Tracks
+        self.airplane_track = Track()
+        self.mti_1_track = Track()
+        self.mti_2_track = Track()
+
 
 
     # METHODS
@@ -262,7 +288,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     def toggleHist(self, button):
         self.hist_active = button.inverted
-        print 'toggle hist'
+        self.drawAllElevationTracks()
+        self.drawAllAzimuthTracks()
+        #print 'toggle hist'
 
     def toggleSynVideo(self, button):
         self.synvid_active = button.inverted
@@ -272,13 +300,11 @@ class MyScene(QtGui.QGraphicsScene):
 
 
 
+#    def periodic(self):
+#        self.drawTextInfo()
 
 
 
-
-
-    def periodic(self):
-        self.drawTextInfo()
 
     def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate):
 
@@ -289,46 +315,66 @@ class MyScene(QtGui.QGraphicsScene):
         self.mti_1_coordinate = mti_1_coordinate
         self.mti_2_coordinate = mti_2_coordinate
 
-        self.calculatePoints()
+        self.airplane_track.update(self.airplane_coordinate)
+        self.mti_1_track.update(self.mti_1_coordinate)
+        self.mti_2_track.update(self.mti_2_coordinate)
 
         self.drawElevationGraphics()
         self.drawAzimuthGraphics()
 
         self.drawTextInfo()
 
-        self.drawPlot()
+       
 
-    def calculatePoints(self):
-        self.touchdown_elevation_point, self.touchdown_azimuth_point = self.getPoints(np.array([0.0, 0.0, 0.0]))
-        self.airplane_elevation_point, self.airplane_azimuth_point = self.getPoints(self.airplane_coordinate)
-        self.threshold_elevation_point, self.threshold_azimuth_point = self.getPoints(self.threshold_coordinate)
-        self.eor_elevation_point, self.eor_azimuth_point = self.getPoints(self.eor_coordinate)
-        self.gca_elevation_point, self.gca_azimuth_point = self.getPoints(self.gca_coordinate)
-        self.mti_1_elevation_point, self.mti_1_azimuth_point = self.getPoints(self.mti_1_coordinate)
-        self.mti_2_elevation_point, self.mti_2_azimuth_point = self.getPoints(self.mti_2_coordinate)
+        
+
+
+
+
+
 
     def newAirport(self, airport):
         self.active_airport = airport
 
 
+    def drawAllGraphics(self):
+        self.drawElevationGraphics()
+        self.drawAzimuthGraphics()
+
     def drawElevationGraphics(self):
         
-        self.calculatePoints()  # Hmmmmmmmmmmmmmmm
-        
+        # Calculate all points (except for the track points, which are calculated in the drawElevationTrack method)
+        self.touchdown_elevation_point = self.getElevationPoint(np.array([0.0, 0.0, 0.0]))
+        self.threshold_elevation_point = self.getElevationPoint(self.threshold_coordinate)
+        self.eor_elevation_point = self.getElevationPoint(self.eor_coordinate)
+        self.gca_elevation_point = self.getElevationPoint(self.gca_coordinate)
+        self.mti_1_elevation_point = self.getElevationPoint(self.mti_1_coordinate)
+        self.mti_2_elevation_point = self.getElevationPoint(self.mti_2_coordinate)
+
         self.drawElevationRunway()
         self.drawGlideSlope()
         self.drawElevationGCA()
         self.drawElevationCoverage()
         self.drawAzAntElev()
+        
+        self.drawAllElevationTracks()
 
     
     def drawAzimuthGraphics(self):
         
-        self.calculatePoints()
+        # Calculate all points (except for the track points, which are calculated in the drawAzimuthTrack method)
+        self.touchdown_azimuth_point = self.getAzimuthPoint(np.array([0.0, 0.0, 0.0]))
+        self.threshold_azimuth_point = self.getAzimuthPoint(self.threshold_coordinate)
+        self.eor_azimuth_point = self.getAzimuthPoint(self.eor_coordinate)
+        self.gca_azimuth_point = self.getAzimuthPoint(self.gca_coordinate)
+        self.mti_1_azimuth_point = self.getAzimuthPoint(self.mti_1_coordinate)
+        self.mti_2_azimuth_point = self.getAzimuthPoint(self.mti_2_coordinate)
         
         self.drawAzimuthRunway()
         self.drawAzimuthGCA()
         self.drawAzimuthCoverage()
+        
+        self.drawAllAzimuthTracks()
 
 
 
@@ -338,6 +384,7 @@ class MyScene(QtGui.QGraphicsScene):
         if self.mapsymbols_item:
             self.removeItem(self.mapsymbols_item)
             del self.mapsymbols_item
+            self.mapsymbols_item = None
             
         if self.map_active:
             
@@ -355,6 +402,7 @@ class MyScene(QtGui.QGraphicsScene):
         if self.textinfo_item:
             self.removeItem(self.textinfo_item)
             del self.textinfo_item
+            self.textinfo_item = None
 
         if self.glideslope:
             gs_text = str(self.glideslope)
@@ -551,12 +599,19 @@ class MyScene(QtGui.QGraphicsScene):
             middle_line_item.setPen(self.coverage_pen)
             middle_line_item.setZValue(self.coverage_zvalue)
             
-            
+
+
+
+
+
+
+
 
     def drawElevationGCA(self):
         if self.elevation_gca_item:
             self.removeItem(self.elevation_gca_item)
             del self.elevation_gca_item
+            self.elevation_gca_item = None
 
             
         if self.gca_elevation_point:
@@ -569,6 +624,7 @@ class MyScene(QtGui.QGraphicsScene):
         if self.azimuth_gca_item:
             self.removeItem(self.azimuth_gca_item)
             del self.azimuth_gca_item
+            self.azimuth_gca_item = None
 
         if self.gca_azimuth_point:
             rect = QtCore.QRectF(self.gca_azimuth_point.x()-7.5, self.gca_azimuth_point.y()-5.0, 15.0, 10.0)
@@ -576,9 +632,32 @@ class MyScene(QtGui.QGraphicsScene):
             self.azimuth_gca_item.setBrush(self.gca_brush)
             self.azimuth_gca_item.setZValue(self.gca_zvalue)
 
-    def getPoints(self, np_coord):
-            
-        if len(np_coord) == 3 and (self.azimuthscale != None) and (self.elevationscale != None):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def getElevationPoint(self, np_coord):
+        if len(np_coord) == 3 and (self.elevationscale != None):
             
             range_m = np_coord[0]
             altitude_m = np_coord[2]
@@ -586,14 +665,43 @@ class MyScene(QtGui.QGraphicsScene):
 
             range_x_pixel = self.range_to_scenexcoord(range_m)
             altitude_y_pixel = self.altitude_to_sceneycoord(altitude_m)
-            azimuth_y_pixel = self.azimuth_to_sceneycoord(azimuth_m)
+            #azimuth_y_pixel = self.azimuth_to_sceneycoord(azimuth_m)
 
             elev_point = QtCore.QPointF(range_x_pixel, altitude_y_pixel)
+            #azim_point = QtCore.QPointF(range_x_pixel, azimuth_y_pixel)
+
+            return elev_point
+        else:
+            return None
+        
+
+    def getAzimuthPoint(self, np_coord):
+        if len(np_coord) == 3 and (self.azimuthscale != None):
+            
+            range_m = np_coord[0]
+            altitude_m = np_coord[2]
+            azimuth_m = np_coord[1]
+
+            range_x_pixel = self.range_to_scenexcoord(range_m)
+            #altitude_y_pixel = self.altitude_to_sceneycoord(altitude_m)
+            azimuth_y_pixel = self.azimuth_to_sceneycoord(azimuth_m)
+
+            #elev_point = QtCore.QPointF(range_x_pixel, altitude_y_pixel)
             azim_point = QtCore.QPointF(range_x_pixel, azimuth_y_pixel)
 
-            return elev_point, azim_point
+            return azim_point
         else:
-            return None, None
+            return None
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -601,11 +709,12 @@ class MyScene(QtGui.QGraphicsScene):
         if self.glideslope_item:
             self.removeItem(self.glideslope_item)
             del self.glideslope_item
+            self.glideslope_item = None
 
         if self.glideslope and self.rangescale and self.touchdown_elevation_point:
 
             glideslope_end_coordinate = np.array([-1852.0*self.rangescale, 0.0, np.tan(self.glideslope*np.pi/180)*1852.0*self.rangescale])
-            glideslope_end_point, _ = self.getPoints(glideslope_end_coordinate)
+            glideslope_end_point = self.getElevationPoint(glideslope_end_coordinate)
             line = QtCore.QLineF(self.touchdown_elevation_point, glideslope_end_point)
             
             self.glideslope_item = QtGui.QGraphicsLineItem(line, parent=None, scene=self)
@@ -642,6 +751,7 @@ class MyScene(QtGui.QGraphicsScene):
         if self.elevation_runway_item:
             self.removeItem(self.elevation_runway_item)
             del self.elevation_runway_item
+            self.elevation_runway_item = None
 
         if self.eor_elevation_point and self.threshold_elevation_point:
 
@@ -681,6 +791,7 @@ class MyScene(QtGui.QGraphicsScene):
         if self.azimuth_runway_item:
             self.removeItem(self.azimuth_runway_item)
             del self.azimuth_runway_item
+            self.azimuth_runway_item = None
         
         if self.eor_azimuth_point and self.threshold_azimuth_point:
         
@@ -712,47 +823,95 @@ class MyScene(QtGui.QGraphicsScene):
 
 
 
-    #def drawElevationTrackPlot(self):
+
+
+
+
+
+
+
+    def drawAllElevationTracks(self):
+        self.drawElevationTrack(self.airplane_track)
+        if self.gca_elevation_point:
+            self.drawElevationTrack(self.mti_1_track, min_x=self.gca_elevation_point.x())
+            self.drawElevationTrack(self.mti_2_track, min_x=self.gca_elevation_point.x())
+
+
+    def drawAllAzimuthTracks(self):
+        self.drawAzimuthTrack(self.airplane_track)
+        if self.gca_azimuth_point:
+            self.drawAzimuthTrack(self.mti_1_track, min_x=self.gca_azimuth_point.x())
+            self.drawAzimuthTrack(self.mti_2_track, min_x=self.gca_azimuth_point.x())
+
+
+
+
+    def drawElevationTrack(self, track, min_x=0.0):
+        self.drawTrack(track, 'elevation', min_x)
         
+    def drawAzimuthTrack(self, track, min_x=0.0):
+        self.drawTrack(track, 'azimuth', min_x)
+
+    def drawTrack(self, track, el_or_az, min_x):
+        
+        if el_or_az == 'azimuth':
+            if track.azimuth_plot_item:
+                self.removeItem(track.azimuth_plot_item)
+                del track.azimuth_plot_item
+            track.azimuth_plot_item = None
+            
+            plot_point = self.getAzimuthPoint(track.latest())
+            if plot_point:
+                if plot_point.x() < (self.graphicsareawidth - self.plot_radius) and (plot_point.x() > min_x):
+                    track.azimuth_plot_item = self.createPlotItem(plot_point, self.plot_brush, self.plot_pen, self.plot_zvalue)
+        
+            for each in track.azimuth_historic_plot_items:
+                self.removeItem(each)
+                del each
+            track.azimuth_historic_plot_items = []
+            
+            if self.hist_active:
+                for each in track.historic(self.nhist):
+                    history_plot_point = self.getAzimuthPoint(each)
+                    if history_plot_point:
+                        if history_plot_point.x() < (self.graphicsareawidth - self.plot_radius) and (plot_point.x() > min_x):
+                            track.azimuth_historic_plot_items.append(self.createPlotItem(history_plot_point, self.historic_plot_brush, self.historic_plot_pen, self.historic_plot_zvalue))
+
+        elif el_or_az == 'elevation':
+            
+            if track.elevation_plot_item:
+                self.removeItem(track.elevation_plot_item)
+                del track.elevation_plot_item
+            track.elevation_plot_item = None
+            
+            plot_point = self.getElevationPoint(track.latest())
+            if plot_point:
+                if plot_point.x() < (self.graphicsareawidth - self.plot_radius) and (plot_point.x() > min_x):
+                    track.elevation_plot_item = self.createPlotItem(plot_point, self.plot_brush, self.plot_pen, self.plot_zvalue)
+        
+            for each in track.elevation_historic_plot_items:
+                self.removeItem(each)
+                del each
+            track.elevation_historic_plot_items = []
+            
+            if self.hist_active:
+                for each in track.historic(self.nhist):
+                    history_plot_point = self.getElevationPoint(each)
+                    if history_plot_point:
+                        if history_plot_point.x() < (self.graphicsareawidth - self.plot_radius) and (plot_point.x() > min_x):
+                            track.elevation_historic_plot_items.append(self.createPlotItem(history_plot_point, self.historic_plot_brush, self.historic_plot_pen, self.historic_plot_zvalue))
+
+
+    def createPlotItem(self, coordinate, brush, pen, zvalue):
+        item = QtGui.QGraphicsEllipseItem(coordinate.x()-self.plot_radius, coordinate.y()-self.plot_radius, self.plot_radius*2, self.plot_radius*2, parent=None, scene=self)
+        item.setBrush(brush)
+        item.setPen(pen)
+        item.setZValue(zvalue)
+        return item
 
 
     
-    def drawPlot(self):
-        # Draw the plot
-
-        if self.item_el:
-            self.removeItem(self.item_el)
-            self.item_el = None
-            
-        if self.item_az:
-                self.removeItem(self.item_az)
-                self.item_az = None
-                
-                
-
-        if self.airplane_elevation_point and self.airplane_azimuth_point:
-
-            self.brush = QtGui.QBrush(QtCore.Qt.white)
-
-            #if self.item_el:
-             #   self.removeItem(self.item_el)
-              #  self.item_el = None
-
-            #if range_x_pixel and altitude_y_pixel:
-            
-            
-            self.item_el = QtGui.QGraphicsEllipseItem(self.airplane_elevation_point.x()-4.0, self.airplane_elevation_point.y()-4.0, 8.0, 8.0, parent=None, scene=self)
-            self.item_el.setBrush(self.brush)
-            self.item_el.setZValue(self.plot_zvalue)
-        
-            #if self.item_az:
-             #   self.removeItem(self.item_az)
-              #  self.item_az = None
-
-            #if range_x_pixel and azimuth_y_pixel:
-            self.item_az = QtGui.QGraphicsEllipseItem(self.airplane_azimuth_point.x()-4.0, self.airplane_azimuth_point.y()-4.0, 8.0, 8.0, parent=None, scene=self)
-            self.item_az.setBrush(self.brush)
-            self.item_az.setZValue(self.plot_zvalue)
+ 
 
 
 
@@ -822,10 +981,6 @@ class MyScene(QtGui.QGraphicsScene):
         self.movablewindowZval += 0.001
         return self.movablewindowZval
 
-
-    def dostuff(self):
-        self.rect = QtGui.QGraphicsRectItem(self.textgraphicsareatopleft_x, self.textgraphicsareatopleft_y, self.textgraphicsareawidth, self.textgraphicsareaheight, scene=self)
-        self.rect.setPen(QtGui.QPen(QtCore.Qt.darkGray))
 
 
 

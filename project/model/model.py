@@ -80,6 +80,7 @@ class MyModel(QtCore.QObject):
             self.timer_senddata.stop()
             self.timer_connection_active.stop()
             self.new_connected_state.emit(self.connected)
+            self.new_plot_extracted.emit([], [], [], [], [], [])
         
         elif self.airport:
             print 'sending query'
@@ -105,6 +106,7 @@ class MyModel(QtCore.QObject):
         
         self.connected = False
         self.new_connected_state.emit(self.connected)
+        self.new_plot_extracted.emit([], [], [], [], [], [])
         self.timer_senddata.stop()
         
         print 'lost connection'
