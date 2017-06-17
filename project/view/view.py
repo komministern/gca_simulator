@@ -28,7 +28,9 @@ class MyView(QtGui.QGraphicsView):
 
         # **** CREATE ALL THE BUTTON WINDOWS WITH ALL THEIR BUTTONS
 
+        self.leaddir_window = self.createLeadDirWindow()
         self.status_window = self.createStatusWindow()
+        self.seldbfld_window = self.createSelDBFldWindow()
         self.decsnheight_window = self.createDecsnHeightWindow()
         self.elantazim_window = self.createSetElAntAzimWindow()
         self.glideslope_window = self.createSetGlideSlopeWindow()
@@ -43,6 +45,8 @@ class MyView(QtGui.QGraphicsView):
         self.radarmode_window = self.createRadarModeWindow()
         self.runwayselect_window = self.createRunwaySelectWindow()
         self.main_window = self.createMainWindow()
+        
+        self.main_window.setZValue(self.scene.getNewZVal())
 
 
         # **** CREATE THE 
@@ -115,6 +119,87 @@ class MyView(QtGui.QGraphicsView):
         return self.status_window_topborder
 
 
+    def createLeadDirWindow(self):
+        self.leaddir_window_area = WindowArea()
+        self.scene.addItem(self.leaddir_window_area)
+        
+        self.leaddir_window_area.newHalfButtonRow(5)
+        self.leaddir_window_area.skipNextButton()
+        self.leaddir_window_area.skipNextButton()
+        self.button_north = FlashingButton('N')
+        self.leaddir_window_area.registerNextButton(self.button_north)
+        self.leaddir_window_area.endRow()
+        
+        self.leaddir_window_area.newHalfButtonRow(5)
+        self.leaddir_window_area.skipNextButton()
+        self.button_northwest = FlashingButton('NW')
+        self.leaddir_window_area.registerNextButton(self.button_northwest)
+        self.leaddir_window_area.skipNextButton()
+        self.button_northeast = FlashingButton('NE')
+        self.leaddir_window_area.registerNextButton(self.button_northeast)
+        self.leaddir_window_area.endRow()
+        
+        self.leaddir_window_area.newHalfButtonRow(5)
+        self.button_west = FlashingButton('W')
+        self.leaddir_window_area.registerNextButton(self.button_west)
+        self.leaddir_window_area.skipNextButton()
+        self.leaddir_window_area.skipNextButton()
+        self.leaddir_window_area.skipNextButton()
+        self.button_east = FlashingButton('E')
+        self.leaddir_window_area.registerNextButton(self.button_east)
+        self.leaddir_window_area.endRow()
+        
+        self.leaddir_window_area.newHalfButtonRow(5)
+        self.leaddir_window_area.skipNextButton()
+        self.button_southwest = FlashingButton('SW')
+        self.leaddir_window_area.registerNextButton(self.button_southwest)
+        self.leaddir_window_area.skipNextButton()
+        self.button_southeast = FlashingButton('SE')
+        self.leaddir_window_area.registerNextButton(self.button_southeast)
+        self.leaddir_window_area.endRow()
+        
+        self.leaddir_window_area.newHalfButtonRow(5)
+        self.leaddir_window_area.skipNextButton()
+        self.leaddir_window_area.skipNextButton()
+        self.button_south = FlashingButton('S')
+        self.leaddir_window_area.registerNextButton(self.button_south)
+        self.leaddir_window_area.skipNextButton()
+        self.button_all = FlashingButton('ALL')
+        self.leaddir_window_area.registerNextButton(self.button_all)
+        self.leaddir_window_area.endRow()
+
+        self.leaddir_window_area.fixWindow()
+        self.leaddir_window_topborder = WindowTopBorder('Leader Direction')
+        self.scene.addItem(self.leaddir_window_topborder)
+        self.scene.registerWindowTopBorder(self.leaddir_window_topborder)
+        self.leaddir_window_area.attachTo(self.leaddir_window_topborder)
+        return self.leaddir_window_topborder
+
+
+    def createSelDBFldWindow(self):
+        self.seldbfld_window_area = WindowArea()
+        self.scene.addItem(self.seldbfld_window_area)
+        self.seldbfld_window_area.newFullButtonRow(3)
+        self.button_line1 = InvertingButton('TOGGLE\nLINE 1')
+        self.seldbfld_window_area.registerNextButton(self.button_line1)
+        self.button_line2 = InvertingButton('TOGGLE\nLINE 2')
+        self.seldbfld_window_area.registerNextButton(self.button_line2)
+        self.button_line3 = InvertingButton('TOGGLE\nLINE 3')
+        self.seldbfld_window_area.registerNextButton(self.button_line3)
+        self.seldbfld_window_area.endRow()
+        self.seldbfld_window_area.newFullButtonRow(3)
+        self.button_leader = InvertingButton('TOGGLE\nLEADER')
+        self.seldbfld_window_area.registerNextButton(self.button_leader)
+        self.button_fdb = InvertingButton('TOGGLE\nFDB')
+        self.seldbfld_window_area.registerNextButton(self.button_fdb)
+        self.seldbfld_window_area.skipNextButton()
+        self.seldbfld_window_area.endRow()
+        self.seldbfld_window_area.fixWindow()
+        self.seldbfld_window_topborder = WindowTopBorder('SELECT FEATURES')
+        self.scene.addItem(self.seldbfld_window_topborder)
+        self.scene.registerWindowTopBorder(self.seldbfld_window_topborder)
+        self.seldbfld_window_area.attachTo(self.seldbfld_window_topborder)
+        return self.seldbfld_window_topborder
 
 
 
@@ -485,12 +570,12 @@ class MyView(QtGui.QGraphicsView):
         self.scene.addItem(self.ac_window_area)
         self.ac_window_area.newFullButtonRow(3)
         self.acexclusivegrouplist = []
-        self.button_select_ac_Small = InvertingButton('Small', value=1, exclusivegroup=self.acexclusivegrouplist)
-        self.ac_window_area.registerNextButton(self.button_select_ac_Small)
-        self.button_select_ac_Medium = InvertingButton('Medium', value=2, exclusivegroup=self.acexclusivegrouplist)
-        self.ac_window_area.registerNextButton(self.button_select_ac_Medium)
-        self.button_select_ac_Large = InvertingButton('Large', value=3, exclusivegroup=self.acexclusivegrouplist)
-        self.ac_window_area.registerNextButton(self.button_select_ac_Large)
+        self.button_select_ac_small = InvertingButton('Small', value='S', exclusivegroup=self.acexclusivegrouplist)
+        self.ac_window_area.registerNextButton(self.button_select_ac_small)
+        self.button_select_ac_medium = InvertingButton('Medium', value='M', exclusivegroup=self.acexclusivegrouplist)
+        self.ac_window_area.registerNextButton(self.button_select_ac_medium)
+        self.button_select_ac_large = InvertingButton('Large', value='L', exclusivegroup=self.acexclusivegrouplist)
+        self.ac_window_area.registerNextButton(self.button_select_ac_large)
         self.ac_window_area.endRow()
         self.ac_window_area.fixWindow()
         self.ac_window_topborder = WindowTopBorder('Aircraft Size')
@@ -524,9 +609,9 @@ class MyView(QtGui.QGraphicsView):
         self.displaycontrol_window_area.skipNextButton()
         self.displaycontrol_window_area.endRow()
         self.displaycontrol_window_area.newFullButtonRow(4)
-        self.button_dbfld = Button('Sel\nDBFld')
+        self.button_dbfld = ExpandingButton('Sel\nDBFld', self.seldbfld_window)
         self.displaycontrol_window_area.registerNextButton(self.button_dbfld)
-        self.button_lead_dir = Button('Lead\nDir')
+        self.button_lead_dir = ExpandingButton('Lead\nDir', self.leaddir_window)
         self.displaycontrol_window_area.registerNextButton(self.button_lead_dir)
         self.button_color_legnd = Button('Color\nLegnd')
         self.displaycontrol_window_area.registerNextButton(self.button_color_legnd)

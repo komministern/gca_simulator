@@ -16,10 +16,11 @@ from airport import Airport
 class MyModel(QtCore.QObject):
 
 
-    new_plot_extracted = QtCore.Signal(object, object, object, object, object, object)
+    new_plot_extracted = QtCore.Signal(object, object, object, object, object, object, object, object, object, object)
     new_airport = QtCore.Signal(object)
     new_communication_data = QtCore.Signal(object, object, object, object, object)
     new_connected_state = QtCore.Signal(object)
+    connection_lost = QtCore.Signal()
     
 
     def __init__(self):
@@ -35,7 +36,7 @@ class MyModel(QtCore.QObject):
         self.udp_receive_socket.bind(self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.DefaultForPlatform)
         #self.udp_receive_socket.bind(QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT, QtNetwork.QUdpSocket.ShareAddress|QtNetwork.QUdpSocket.ReuseAddressHint)
         
-        self.udp_receive_socket.readyRead.connect(self.processPendingDatagrams_)
+        self.udp_receive_socket.readyRead.connect(self.processPendingDatagrams)
 
         self.udp_send_socket = QtNetwork.QUdpSocket(self)     # Necessary???????
 
@@ -49,7 +50,7 @@ class MyModel(QtCore.QObject):
         self.initTimeDelays()
         
         self.timer_senddata = QtCore.QTimer()
-        self.timer_senddata.timeout.connect(self.sendDatagram_)
+        self.timer_senddata.timeout.connect(self.sendDatagram)
 
         self.timer_connection_active = QtCore.QTimer()
         self.timer_connection_active.setSingleShot(True)
@@ -65,14 +66,10 @@ class MyModel(QtCore.QObject):
             print 'Some error occured trying to read ' + filename
         if self.airport: 
             self.new_airport.emit(self.airport)
-            #self.configureXPlanePlugin()
-            #self.probeXPlanePlugin_()
+            
 
 
-
-
-
-    def probeXPlanePlugin_(self):
+    def probeXPlanePlugin(self):
         
         if self.connected:
             print 'closing connection'
@@ -80,7 +77,7 @@ class MyModel(QtCore.QObject):
             self.timer_senddata.stop()
             self.timer_connection_active.stop()
             self.new_connected_state.emit(self.connected)
-            self.new_plot_extracted.emit([], [], [], [], [], [])
+            #self.new_plot_extracted.emit([], [], [], [], [], [], 0.0, (False, False), (False, False), (False, False))   # Why this?
         
         elif self.airport:
             print 'sending query'
@@ -92,8 +89,8 @@ class MyModel(QtCore.QObject):
 
 
 
-    def startCommunicatingWithXPlanePlugin_(self):
-        print 'start comm'
+    def startCommunicatingWithXPlanePlugin(self):
+        print 'starting communication'
         
         self.connected = True
         self.new_connected_state.emit(self.connected)
@@ -103,18 +100,19 @@ class MyModel(QtCore.QObject):
 
 
     def connectionLost(self):
-        
+        print 'lost connection'
         self.connected = False
         self.new_connected_state.emit(self.connected)
-        self.new_plot_extracted.emit([], [], [], [], [], [])
+        #self.new_plot_extracted.emit([], [], [], [], [], [], 0.0, (False, False), (False, False), (False, False))       # Why?
         self.timer_senddata.stop()
+        self.connection_lost.emit()
         
-        print 'lost connection'
+        #print 'lost connection'
 
 
 
 
-    def sendDatagram_(self):
+    def sendDatagram(self):
         
         list_of_strings = []
         
@@ -155,11 +153,13 @@ class MyModel(QtCore.QObject):
 
 
 
-    def processPendingDatagrams_(self):
+    def processPendingDatagrams(self):
         
         #print 'processing pending datagram'
         
         self.timer_connection_active.start(5000)
+        
+        self.latest_receive_timestamp = time.time()
         
         while self.udp_receive_socket.hasPendingDatagrams():
             datagram, host, port = self.udp_receive_socket.readDatagram(self.udp_receive_socket.pendingDatagramSize())
@@ -172,12 +172,13 @@ class MyModel(QtCore.QObject):
 
             if datagram == 'answer':
                 print 'success, received an answer'
-                self.startCommunicatingWithXPlanePlugin_()
+                self.startCommunicatingWithXPlanePlugin()
                 
+                #self.latest_receive_timestamp = time.time()
                 
             else:
 
-                self.latest_receive_timestamp = time.time()
+                #self.latest_receive_timestamp = time.time()
                 
                 # Do math on times here
                 
@@ -263,7 +264,11 @@ class MyModel(QtCore.QObject):
                 mti_1_coordinate = gca_coordinate + np.array([750.0, 0.0, 5.0])
                 mti_2_coordinate = gca_coordinate + np.array([-900.0, 0.0, 3.5])
 
-                self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate)
+                airplane_hit = (True, True)
+                mti_1_hit = (True, True)
+                mti_2_hit = (True, True)
+
+                self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.latest_receive_timestamp, airplane_hit, mti_1_hit, mti_2_hit)
 
 
 

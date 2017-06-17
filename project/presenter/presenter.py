@@ -29,6 +29,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_nhist_10.mousePressEvent(None)
         self.view.button_hist.mousePressEvent(None)
         self.view.button_radarcover.mousePressEvent(None)
+        self.view.button_select_ac_medium.mousePressEvent(None)
+        self.view.button_fdb.mousePressEvent(None)
         
         # ...more to follow
         
@@ -40,22 +42,22 @@ class MyPresenter(QtCore.QObject):
         self.view.quit.connect(self.model.quit)
                 
         # Radar Control buttons
-        self.view.button_ant_drive.pressed.connect(self.view.scene.toggleAntennaDrive)
-        self.view.button_radiate.pressed.connect(self.view.scene.toggleRadiation)
-        self.view.button_rain_mode.pressed.connect(self.view.scene.toggleRainMode)
-        self.view.button_maint_mode.pressed.connect(self.view.scene.toggleMaintMode)
+        self.view.button_ant_drive.pressed.connect(self.toggleAntennaDrive)
+        self.view.button_radiate.pressed.connect(self.toggleRadiation)
+        self.view.button_rain_mode.pressed.connect(self.toggleRainMode)
+        self.view.button_maint_mode.pressed.connect(self.toggleMaintMode)
         
         # Display Control buttons
-        self.view.button_wx.pressed.connect(self.view.scene.toggleWx)
-        self.view.button_obs.pressed.connect(self.view.scene.toggleObs)
-        self.view.button_map.pressed.connect(self.view.scene.toggleMap)
-        self.view.button_whi.pressed.connect(self.view.scene.toggleWhi)
-        self.view.button_hist.pressed.connect(self.view.scene.toggleHist)
-        self.view.button_radarcover.pressed.connect(self.view.scene.toggleRadarCover)
-        self.view.button_syn_video.pressed.connect(self.view.scene.toggleSynVideo)
+        self.view.button_wx.pressed.connect(self.toggleWx)
+        self.view.button_obs.pressed.connect(self.toggleObs)
+        self.view.button_map.pressed.connect(self.toggleMap)
+        self.view.button_whi.pressed.connect(self.toggleWhi)
+        self.view.button_hist.pressed.connect(self.toggleHist)
+        self.view.button_radarcover.pressed.connect(self.toggleRadarCover)
+        self.view.button_syn_video.pressed.connect(self.toggleSynVideo)
         self.view.button_shutdown.pressed.connect(self.model.quit)
 
-        
+        self.connectACSizeButtons()
         self.connectNHistButtons()
         self.connectStatusButtons()
         self.connectRunwaySelectButtons()
@@ -64,14 +66,45 @@ class MyPresenter(QtCore.QObject):
         self.connectAzScaleButtons()
         self.connectGlideSlopeButtons()
         self.connectAzAntElevButtons()
+        self.connectSelDBFldButtons()
+        self.connectLeadDirButtons()
 
         self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
         self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
         self.model.new_airport.connect(self.setupNewStatusWindow)
-        self.model.new_airport.connect(self.view.scene.newAirport)
+        self.model.new_airport.connect(self.newAirport)
 
         self.model.new_communication_data.connect(self.updateStatusWindow)
         self.model.new_connected_state.connect(self.updateConnectButton)
+        
+        self.model.connection_lost.connect(self.connectionLost)
+
+    def connectLeadDirButtons(self):
+        self.view.button_north.pressed.connect(self.newLeadDirChosen)
+        self.view.button_northwest.pressed.connect(self.newLeadDirChosen)
+        self.view.button_northeast.pressed.connect(self.newLeadDirChosen)
+        self.view.button_west.pressed.connect(self.newLeadDirChosen)
+        self.view.button_east.pressed.connect(self.newLeadDirChosen)
+        self.view.button_southwest.pressed.connect(self.newLeadDirChosen)
+        self.view.button_southeast.pressed.connect(self.newLeadDirChosen)
+        self.view.button_south.pressed.connect(self.newLeadDirChosen)
+        self.view.button_all.pressed.connect(self.newLeadDirChosen)
+        
+        
+
+    def connectSelDBFldButtons(self):
+        self.view.button_line1.pressed.connect(self.toggleLine1)
+        self.view.button_line2.pressed.connect(self.toggleLine2)
+        self.view.button_line3.pressed.connect(self.toggleLine3)
+        self.view.button_leader.pressed.connect(self.toggleLeader)
+        self.view.button_fdb.pressed.connect(self.toggleFdb)
+
+
+    def connectACSizeButtons(self):
+        self.view.button_select_ac_small.pressed.connect(self.newACSizeChosen)
+        self.view.button_select_ac_medium.pressed.connect(self.newACSizeChosen)
+        self.view.button_select_ac_large.pressed.connect(self.newACSizeChosen)
+
 
 
     def connectNHistButtons(self):
@@ -95,7 +128,7 @@ class MyPresenter(QtCore.QObject):
 
     def connectStatusButtons(self):
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
-        self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin_)
+        self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin)
         
 
     def connectAzAntElevButtons(self):
@@ -190,6 +223,12 @@ class MyPresenter(QtCore.QObject):
 
 
 
+    def connectionLost(self):
+        print 'connection with x-plane lost'
+        
+        # Reset all tracks
+        #       -> delete all plots
+        #       -> away with all labels and stuff
         
 
 
@@ -252,22 +291,39 @@ class MyPresenter(QtCore.QObject):
 
 
     def loadAirport(self):
-        filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', '~', 'Airport Files (*.apt)')
+        # This method is called when user wants to load a new airport
+        filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
         if filename:
             self.model.readNewAirport(filename)
 
+    
+    def newAirport(self, airport):
+        # This method is called after a new airport has been succesfully loaded
+        self.view.scene.active_airport = airport
 
-        
+
+    def newACSizeChosen(self, button):
+        if button.value != self.view.scene.acsize:
+            self.view.scene.acsize = button.value
+            
+            # Don't update the tracks here!?!
 
 
 
 
-#    def processReceivedPlots(self, listofplots): 
-#        self.view.scene.processReceivedPlots(listofplots)
+
+    # Should these methods be here or in scene?
+
+
+
+
+
+
 
     def newNHistChosen(self, button):
         if button.value != self.view.scene.nhist:
             self.view.scene.nhist = button.value
+            
             self.view.scene.drawAllElevationTracks()
             self.view.scene.drawAllAzimuthTracks()
 
@@ -276,48 +332,42 @@ class MyPresenter(QtCore.QObject):
     def newAzAntElevChosen(self, button):
         if button.value != self.view.scene.azantelev:
             self.view.scene.azantelev = button.value
-            self.view.scene.drawAzAntElev()
+            
+            self.view.scene.drawElevationCoverage()
 
 
     def newGlideSlopeChosen(self, button):
         if button.value != self.view.scene.glideslope:
             self.view.scene.glideslope = button.value
+            
             self.view.scene.drawGlideSlope()
+            self.view.scene.drawAllElevationTracks()
 
 
     def newRunwayChosen(self, button):
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
-            
+
             self.view.scene.airplane_track.clear()
             self.view.scene.mti_1_track.clear()
             self.view.scene.mti_2_track.clear()
-            
-            
-            #self.view.scene.airplane_elevation_track.clear()
-            #self.view.scene.drawElevationGraphics()
-            #self.view.scene.drawAzimuthGraphics()
                 
 
     def newElevationScaleChosen(self, button):
         self.view.scene.elevationscale = button.value
         
-        self.view.scene.createElevationAxis()
-        
-        #self.view.scene.airplane_elevation_track.clear()           # Get rid of obsolete history plots
-        
+        self.view.scene.drawElevationAxis()
         self.view.scene.drawElevationGraphics()
+        self.view.scene.drawAllElevationTracks()
 
 
     def newAzimuthScaleChosen(self, button):
         self.view.scene.azimuthscale = button.value
-        
-        self.view.scene.createAzimuthAxis()
-        
-        #self.view.scene.airplane_azimuth_track.clear()
-        
+
+        self.view.scene.drawAzimuthAxis()
         self.view.scene.drawAzimuthGraphics()
+        self.view.scene.drawAllAzimuthTracks()
 
 
     def newRangeScaleChosen(self, button):
@@ -341,8 +391,7 @@ class MyPresenter(QtCore.QObject):
         elif button.value == 20:
             self.view.button_select_elscale_16000.mousePressEvent(None)
             self.view.button_select_azscale_32000.mousePressEvent(None)
-        self.view.scene.createElevationAndAzimuthRangeAxis()
-
+        self.view.scene.drawRangeAxis()
 
 
     def scaleDown(self, button):
@@ -375,5 +424,104 @@ class MyPresenter(QtCore.QObject):
             else:
                 sortedscaleexclusivegrouplist[index].mousePressEvent(None)
     
+
+
+
+    def toggleLine1(self, button):
+        print 'toggle line 1'
+        
+    def toggleLine2(self, button):
+        print 'toggle line 2'
+
+    def toggleLine3(self, button):
+        print 'toggle line 3'
+
+    def toggleLeader(self, button):
+        print 'toggle leader'
+        
+    def toggleFdb(self, button):
+        if button.inverted:
+            if not self.view.button_line1.inverted:
+                self.view.button_line1.mousePressEvent(None)
+            if not self.view.button_line2.inverted:
+                self.view.button_line2.mousePressEvent(None)
+            if not self.view.button_line3.inverted:
+                self.view.button_line3.mousePressEvent(None)
+            if not self.view.button_leader.inverted:
+                self.view.button_leader.mousePressEvent(None)
+        else:
+            if self.view.button_line1.inverted:
+                self.view.button_line1.mousePressEvent(None)
+            if self.view.button_line2.inverted:
+                self.view.button_line2.mousePressEvent(None)
+            if self.view.button_line3.inverted:
+                self.view.button_line3.mousePressEvent(None)
+            if self.view.button_leader.inverted:
+                self.view.button_leader.mousePressEvent(None)
+
+
+    def newLeadDirChosen(self, button):
+        print 'new lead dir ' + button.text
+
+
     
+    # Radar Control buttons
+    
+    def toggleRadiation(self, button):          # To model?
+        self.view.scene.radiation_active = button.inverted
+        print 'toggle radiate'
+        
+    def toggleAntennaDrive(self, button):       # To model?
+        self.view.scene.antennadrive_active = button.inverted
+        print 'toggle antennadrive'
+        
+    def toggleRainMode(self, button):
+        self.view.scene.rainmode_active = button.inverted  # Send to model???
+        print 'toggle rainmode'
+        
+    def toggleMaintMode(self, button):
+        self.view.scene.maintmode_active = button.inverted
+        print 'toggle maintmode'
+        
+        
+
+    # Display Control buttons
+
+    def toggleWx(self, button):
+        self.view.scene.wx_active = button.inverted
+        print 'toggle wx'
+
+    def toggleObs(self, button):
+        self.view.scene.obs_active = button.inverted
+        print 'toggle obs'
+
+    def toggleMap(self, button):
+        self.view.scene.map_active = button.inverted
+        print 'toggle map'
+
+    def toggleWhi(self, button):
+        self.view.scene.whi_active = button.inverted
+        print 'toggle whi'
+
+    def toggleRadarCover(self, button):
+        self.view.scene.radarcover_active = button.inverted
+        
+        self.view.scene.drawElevationCoverage()
+        self.view.scene.drawAzimuthCoverage()
+        print 'toggle radar cover'
+
+    def toggleHist(self, button):
+        self.view.scene.hist_active = button.inverted
+        self.view.scene.drawAllElevationTracks()
+        self.view.scene.drawAllAzimuthTracks()
+        print 'toggle hist'
+
+    def toggleSynVideo(self, button):
+        self.view.scene.synvid_active = button.inverted
+        print 'toggle syn vid'
+
+
+
+
+
 
