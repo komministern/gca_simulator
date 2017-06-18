@@ -36,8 +36,8 @@ class Track(QtCore.QObject):
         #self.designated = False
         #self.whi_active = False
         
-        self.callsign_string = 'ABC1234'
-        self.size_string = 'M'
+        self.callsign_string = ''
+        self.size_string = 'M'          # Default value I guess!?!
 
         self.velocity = 0.0
         self.elevation_deviation = 0.0

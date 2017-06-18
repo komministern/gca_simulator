@@ -15,13 +15,14 @@ from runway import ElevationRunway, AzimuthRunway
 from textinfo import TextInfo
 from gca import ElevationGCA, AzimuthGCA
 from axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
+from alerts import AlertsField
 
 
 class MyScene(QtGui.QGraphicsScene):
 
     scenetotaltopleft_x = 0.0
     scenetotaltopleft_y = 0.0
-    scenetotalwidth = 1600.0
+    scenetotalwidth = 1920.0
     scenetotalheight = 1200.0
 
     buttonwindowareawidth = 320.0
@@ -111,9 +112,16 @@ class MyScene(QtGui.QGraphicsScene):
     # **** LABEL
     
     label_displacement_x = 100.0
-    label_displacement_y = 150.0
+    label_displacement_y = 100.0
     label_text_distance_x = 8.0
     label_leader_distance = 5.0
+    
+    # **** ALERT FIELD
+    
+    alerts_field_width = 300.0
+    alerts_field_centre_x = graphicsareawidth * 0.6
+    alerts_field_top_y = 40.0
+    alerts_frame_margin = 10.0
 
 
 
@@ -151,8 +159,9 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.az_ant_elevation_pen = QtGui.QPen(self.coverage_pen)
         
+        self.textinfo_color = self.glideslope_color
         self.textinfo_font = QtGui.QFont(self.axis_font)
-        self.textinfo_brush = QtGui.QBrush(self.glideslope_color)
+        self.textinfo_brush = QtGui.QBrush(self.textinfo_color)
         
         self.plot_brush = QtGui.QBrush(QtCore.Qt.white)
         self.plot_pen = QtGui.QPen(QtCore.Qt.white)
@@ -177,6 +186,12 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.active_leader_pen = QtGui.QPen(self.active_label_color)
         self.passive_leader_pen = QtGui.QPen(self.passive_label_color)
+        
+        self.alerts_color = self.textinfo_color
+        self.alerts_font = QtGui.QFont("Helvetica", 10)
+        self.alerts_field_pen = QtGui.QPen(self.alerts_color)
+        self.alerts_field_pen.setWidth(2)
+        self.alerts_brush = QtGui.QBrush(self.alerts_color)
         
 
         # Attributes ('global') relevant for the display
@@ -247,6 +262,7 @@ class MyScene(QtGui.QGraphicsScene):
         # Z Values
         self.axis_zvalue = 0.0
         self.textinfo_zvalue = 0.0
+        self.alerts_zvalue = 1.0
         self.runway_zvalue = 3.0
         self.gca_zvalue = 2.5
         self.coverage_zvalue = 0.4
@@ -310,6 +326,13 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.whi_axis_item = WHIAxis(self)
         
+        self.alerts_field = AlertsField(self)
+        self.alerts_field.addAlert('RADAR NORMAL NO ALERTS')
+        self.alerts_field.addAlert('FEL 2')
+        self.alerts_field.addAlert('FEL 3')
+        self.alerts_field.addAlert('FEL 4')
+        self.alerts_field.addAlert('FEL 233333')
+
 
 
     # METHODS

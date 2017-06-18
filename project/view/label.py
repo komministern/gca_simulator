@@ -35,13 +35,13 @@ class Label(QtGui.QGraphicsItemGroup):
         self.fictive_distance_text_item = QtGui.QGraphicsSimpleTextItem('99.9')
         self.fictive_distance_text_item.setFont(self.scene().active_label_font)
         
-        self.fictive_deviation_text_item = QtGui.QGraphicsSimpleTextItem('+999 \u2190')
-        self.fictive_deviation_text_item.setFont(self.scene().active_label_font)
+        self.fictive_az_deviation_text_item = QtGui.QGraphicsSimpleTextItem('+999 \u2190')
+        self.fictive_az_deviation_text_item.setFont(self.scene().active_label_font)
         
         self.max_callsign_text_item_width = self.fictive_callsign_text_item.boundingRect().width()
         self.max_size_text_item_width = self.fictive_size_text_item.boundingRect().width()
         self.max_distance_text_item_width = self.fictive_distance_text_item.boundingRect().width()
-        self.max_deviation_text_item_width = self.fictive_deviation_text_item.boundingRect().width()
+        self.max_az_deviation_text_item_width = self.fictive_az_deviation_text_item.boundingRect().width()
         
         self.text_row_height = self.fictive_callsign_text_item.boundingRect().height()
         
@@ -51,7 +51,7 @@ class Label(QtGui.QGraphicsItemGroup):
         del self.fictive_callsign_text_item
         del self.fictive_size_text_item
         del self.fictive_distance_text_item
-        del self.fictive_deviation_text_item
+        del self.fictive_az_deviation_text_item
 
         self.setZValue(self.scene().active_label_zvalue)
     
@@ -471,7 +471,7 @@ class WhiLabel(Label):
         self.el_deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.el_deviation_text_item.setFont(self.scene().active_label_font)
         self.el_deviation_text_item.setBrush(self.scene().active_label_brush)
-        self.el_deviation_text_item.setPos(70.0, 2*self.text_row_height)
+        self.el_deviation_text_item.setPos(self.max_az_deviation_text_item_width, 2*self.text_row_height)       # This seems a bit wrong?!?
         
         self.az_deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.az_deviation_text_item.setFont(self.scene().active_label_font)

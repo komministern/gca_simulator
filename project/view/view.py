@@ -22,7 +22,7 @@ class MyView(QtGui.QGraphicsView):
     def __init__(self):
         super(MyView, self).__init__()
 
-        self.resize(1600, 1200)
+        self.resize(1924, 1204)
         self.scene = MyScene()
         self.setScene(self.scene)
 

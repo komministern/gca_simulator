@@ -55,7 +55,7 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
             
             start_point = self.scene().gca_elevation_point
             
-            upper_slope = np.tan(6.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            upper_slope = np.tan(7.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
         
             upper_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - upper_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
         

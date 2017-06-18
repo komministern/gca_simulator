@@ -161,7 +161,6 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         
             self.setFocused()
         
-        
 
 
 class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
@@ -305,8 +304,6 @@ class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.moveBy(0, self.windowheight-h-self.windowframethickness)
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable, enabled = False)
         
-
-
 
 
 class StatusWindowArea(WindowArea):
