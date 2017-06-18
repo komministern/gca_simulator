@@ -5,13 +5,8 @@
 #
 #    This file is part of GCA Simulator.
 
-
-
-
 from PySide import QtGui, QtCore
-#import weakref
 import numpy as np
-
 
 class Label(QtGui.QGraphicsItemGroup):
     
@@ -26,27 +21,38 @@ class Label(QtGui.QGraphicsItemGroup):
         self.x_offset = 150.0
         self.y_offset = -150.0
 
-        self.plot_x_scene_coordinate = 0.0
-        self.plot_y_scene_coordinate = 0.0
+        #self.plot_x_scene_coordinate = 0.0
+        #self.plot_y_scene_coordinate = 0.0
 
         self.leader_line_item = None
 
         self.fictive_callsign_text_item = QtGui.QGraphicsSimpleTextItem('UA12345')
         self.fictive_callsign_text_item.setFont(self.scene().active_label_font)
-        self.max_callsign_text_item_width = self.fictive_callsign_text_item.boundingRect().width()
-        self.text_row_height = self.fictive_callsign_text_item.boundingRect().height()
         
-        self.height = 3*self.text_row_height
-        
-        del self.fictive_callsign_text_item
-
         self.fictive_size_text_item = QtGui.QGraphicsSimpleTextItem('M')
         self.fictive_size_text_item.setFont(self.scene().active_label_font)
         
-        self.width = self.max_callsign_text_item_width + self.scene().text_distance_x + self.fictive_size_text_item.boundingRect().width()
+        self.fictive_distance_text_item = QtGui.QGraphicsSimpleTextItem('99.9')
+        self.fictive_distance_text_item.setFont(self.scene().active_label_font)
         
+        self.fictive_deviation_text_item = QtGui.QGraphicsSimpleTextItem('+999 \u2190')
+        self.fictive_deviation_text_item.setFont(self.scene().active_label_font)
+        
+        self.max_callsign_text_item_width = self.fictive_callsign_text_item.boundingRect().width()
+        self.max_size_text_item_width = self.fictive_size_text_item.boundingRect().width()
+        self.max_distance_text_item_width = self.fictive_distance_text_item.boundingRect().width()
+        self.max_deviation_text_item_width = self.fictive_deviation_text_item.boundingRect().width()
+        
+        self.text_row_height = self.fictive_callsign_text_item.boundingRect().height()
+        
+        self.height = 3*self.text_row_height
+        self.width = self.max_callsign_text_item_width + self.scene().label_text_distance_x + self.max_size_text_item_width
+        
+        del self.fictive_callsign_text_item
         del self.fictive_size_text_item
-        
+        del self.fictive_distance_text_item
+        del self.fictive_deviation_text_item
+
         self.setZValue(self.scene().active_label_zvalue)
     
     
@@ -178,7 +184,11 @@ class Label(QtGui.QGraphicsItemGroup):
         
         # Leader should now be drawn, if and only if the leader is activated
         
-        if self.parent_track.designated and self.scene().leader_visible:
+        if self.parent_track.designated() and self.scene().leader_visible:
+            if self.parent_track.active_designated():
+                pen = self.scene().active_leader_pen
+            else:
+                pen = self.scene().passive_leader_pen
         
             #plot_point = self.scene().getElevationPoint(self.parent_track().list_of_coords[0])
             plot_x = self.plot_point.x()
@@ -193,29 +203,31 @@ class Label(QtGui.QGraphicsItemGroup):
             angle = self.getAngle(center_x-plot_x, center_y-plot_y)
             delta_angle = 360.0/16
             
+            d = self.scene().label_leader_distance
+            
             if angle >= 1*delta_angle and angle < 3*delta_angle:
-                end_point = self.bottomLeftPoint()
+                end_point = self.bottomLeftPoint() + QtCore.QPointF(-d, d)
             elif angle >= 3*delta_angle and angle < 5*delta_angle:
-                end_point = self.leftPoint()
+                end_point = self.leftPoint() + QtCore.QPointF(-d, 0.0)
             elif angle >= 5*delta_angle and angle < 7*delta_angle:
-                end_point = self.topLeftPoint()
+                end_point = self.topLeftPoint() + QtCore.QPointF(-d, -d)
             elif angle >= 7*delta_angle and angle < 9*delta_angle:
-                end_point = self.topPoint()
+                end_point = self.topPoint() + QtCore.QPointF(0.0, -d)
             elif angle >= 9*delta_angle and angle < 11*delta_angle:
-                end_point = self.topRightPoint()
+                end_point = self.topRightPoint() + QtCore.QPointF(d, -d)
             elif angle >= 11*delta_angle and angle < 13*delta_angle:
-                end_point = self.rightPoint()
+                end_point = self.rightPoint() + QtCore.QPointF(d, 0.0)
             elif angle >= 13*delta_angle and angle < 15*delta_angle:
-                end_point = self.bottomRightPoint()
+                end_point = self.bottomRightPoint() + QtCore.QPointF(d, d)
             else:
-                end_point = self.bottomPoint()
+                end_point = self.bottomPoint() + QtCore.QPointF(0.0, d)
 
             end_x = end_point.x()
             end_y = end_point.y()
-            
+
             self.leader_line_item = QtGui.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None, scene=self.scene())
         
-            self.leader_line_item.setPen(self.scene().active_leader_pen)
+            self.leader_line_item.setPen(pen)
             self.leader_line_item.setZValue(self.scene().active_leader_zvalue)
 
 
@@ -246,14 +258,37 @@ class Label(QtGui.QGraphicsItemGroup):
             self.drawLeader()
         
 
+    def setPassiveColors(self):
+        self.callsign_text_item.setBrush(self.scene().passive_label_brush)
+        self.size_text_item.setBrush(self.scene().passive_label_brush)
+        self.velocity_text_item.setBrush(self.scene().passive_label_brush)
+        self.distance_text_item.setBrush(self.scene().passive_label_brush)
+        self.deviation_text_item.setBrush(self.scene().passive_label_brush)
+
+
+    def setActiveColors(self):
+        self.callsign_text_item.setBrush(self.scene().active_label_brush)
+        self.size_text_item.setBrush(self.scene().active_label_brush)
+        self.velocity_text_item.setBrush(self.scene().active_label_brush)
+        self.distance_text_item.setBrush(self.scene().active_label_brush)
+        self.deviation_text_item.setBrush(self.scene().active_label_brush)
+
+    def setActiveZValue(self):
+        self.setZValue(self.scene().active_label_zvalue)
+        
+    def setPassiveZValue(self):
+        self.setZValue(self.scene().passive_label_zvalue)
+
 
 
     def updateCallsign(self):
         self.callsign_text_item.setText(self.parent_track.callsign_string)
+        self.callsign_text_item.setVisible(self.scene().line_1_visible)
 
 
     def updateSize(self):
         self.size_text_item.setText(self.parent_track.size_string)
+        self.size_text_item.setVisible(self.scene().line_1_visible)
 
 
     def updateVelocity(self):
@@ -268,60 +303,23 @@ class Label(QtGui.QGraphicsItemGroup):
             velocity_string = '999'
         
         self.velocity_text_item.setText(velocity_string)
+        self.velocity_text_item.setVisible(self.scene().line_2_visible)
 
 
     def updateDistance(self):
         self.distance_text_item.setText(str(round(self.parent_track.distance_to_td, 1)))
-
-        
-
-
-
-    def toggleCallsignVisibility(self):
-        if self.callsign_text_item.isVisible():
-            self.callsign_text_item.setVisible(False)
-        else:
-            self.callsign_text_item.setVisible(True)
-
-    def toggleSizeVisibility(self):
-        if self.size_text_item.isVisible():
-            self.size_text_item.setVisible(False)
-        else:
-            self.size_text_item.setVisible(True)
-
-    def toggleVelocityVisibility(self):
-        if self.velocity_text_item.isVisible():
-            self.velocity_text_item.setVisible(False)
-        else:
-            self.velocity_text_item.setVisible(True)
-
-    def toggleDistanceVisibility(self):
-        if self.distance_text_item.isVisible():
-            self.distance_text_item.setVisible(False)
-        else:
-            self.distance_text_item.setVisible(True)
-
-    def toggleDeviationVisibility(self):
-        if self.deviation_text_item.isVisible():
-            self.deviation_text_item.setVisible(False)
-        else:
-            self.deviation_text_item.setVisible(True)
-
-
+        self.distance_text_item.setVisible(self.scene().line_2_visible)
 
 
     def mousePressEvent(self, event):
         super(Label, self).mousePressEvent(event)
         self.label_currently_pressed = True
-        #print 'label currently pressed'
-        # Not needed!?!
+
 
     def mouseReleaseEvent(self, event):
         super(Label, self).mouseReleaseEvent(event)
         self.label_currently_pressed = False
-        
-        #plot_point = self.scene().getElevationPoint(self.parent_track().list_of_coords[0])
-        
+
         self.x_offset = self.scenePos().x() - self.plot_point.x()
         self.y_offset = self.scenePos().y() - self.plot_point.y()
         # Calculate the new offset values, x and y
@@ -329,8 +327,6 @@ class Label(QtGui.QGraphicsItemGroup):
     def mouseMoveEvent(self, event):
         super(Label, self).mouseMoveEvent(event)
         self.drawLeader()
-
-
 
 
 class ElevationLabel(Label):
@@ -350,7 +346,7 @@ class ElevationLabel(Label):
         self.size_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.size_text_item.setFont(self.scene().active_label_font)
         self.size_text_item.setBrush(self.scene().active_label_brush)
-        self.size_text_item.setPos(self.max_callsign_text_item_width + self.scene().text_distance_x, 0.0)
+        self.size_text_item.setPos(self.max_callsign_text_item_width + self.scene().label_text_distance_x, 0.0)
 
         self.velocity_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.velocity_text_item.setFont(self.scene().active_label_font)
@@ -360,39 +356,34 @@ class ElevationLabel(Label):
         self.distance_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.distance_text_item.setFont(self.scene().active_label_font)
         self.distance_text_item.setBrush(self.scene().active_label_brush)
-        self.distance_text_item.setPos(self.max_callsign_text_item_width + self.scene().text_distance_x + self.size_text_item.boundingRect().width() - self.distance_text_item.boundingRect().width(), 
-                                      self.text_row_height)
+        self.distance_text_item.setPos(self.width - self.max_distance_text_item_width, self.text_row_height)
 
         self.deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.deviation_text_item.setFont(self.scene().active_label_font)
         self.deviation_text_item.setBrush(self.scene().active_label_brush)
         self.deviation_text_item.setPos(0.0, 2*self.text_row_height)
-        
+
 
     
     def updatePlotPoint(self):
-        #if len(self.parent_track.list_of_coords) > 0:
         self.plot_point = self.scene().getElevationPoint(self.parent_track.list_of_coords[0])
-        #else:
-        #    self.plot_point = None
 
 
     def updateDeviation(self):
         if self.parent_track.elevation_deviation >= 0.0:
-            sign_string = '+'
+            sign_string = u'+'
+            arrow = u' \u2193'
         else:
-            sign_string = ''
-        elevation_deviation_string = sign_string + str(int(self.parent_track.elevation_deviation))
+            sign_string = u''
+            arrow = u' \u2191'
+        elevation_deviation_string = sign_string + unicode(int(self.parent_track.elevation_deviation)) + arrow
         
         self.deviation_text_item.setText(elevation_deviation_string)
-
-
-
+        self.deviation_text_item.setVisible(self.scene().line_3_visible)
 
         
     # Fictive measurements for all placings in the label!!!!!!!!!!!!!!!!!!!!
 
- 
  
  
 class AzimuthLabel(Label):
@@ -409,23 +400,22 @@ class AzimuthLabel(Label):
         self.callsign_text_item.setBrush(self.scene().active_label_brush)
         self.callsign_text_item.setPos(0.0, 0.0)
 
-        self.size_text_item = QtGui.QGraphicsSimpleTextItem('M', parent=self)
+        self.size_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.size_text_item.setFont(self.scene().active_label_font)
         self.size_text_item.setBrush(self.scene().active_label_brush)
-        self.size_text_item.setPos(self.max_callsign_text_item_width + self.scene().text_distance_x, 0.0)
+        self.size_text_item.setPos(self.max_callsign_text_item_width + self.scene().label_text_distance_x, 0.0)
 
-        self.velocity_text_item = QtGui.QGraphicsSimpleTextItem('000', parent=self)
+        self.velocity_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.velocity_text_item.setFont(self.scene().active_label_font)
         self.velocity_text_item.setBrush(self.scene().active_label_brush)
         self.velocity_text_item.setPos(0.0, self.text_row_height)
 
-        self.distance_text_item = QtGui.QGraphicsSimpleTextItem('0.0', parent=self)
+        self.distance_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.distance_text_item.setFont(self.scene().active_label_font)
         self.distance_text_item.setBrush(self.scene().active_label_brush)
-        self.distance_text_item.setPos(self.max_callsign_text_item_width + self.scene().text_distance_x + self.size_text_item.boundingRect().width() - self.distance_text_item.boundingRect().width(), 
-                                      self.text_row_height)
+        self.distance_text_item.setPos(self.width - self.max_distance_text_item_width, self.text_row_height)
 
-        self.deviation_text_item = QtGui.QGraphicsSimpleTextItem('000', parent=self)
+        self.deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
         self.deviation_text_item.setFont(self.scene().active_label_font)
         self.deviation_text_item.setBrush(self.scene().active_label_brush)
         self.deviation_text_item.setPos(0.0, 2*self.text_row_height)
@@ -437,17 +427,93 @@ class AzimuthLabel(Label):
 
     def updateDeviation(self):
         if self.parent_track.azimuth_deviation >= 0.0:
-            sign_string = '+'
+            sign_string = u'+'
+            arrow = u' \u2190'
         else:
             sign_string = ''
-        azimuth_deviation_string = sign_string + str(int(self.parent_track.azimuth_deviation))
+            arrow = u' \u2192'
+        azimuth_deviation_string = sign_string + unicode(int(self.parent_track.azimuth_deviation)) + arrow
         
         self.deviation_text_item.setText(azimuth_deviation_string)
+        self.deviation_text_item.setVisible(self.scene().line_3_visible)
 
 
 
+class WhiLabel(Label):
+    
+    def __init__(self, scene, parent_track):
+        super(WhiLabel, self).__init__(scene, parent_track)
+        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable, enabled=False)
+        self.createWhiLabel()
+        
+    def createWhiLabel(self):
 
-#class WHILabel(Label):
-#    
-#    def __init__(self):
-#        pass
+        self.callsign_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.callsign_text_item.setFont(self.scene().active_label_font)
+        self.callsign_text_item.setBrush(self.scene().active_label_brush)
+        self.callsign_text_item.setPos(0.0, 0.0)
+
+        self.size_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.size_text_item.setFont(self.scene().active_label_font)
+        self.size_text_item.setBrush(self.scene().active_label_brush)
+        self.size_text_item.setPos(self.max_callsign_text_item_width + self.scene().label_text_distance_x, 0.0)
+
+        self.velocity_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.velocity_text_item.setFont(self.scene().active_label_font)
+        self.velocity_text_item.setBrush(self.scene().active_label_brush)
+        self.velocity_text_item.setPos(0.0, self.text_row_height)
+
+        self.distance_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.distance_text_item.setFont(self.scene().active_label_font)
+        self.distance_text_item.setBrush(self.scene().active_label_brush)
+        self.distance_text_item.setPos(self.width - self.max_distance_text_item_width, self.text_row_height)
+
+        self.el_deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.el_deviation_text_item.setFont(self.scene().active_label_font)
+        self.el_deviation_text_item.setBrush(self.scene().active_label_brush)
+        self.el_deviation_text_item.setPos(70.0, 2*self.text_row_height)
+        
+        self.az_deviation_text_item = QtGui.QGraphicsSimpleTextItem('', parent=self)
+        self.az_deviation_text_item.setFont(self.scene().active_label_font)
+        self.az_deviation_text_item.setBrush(self.scene().active_label_brush)
+        self.az_deviation_text_item.setPos(0.0, 2*self.text_row_height)
+        
+
+    def updateDeviation(self):
+        if self.parent_track.elevation_deviation >= 0.0:
+            sign_string = u'+'
+            arrow = u' \u2193'
+        else:
+            sign_string = u''
+            arrow = u' \u2191'
+        elevation_deviation_string = sign_string + unicode(int(self.parent_track.elevation_deviation)) + arrow
+        
+        self.el_deviation_text_item.setText(elevation_deviation_string)
+        self.el_deviation_text_item.setVisible(self.scene().line_3_visible)
+        
+        if self.parent_track.azimuth_deviation >= 0.0:
+            sign_string = u'+'
+            arrow = u' \u2190'
+        else:
+            sign_string = ''
+            arrow = u' \u2192'
+        azimuth_deviation_string = sign_string + unicode(int(self.parent_track.azimuth_deviation)) + arrow
+        
+        self.az_deviation_text_item.setText(azimuth_deviation_string)
+        self.az_deviation_text_item.setVisible(self.scene().line_3_visible)
+
+
+    def updateLabelPosition(self):
+        self.setPos(self.scene().whiaxiszero_x + self.scene().whiaxislength_x/2 + 10.0, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/2)
+
+    def updatePlotPoint(self):
+        pass
+
+    def drawLeader(self):
+        pass
+
+    def mousePressEvent(self, event):
+        pass
+        
+    def mouseReleaseEvent(self, event):
+        pass

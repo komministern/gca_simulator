@@ -7,32 +7,20 @@
 from PySide import QtGui, QtCore
 
 
-
-
 class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
-#class MyButton(QtGui.QGraphicsRectItem):
 
     pressed = QtCore.Signal(object)
 
     buttonnormalframewidth = 4
     buttonexpandedframewidth = 3
 
-#    def __init__(self, text, *args, **kwargs):
-#        super(Button, self).__init__(*args, **kwargs)
 
     def __init__(self, text, value=None):
-        #super(Button, self).__init__(self)
         
         QtCore.QObject.__init__(self)
         QtGui.QGraphicsRectItem.__init__(self)
 
-#        self.buttonnormalframewidth = 4
-#        self.buttonexpandedframewidth = 3
-
         self.value = value
-        
-
-#        print text
 
         self.inverted = False
         self.hovered = False
@@ -54,8 +42,6 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         
     def setGeometry(self, x, y, width, height):
         
-        
-        #print x+self.buttonnormalframewidth, y+self.buttonnormalframewidth, width-2*self.buttonnormalframewidth, height-2*self.buttonnormalframewidth
         self.setRect(x+self.buttonnormalframewidth, y+self.buttonnormalframewidth, width-2*self.buttonnormalframewidth, height-2*self.buttonnormalframewidth)
         
         font = QtGui.QFont("Helvetica", 10)
@@ -168,12 +154,8 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
             self.setPen(pen)
         
     def mousePressEvent(self, event):
-        #print self.value
-        #self.pressed.emit() #???????????????????????????
-        #self.toggleInverted()
-        #self.toggleExpanded()
         self.pressed.emit(self)
-        #print self.pressedsignal
+        
         
         
         #self.parentItem().setFocused()  # Buttons has no parents?!?
@@ -185,15 +167,13 @@ class InvertingButton(Button):
     def __init__(self, text, value=None, exclusivegroup=None):
         super(InvertingButton, self).__init__(text, value)
 
-        #print exclusivegroup
         self.exclusivegroup = exclusivegroup
         if self.exclusivegroup != None:
             self.exclusivegroup.append(self)
-            #print len(self.exclusivegroup)
+
     
     def mousePressEvent(self, event):
-        #print self.exclusivegroup
-
+        
         if self.exclusivegroup:
 
             if not self.inverted:
@@ -202,11 +182,6 @@ class InvertingButton(Button):
                 for each in self.exclusivegroup:
                     if each.inverted and each != self:
                         each.toggleInverted()
-
-            #Button.mousePressEvent(self, event)
-
-            #else:
-
 
         else:
 
@@ -236,8 +211,8 @@ class ExpandingButton(Button):
 
 class FlashingButton(Button):
     
-    def __init__(self, text):
-        super(FlashingButton, self).__init__(text)
+    def __init__(self, text, value=None):
+        super(FlashingButton, self).__init__(text, value)
         self.timer = QtCore.QTimer()
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.toggleInverted)

@@ -12,7 +12,8 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
         
         self.rangescale = None
         self.elevationscale = None
-        self.azimuthscale = None
+        #self.azimuthscale = None
+        self.azantelev = None
         
         self.setVisible(self.scene().radarcover_active)
         self.setZValue(self.scene().coverage_zvalue)
@@ -23,8 +24,9 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
     def draw(self):
         
         # If the rangescale or elevationscale or azantelev differs from the last creation, create new line items.
-        if (self.scene().rangescale != self.rangescale) or (self.scene().elevationscale != self.elevationscale) or (self.scene().azantelev != self.azantelev):
-            self.create()
+        #if (self.scene().rangescale != self.rangescale) or (self.scene().elevationscale != self.elevationscale) or (self.scene().azantelev != self.azantelev):
+        self.create()
+        # The if statement above is commented out due to erroneous behavior when changing runway. Inefficiency before error.
         
         # Set visibility
         self.setVisible(self.scene().radarcover_active)
@@ -35,8 +37,10 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
         if self.lower_line_item != None and self.upper_line_item != None:   # These really either both exists, or not.
             self.removeFromGroup(self.lower_line_item)
             self.removeFromGroup(self.upper_line_item)
+            self.removeFromGroup(self.az_ant_elevation_item)
             self.upper_line_item = None                 # Let the garbage collector do its job
             self.lower_line_item = None
+            self.az_ant_elevation_item = None
         
         
         if self.scene().rangescale and self.scene().elevationscale and self.scene().gca_elevation_point and (self.scene().azantelev != None):# and self.scene().radarcover_active:
@@ -51,7 +55,7 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
             
             start_point = self.scene().gca_elevation_point
             
-            upper_slope = np.tan(7.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            upper_slope = np.tan(6.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
         
             upper_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - upper_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
         
@@ -111,9 +115,10 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
         
         self.lower_line_item = None
         self.upper_line_item = None
+        self.middle_line_item = None
         
         self.rangescale = None
-        self.elevationscale = None
+        #self.elevationscale = None
         self.azimuthscale = None
         
         self.setVisible(self.scene().radarcover_active)
@@ -125,8 +130,9 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
     def draw(self):
         
         # If the rangescale or azimuthscale differs from the last creation, create new line items.
-        if (self.scene().rangescale != self.rangescale) or (self.scene().azimuthscale != self.azimuthscale):
-            self.create()
+        #if (self.scene().rangescale != self.rangescale) or (self.scene().azimuthscale != self.azimuthscale):
+        self.create()
+        # The if statement above is commented out due to erroneous behavior when changing runway. Inefficiency before error.
         
         # Set visibility
         self.setVisible(self.scene().radarcover_active)
@@ -142,10 +148,10 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
             self.lower_line_item = None
             self.middle_line_item = None
         
-        if self.scene().rangescale and self.scene().elevationscale and self.scene().gca_azimuth_point:# and self.scene().radarcover_active:
+        if self.scene().rangescale and self.scene().azimuthscale and self.scene().gca_azimuth_point:# and self.scene().radarcover_active:
             
             self.rangescale = self.scene().rangescale
-            self.elevationscale = self.scene().elevationscale
+            #self.elevationscale = self.scene().elevationscale
             self.azimuthscale = self.scene().azimuthscale
         
             m_per_x_pixel = self.scene().rangescale*1852.0 / (self.scene().rangeaxismax_x - self.scene().rangeaxiszero_x)

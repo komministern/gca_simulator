@@ -273,18 +273,6 @@ class MyModel(QtCore.QObject):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     def quit(self):
         #self.udpSocket.leaveMulticastGroup(QtNetwork.QHostAddress(self.MCAST_GRP))
         QtGui.QApplication.quit()

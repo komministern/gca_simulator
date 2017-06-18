@@ -23,7 +23,6 @@ class PlotItem(QtGui.QGraphicsEllipseItem):
 class CorrelatedPlotItem(PlotItem):
     def __init__(self, x, y, parent, scene, parent_track):
         super(CorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track)
-
         self.setBrush(self.scene().plot_brush)
         self.setPen(self.scene().plot_pen)
         self.setZValue(self.scene().plot_zvalue)
@@ -35,8 +34,15 @@ class CorrelatedPlotItem(PlotItem):
 class HistoricPlotItem(PlotItem):
     def __init__(self, x, y, parent, scene, parent_track):
         super(HistoricPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track)
-
         self.setBrush(self.scene().historic_plot_brush)
         self.setPen(self.scene().historic_plot_pen)
         self.setZValue(self.scene().historic_plot_zvalue)
+        
+        
+class WhiPlotItem(PlotItem):
+    def __init__(self, x, y, parent, scene, parent_track):
+        super(WhiPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track)
+        self.setBrush(self.scene().plot_brush)
+        self.setPen(self.scene().plot_pen)
+        self.setZValue(self.scene().plot_zvalue)
         

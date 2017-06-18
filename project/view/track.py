@@ -4,11 +4,12 @@
 #
 #    This file is part of GCA Simulator.
 
+from PySide import QtGui, QtCore
 import numpy as np
-from plot import CorrelatedPlotItem, HistoricPlotItem
-from label import ElevationLabel, AzimuthLabel
+from plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem
+from label import ElevationLabel, AzimuthLabel, WhiLabel
 
-class Track(object):
+class Track(QtCore.QObject):
     
     max_historic_tracks = 15
     
@@ -26,11 +27,13 @@ class Track(object):
         
         self.elevation_plot_items = []
         self.azimuth_plot_items = []
+        self.whi_plot_item = None
         
         self.elevation_label = ElevationLabel(self.scene, self)
         self.azimuth_label = AzimuthLabel(self.scene, self)
+        self.whi_label = WhiLabel(self.scene, self)
         
-        self.designated = False
+        #self.designated = False
         #self.whi_active = False
         
         self.callsign_string = 'ABC1234'
@@ -42,26 +45,55 @@ class Track(object):
         self.distance_to_td = 0.0
 
 
+    def designated(self):
+        return (self in self.scene.designated_tracks)
+
+    def active_designated(self):
+        if len(self.scene.designated_tracks) > 0:
+            return (self == self.scene.designated_tracks[0])
+        else:
+            return False
+
 
     def toggleDesignated(self):
-        if self.designated:
-            self.designated = False
-            
+        
+        if self.active_designated():
+            self.scene.designated_tracks.remove(self)
+            self.drawPlots(elevation=True, azimuth=True)
+            self.drawWhiPlot()
             self.elevation_label.resetOffsets()
             self.azimuth_label.resetOffsets()
+            self.resetCallsign()
+            
+            if len(self.scene.designated_tracks) > 0:
+                self.scene.designated_tracks[0].setActive()
+                self.scene.designated_tracks[0].drawPlots(elevation=True, azimuth=True)
+                self.scene.designated_tracks[0].drawWhiPlot()
+
+        elif self.designated():
+            self.scene.designated_tracks.remove(self)
+            self.drawPlots(elevation=True, azimuth=True)
+
+            self.elevation_label.resetOffsets()
+            self.azimuth_label.resetOffsets()
+            self.resetCallsign()
 
         else:
-            self.designated = True
-    
-        self.draw(elevation=True, azimuth=True)
+            self.scene.designated_tracks.insert(0, self)
+            self.setActive()
+            self.drawPlots(elevation=True, azimuth=True)
+            self.drawWhiPlot()
+            
+            if len(self.scene.designated_tracks) > 1:
+                self.scene.designated_tracks[1].setPassive()
+                self.scene.designated_tracks[1].drawPlots(elevation=True, azimuth=True)
+                self.scene.designated_tracks[1].drawWhiPlot()
 
     
     
     def update(self, coord, hit):
-
         # This method is executed only when a new plot is processed. It is guaranteed that coord is
         # a valid coordinate.
-        
         
 
         # Update list of plot coordinates
@@ -80,11 +112,24 @@ class Track(object):
         # Calculate the varius label values
         self.calculateDistanceToTd()
         self.calculateVelocity()
-        #self.calculateElevationDeviation()
         self.calculateAzimuthDeviation()
 
+
+    def setActive(self):
+        self.elevation_label.setActiveColors()
+        self.azimuth_label.setActiveColors()
+        self.elevation_label.setActiveZValue()
+        self.azimuth_label.setActiveZValue()
         
-    def draw(self, elevation=False, azimuth=False):
+    def setPassive(self):
+        self.elevation_label.setPassiveColors()
+        self.azimuth_label.setPassiveColors()
+        self.elevation_label.setPassiveZValue()
+        self.azimuth_label.setPassiveZValue()
+
+
+
+    def drawPlots(self, elevation=False, azimuth=False):
         
         if len(self.list_of_coords) > 0:        # Do nothing if there are no plots to draw
         
@@ -94,15 +139,17 @@ class Track(object):
             self.azimuth_label.update()
         
             # Make labels visible (or the opposite)
-            self.elevation_label.setVisible(self.designated)
-            self.azimuth_label.setVisible(self.designated)
+            self.elevation_label.setVisible(self.designated())
+            self.azimuth_label.setVisible(self.designated())
+            self.whi_label.setVisible(self.active_designated())          # More work needed here!!!!!!!!!!!!
         
             # Draw the plots
             if elevation:
                 self.drawElevationPlots()
             if azimuth:
                 self.drawAzimuthPlots()
-        
+                
+
         
     def drawElevationPlots(self):
 
@@ -167,14 +214,40 @@ class Track(object):
                             # This is a historic plot
                             self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
-            
+    def drawWhiPlot(self):
+        
+        if self.whi_plot_item:
+            self.scene.removeItem(self.whi_plot_item)
+        self.whi_plot_item = None
+
+        self.whi_label.update()
+        self.whi_label.setVisible(self.active_designated() and self.scene.whi_active)
+
+        if self.scene.whi_active and self.active_designated():
+
+            if len(self.list_of_coords) > 1:
+                whi_point = self.scene.getWhiPoint(self.list_of_coords[0])
+                if whi_point:
+                    x = whi_point.x()
+                    y = whi_point.y()
+                
+                    self.whi_plot_item = WhiPlotItem(x, y, parent=None, scene=self.scene, parent_track=self)
+        
+                
 
     def clear(self):
-        if self.designated:
+        # Dumps all plots (coords) and de-designates the track
+        if self.designated():
             self.toggleDesignated()
         
         self.list_of_coords = []        # Could this empty list be a problem???!!!!????
 
+
+    def resetHistoryPlots(self):
+        self.list_of_coords = self.list_of_coords[:1]
+
+    def resetCallsign(self):
+        self.callsign_string = ''
 
 
     def calculateDistanceToTd(self):
@@ -197,8 +270,6 @@ class Track(object):
                 self.velocity = 0.0
 
 
-            
-                
     def calculateElevationDeviation(self):
         
         if len(self.list_of_coords[0]) == 3:
@@ -209,8 +280,7 @@ class Track(object):
             deviation_from_glideslope_in_feet = deviation_from_glideslope_in_m * 3.28084
             self.elevation_deviation = deviation_from_glideslope_in_feet
         
-        
-    
+
     def calculateAzimuthDeviation(self):
 
         if len(self.list_of_coords[0]) == 3:

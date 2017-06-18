@@ -14,7 +14,7 @@ from glideslope import GlideSlope
 from runway import ElevationRunway, AzimuthRunway
 from textinfo import TextInfo
 from gca import ElevationGCA, AzimuthGCA
-from axis import ElevationAxis, AzimuthAxis, RangeAxis
+from axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
 
 
 class MyScene(QtGui.QGraphicsScene):
@@ -59,6 +59,14 @@ class MyScene(QtGui.QGraphicsScene):
     azimuthgraphicsareabottomright_x = azimuthgraphicsareatopleft_x + azimuthgraphicsareawidth
     azimuthgraphicsareabottomright_y = elevationgraphicsareaheight + azimuthgraphicsareaheight + textgraphicsareaheight
 
+    # **** WHI AXIS
+
+    whiaxislength_x = scenetotalheight / 8
+    whiaxislength_y = whiaxislength_x
+    whiaxiszero_x = whiaxislength_x * 1.5
+    whiaxiszero_y = whiaxislength_y * 0.8
+    whiaxismarkinglength = 10.0
+
     # **** ELEVATION RANGE AXIS
 
     rangeaxiszero_x = 110.0    # Absolute position for x=0
@@ -100,26 +108,20 @@ class MyScene(QtGui.QGraphicsScene):
     
     plot_radius = 4.0
     
-    # **** PLOT LABEL
+    # **** LABEL
     
     label_displacement_x = 100.0
     label_displacement_y = 150.0
-    text_distance_x = 5.0
+    label_text_distance_x = 8.0
+    label_leader_distance = 5.0
 
 
 
 
     def __init__(self):
         super(MyScene, self).__init__()
-        #self.setSceneRect(0.0, 0.0, self.scenetotalwidth, self.scenetotalheight)
-        
-        #self.button_window_rect = QtGui.QGraphicsRectItem(self.buttonwindowareatopleft_x, self.buttonwindowareatopleft_y, self.buttonwindowareawidth, self.buttonwindowareaheight)
-        #self.button_window_rect.setBrush(self.button_window_brush)
-        #self.button_window_rect.setZValue(self.button_window_zvalue)
-        #self.addItem(self.button_window_rect)
-        
-        #self.addRect(self.buttonwindowareatopleft_x, self.buttonwindowareatopleft_y, self.buttonwindowareawidth, self.buttonwindowareaheight, brush=QtGui.QBrush(QtCore.Qt.darkBlue))
         self.setBackgroundBrush(QtCore.Qt.black)
+
 
         # Pens, brushes and colors
         self.button_window_brush = QtGui.QBrush(QtCore.Qt.darkBlue)
@@ -159,28 +161,37 @@ class MyScene(QtGui.QGraphicsScene):
         self.historic_plot_pen = QtGui.QPen(QtCore.Qt.darkGray)
 
         self.active_label_color = QtCore.Qt.yellow
+        self.passive_label_color = QtCore.Qt.blue
+        
         self.active_label_pen = QtGui.QPen(self.active_label_color)
         self.active_label_pen.setWidth(2)
         self.active_label_brush = QtGui.QBrush(self.active_label_color)
         self.active_label_font = QtGui.QFont("Helvetica", 10)
         self.active_label_font.setBold(True)
         
+        self.passive_label_pen = QtGui.QPen(self.passive_label_color)
+        self.passive_label_pen.setWidth(2)
+        self.passive_label_brush = QtGui.QBrush(self.passive_label_color)
+        self.passive_label_font = QtGui.QFont("Helvetica", 10)
+        self.passive_label_font.setBold(True)
+        
         self.active_leader_pen = QtGui.QPen(self.active_label_color)
+        self.passive_leader_pen = QtGui.QPen(self.passive_label_color)
         
 
         # Attributes ('global') relevant for the display
-        self.rangescale = None#10
-        self.elevationscale = None#1000
-        self.azimuthscale = None#2000
+        self.rangescale = None
+        self.elevationscale = None
+        self.azimuthscale = None
         self.glideslope = None
-        self.azantelev = None#0.0
+        self.azantelev = None
         self.nhist = None
-        self.acsize = None
+        #self.acsize = None
         self.decisionheight = None
         
         self.active_airport = None
         self.active_runway = None
-        self.active_track = None                # Hmmmmmmmmmmmm
+        #self.active_track = None                # Hmmmmmmmmmmmm
         
         self.wx_active = False
         self.obs_active = False
@@ -193,10 +204,9 @@ class MyScene(QtGui.QGraphicsScene):
         self.line_1_visible = False
         self.line_2_visible = False
         self.line_3_visible = False
-        self.leader_visible = True
+        self.leader_visible = False
         
         
-
         # Windows related stuff
         self.movablewindowZval = 20.0
         self.activewindowtopborders = []
@@ -231,52 +241,24 @@ class MyScene(QtGui.QGraphicsScene):
         self.mti_1_azimuth_point = None
         self.mti_2_elevation_point = None
         self.mti_2_azimuth_point = None
-        
-        
-        # Graphic items
-        #self.elevation_runway_item = None
-        #self.azimuth_runway_item = None
-        #self.elevation_y_axis_item = None
-        #self.elevation_x_axis_item = None
-        #self.azimuth_y_axis_item = None
-        #self.azimuth_x_axis_item = None
-        #self.glideslope_item = None
-        #self.elevation_coverage_item = None
-        #self.azimuth_coverage_item = None
-        #self.elevation_gca_item = None
-        #self.azimuth_gca_item = None
-        #self.az_ant_elevation_item = None
-        #self.textinfo_item = None
-        
-        #self.elevation_plot_items = []
-        #self.elevation_historic_plot_items = []
-        
-        #self.azimuth_plot_items = []
-        #self.azimuth_historic_plot_items = []
-        
-        #self.item_el = None
-        #self.item_az = None
+
 
 
         # Z Values
-        
-        self.axis_zvalue = 0.5
-        self.textinfo_zvalue = self.axis_zvalue
-        
+        self.axis_zvalue = 0.0
+        self.textinfo_zvalue = 0.0
         self.runway_zvalue = 3.0
         self.gca_zvalue = 2.5
         self.coverage_zvalue = 0.4
         self.az_ant_elevation_zvalue = self.coverage_zvalue
         self.glideslope_zvalue = 2.0
-        
-        self.historic_plot_zvalue = 9.0
+        self.historic_plot_zvalue = 5.0
         self.plot_zvalue = 10.0
-        
-        self.active_label_zvalue = self.plot_zvalue - 0.5
-        self.active_leader_zvalue = self.active_label_zvalue
-        
+        self.active_label_zvalue = 8.0
+        self.active_leader_zvalue = 8.0
+        self.passive_label_zvalue = 7.0
+        self.passive_leader_zvalue = 7.0
         self.decisionheight_zvalue = self.glideslope_zvalue
-
         self.button_window_zvalue = self.plot_zvalue + 1.0
 
 
@@ -293,7 +275,6 @@ class MyScene(QtGui.QGraphicsScene):
         self.timer.timeout.connect(self.drawTextInfo)
         self.timer.start(1000)
 
-
         self.current_time_stamp = 0.0
         self.previous_time_stamp = 0.0
         self.delta_t = 0.0
@@ -303,7 +284,10 @@ class MyScene(QtGui.QGraphicsScene):
         self.airplane_track = Track(self)
         self.mti_1_track = Track(self)
         self.mti_2_track = Track(self)
-
+        
+        self.tracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
+        self.designated_tracks = []
+        
 
 
         # Items
@@ -324,12 +308,11 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.range_axis_item = RangeAxis(self)
         
-
-
+        self.whi_axis_item = WHIAxis(self)
+        
 
 
     # METHODS
-
 
     def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, new_time_stamp, airplane_hit, mti_1_hit, mti_2_hit):
 
@@ -352,20 +335,36 @@ class MyScene(QtGui.QGraphicsScene):
 
         self.drawElevationGraphics()
         self.drawAzimuthGraphics()
+        
+        self.drawWhiPlot()
 
         self.drawTextInfo()
         
 
+    def resetAllHistoryPlots(self):
+        for each in self.tracks:
+            each.resetHistoryPlots()
+        
 
     def drawAllElevationTracks(self):
-        self.airplane_track.draw(elevation=True, azimuth=False)
-        self.mti_1_track.draw(elevation=True, azimuth=False)
-        self.mti_2_track.draw(elevation=True, azimuth=False)
+        for each in self.tracks:
+            each.drawPlots(elevation=True, azimuth=False)
+        
 
     def drawAllAzimuthTracks(self):
-        self.airplane_track.draw(elevation=False, azimuth=True)
-        self.mti_1_track.draw(elevation=False, azimuth=True)
-        self.mti_2_track.draw(elevation=False, azimuth=True)
+        for each in self.tracks:
+            each.drawPlots(elevation=False, azimuth=True)
+        
+
+    def drawAllTracks(self):
+        for each in self.tracks:
+            each.drawPlots(elevation=True, azimuth=True)
+        
+
+    def clearAllTracks(self):
+        for each in self.tracks:
+            each.clear()
+        
 
     def updateAllTracks(self):
         self.airplane_track.update(self.airplane_coordinate, self.airplane_hit)
@@ -373,15 +372,15 @@ class MyScene(QtGui.QGraphicsScene):
         self.mti_2_track.update(self.mti_2_coordinate, self.mti_2_hit)
 
 
-
-
-
-
+    def drawWhiPlot(self):
+        if len(self.designated_tracks) > 0:
+            self.designated_tracks[0].drawWhiPlot()
 
 
     def drawAllGraphics(self):
         self.drawElevationGraphics()
         self.drawAzimuthGraphics()
+
 
     def drawElevationGraphics(self):
         # Calculate all points (except for the track points, which are calculated in the drawElevationTrack method)
@@ -444,8 +443,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     def drawRangeAxis(self):
         self.range_axis_item.draw()
-        
 
+    def drawWhiAxis(self):
+        self.whi_axis_item.draw()
 
     def drawMapSymbols(self):
         
@@ -503,6 +503,34 @@ class MyScene(QtGui.QGraphicsScene):
         else:
             return None
 
+
+    def getWhiPoint(self, np_coord):
+        if len(np_coord) == 3 and (self.glideslope != None):
+            
+            range_m = np_coord[0]
+            altitude_m = np_coord[2]
+            azimuth_m = np_coord[1]
+
+            whi_azimuth_ft = azimuth_m * 3.2808399
+            #print 'real altitude m  ' + str(altitude_m)
+            
+            ideal_altitude_m = range_m * np.tan(self.glideslope * np.pi / 180.0)
+            #print 'ideal altitude m  ' + str(ideal_altitude_m)
+            whi_altitude_ft = (altitude_m + ideal_altitude_m) * 3.2808399
+            #print 'whi altitude m  ' + str(whi_altitude_ft / 3.2808399)
+            #print ''
+            
+            if np.absolute(whi_azimuth_ft) < 1000.0 and np.absolute(whi_altitude_ft) < 500.0:
+                
+                whi_x_pixel = -(whi_azimuth_ft / 1000.0) * self.whiaxislength_x / 2.0 + self.whiaxiszero_x
+                whi_y_pixel = -(whi_altitude_ft / 500.0) * self.whiaxislength_y / 2.0 + self.whiaxiszero_y
+                return QtCore.QPointF(whi_x_pixel, whi_y_pixel)
+            else:
+                return None
+        else:
+            return None
+
+
     def range_to_scenexcoord(self, range_m):
         # input in m
         # 1 nmi is 1852 m
@@ -536,7 +564,6 @@ class MyScene(QtGui.QGraphicsScene):
         azimuth_ft = 3.2808399 * azimuth_m
         ft_per_pixel = self.azimuthscale / (self.azimuthaxiszero_y - self.azimuthaxismax_y)
         return self.azimuthaxiszero_y + azimuth_ft / ft_per_pixel
-
 
 
     # WINDOW RELATED METHODS

@@ -29,18 +29,18 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_nhist_10.mousePressEvent(None)
         self.view.button_hist.mousePressEvent(None)
         self.view.button_radarcover.mousePressEvent(None)
-        self.view.button_select_ac_medium.mousePressEvent(None)
         self.view.button_fdb.mousePressEvent(None)
-        
+        self.view.button_whi.mousePressEvent(None)
         # ...more to follow
         
         
-        #self.slask_var = 0
-
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
-                
+        
+        # Main Window buttons
+        self.view.button_whi_tgt_exchange.pressed.connect(self.exchangeWhiTrack)
+        
         # Radar Control buttons
         self.view.button_ant_drive.pressed.connect(self.toggleAntennaDrive)
         self.view.button_radiate.pressed.connect(self.toggleRadiation)
@@ -53,6 +53,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_map.pressed.connect(self.toggleMap)
         self.view.button_whi.pressed.connect(self.toggleWhi)
         self.view.button_hist.pressed.connect(self.toggleHist)
+        self.view.button_clear_hist.pressed.connect(self.clearHist)
         self.view.button_radarcover.pressed.connect(self.toggleRadarCover)
         self.view.button_syn_video.pressed.connect(self.toggleSynVideo)
         self.view.button_shutdown.pressed.connect(self.model.quit)
@@ -123,7 +124,6 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_nhist_13.pressed.connect(self.newNHistChosen)
         self.view.button_select_nhist_14.pressed.connect(self.newNHistChosen)
         self.view.button_select_nhist_15.pressed.connect(self.newNHistChosen)
-
 
 
     def connectStatusButtons(self):
@@ -221,17 +221,12 @@ class MyPresenter(QtCore.QObject):
 
 
 
-
-
     def connectionLost(self):
         print 'connection with x-plane lost'
         
-        # Reset all tracks
-        #       -> delete all plots
-        #       -> away with all labels and stuff
+        self.view.scene.clearAllTracks()
+        self.view.scene.drawAllTracks()
         
-
-
 
     def setupNewRunwaySelectWindow(self, airport):
         position_when_destroyed = self.view.runwayselect_window.scenePos()
@@ -257,8 +252,6 @@ class MyPresenter(QtCore.QObject):
         if show_window_after_creation:
             self.view.runwayselect_window.showWindow(self.view.button_runway_select)
         self.view.button_select_runway_1.mousePressEvent(None)     # Set runway 1 as active
-        
-        #self.view.status_window_area.updateDynamicTextItem('airport', 'Airport:         ' + airport.iata)
 
 
 
@@ -303,43 +296,31 @@ class MyPresenter(QtCore.QObject):
 
 
     def newACSizeChosen(self, button):
-        if button.value != self.view.scene.acsize:
-            self.view.scene.acsize = button.value
-            
-            # Don't update the tracks here!?!
-
-
-
-
-
-    # Should these methods be here or in scene?
-
-
-
-
-
+        print button.value
+        
+        # Some more work here I guess
 
 
     def newNHistChosen(self, button):
         if button.value != self.view.scene.nhist:
             self.view.scene.nhist = button.value
-            
-            self.view.scene.drawAllElevationTracks()
-            self.view.scene.drawAllAzimuthTracks()
+            self.view.scene.drawAllTracks()
 
+
+    def clearHist(self, button):
+        self.view.scene.resetAllHistoryPlots()
+        self.view.scene.drawAllTracks()
 
 
     def newAzAntElevChosen(self, button):
         if button.value != self.view.scene.azantelev:
             self.view.scene.azantelev = button.value
-            
             self.view.scene.drawElevationCoverage()
 
 
     def newGlideSlopeChosen(self, button):
         if button.value != self.view.scene.glideslope:
             self.view.scene.glideslope = button.value
-            
             self.view.scene.drawGlideSlope()
             self.view.scene.drawAllElevationTracks()
 
@@ -348,15 +329,13 @@ class MyPresenter(QtCore.QObject):
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
+            
+            self.view.scene.clearAllTracks()
+            self.view.scene.drawTextInfo()
 
-            self.view.scene.airplane_track.clear()
-            self.view.scene.mti_1_track.clear()
-            self.view.scene.mti_2_track.clear()
                 
-
     def newElevationScaleChosen(self, button):
         self.view.scene.elevationscale = button.value
-        
         self.view.scene.drawElevationAxis()
         self.view.scene.drawElevationGraphics()
         self.view.scene.drawAllElevationTracks()
@@ -364,7 +343,6 @@ class MyPresenter(QtCore.QObject):
 
     def newAzimuthScaleChosen(self, button):
         self.view.scene.azimuthscale = button.value
-
         self.view.scene.drawAzimuthAxis()
         self.view.scene.drawAzimuthGraphics()
         self.view.scene.drawAllAzimuthTracks()
@@ -409,7 +387,6 @@ class MyPresenter(QtCore.QObject):
                 sortedscaleexclusivegrouplist[index].mousePressEvent(None)
 
 
-
     def scaleUp(self, button):
         previouslypressedbutton = None
         sortedscaleexclusivegrouplist = sorted(self.view.scaleexclusivegrouplist, key=lambda button: button.value)
@@ -423,21 +400,47 @@ class MyPresenter(QtCore.QObject):
                 sortedscaleexclusivegrouplist[index + 1].mousePressEvent(None)
             else:
                 sortedscaleexclusivegrouplist[index].mousePressEvent(None)
-    
 
 
+    def exchangeWhiTrack(self, button):
 
+        if len(self.view.scene.designated_tracks) > 1:
+            first_track = self.view.scene.designated_tracks[0]
+            self.view.scene.designated_tracks.remove(first_track)
+            self.view.scene.designated_tracks.append(first_track)
+        
+            self.view.scene.designated_tracks[-1].setPassive()
+            self.view.scene.designated_tracks[-1].drawPlots(elevation=True, azimuth=True)
+            self.view.scene.designated_tracks[-1].drawWhiPlot()
+            
+            self.view.scene.designated_tracks[0].setActive()
+            self.view.scene.designated_tracks[0].drawPlots(elevation=True, azimuth=True)
+            self.view.scene.designated_tracks[0].drawWhiPlot()
+        
+        
     def toggleLine1(self, button):
-        print 'toggle line 1'
+        #print 'toggle line 1'
+        self.view.scene.line_1_visible = button.inverted
+        self.view.scene.drawAllTracks()
+        self.view.scene.drawWhiPlot()
         
     def toggleLine2(self, button):
-        print 'toggle line 2'
+        #print 'toggle line 2'
+        self.view.scene.line_2_visible = button.inverted
+        self.view.scene.drawAllTracks()
+        self.view.scene.drawWhiPlot()
 
     def toggleLine3(self, button):
-        print 'toggle line 3'
+        #print 'toggle line 3'
+        self.view.scene.line_3_visible = button.inverted
+        self.view.scene.drawAllTracks()
+        self.view.scene.drawWhiPlot()
 
     def toggleLeader(self, button):
-        print 'toggle leader'
+        #print 'toggle leader'
+        self.view.scene.leader_visible = button.inverted
+        self.view.scene.drawAllTracks()
+
         
     def toggleFdb(self, button):
         if button.inverted:
@@ -464,7 +467,6 @@ class MyPresenter(QtCore.QObject):
         print 'new lead dir ' + button.text
 
 
-    
     # Radar Control buttons
     
     def toggleRadiation(self, button):          # To model?
@@ -501,20 +503,17 @@ class MyPresenter(QtCore.QObject):
 
     def toggleWhi(self, button):
         self.view.scene.whi_active = button.inverted
-        print 'toggle whi'
+        self.view.scene.drawWhiAxis()
+        self.view.scene.drawWhiPlot()
 
     def toggleRadarCover(self, button):
         self.view.scene.radarcover_active = button.inverted
-        
         self.view.scene.drawElevationCoverage()
         self.view.scene.drawAzimuthCoverage()
-        print 'toggle radar cover'
 
     def toggleHist(self, button):
         self.view.scene.hist_active = button.inverted
-        self.view.scene.drawAllElevationTracks()
-        self.view.scene.drawAllAzimuthTracks()
-        print 'toggle hist'
+        self.view.scene.drawAllTracks()
 
     def toggleSynVideo(self, button):
         self.view.scene.synvid_active = button.inverted

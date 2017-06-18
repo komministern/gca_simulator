@@ -214,3 +214,109 @@ class RangeAxis(QtGui.QGraphicsItemGroup):
             self.addToGroup(self.azimuth_x_axis_item)
 
 
+
+class WHIAxis(QtGui.QGraphicsItemGroup):
+    
+    def __init__(self, scene):
+        super(WHIAxis, self).__init__(scene=scene)
+        
+        self.x_axis_item = None
+        self.y_axis_item = None
+        
+        self.setZValue(self.scene().axis_zvalue)
+        self.create()
+
+
+    def draw(self):
+        self.setVisible(self.scene().whi_active)
+
+
+    def create(self):
+        self.x_axis_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y)
+        self.x_axis_item.setPen(self.scene().axis_pen)
+        
+        self.y_axis_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/2, 
+                                                   self.scene().whiaxiszero_x, self.scene().whiaxiszero_y + self.scene().whiaxislength_y/2)
+        self.y_axis_item.setPen(self.scene().axis_pen)
+        
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y - self.scene().whiaxismarkinglength/2, 
+                                                   self.scene().whiaxiszero_x - self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxislength_x/4, self.scene().whiaxiszero_y - self.scene().whiaxismarkinglength/2, 
+                                                   self.scene().whiaxiszero_x - self.scene().whiaxislength_x/4, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x + self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y - self.scene().whiaxismarkinglength/2, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxislength_x/2, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x + self.scene().whiaxislength_x/4, self.scene().whiaxiszero_y - self.scene().whiaxismarkinglength/2, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxislength_x/4, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/2, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/4, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y - self.scene().whiaxislength_y/4, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y + self.scene().whiaxislength_y/2, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y + self.scene().whiaxislength_y/2, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+        
+        marking_line_item = QtGui.QGraphicsLineItem(self.scene().whiaxiszero_x - self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y + self.scene().whiaxislength_y/4, 
+                                                   self.scene().whiaxiszero_x + self.scene().whiaxismarkinglength/2, self.scene().whiaxiszero_y + self.scene().whiaxislength_y/4, parent=self.x_axis_item)
+        marking_line_item.setPen(self.scene().axis_pen)
+
+
+
+        textitem = QtGui.QGraphicsSimpleTextItem('-1000 ft', parent=self.x_axis_item)
+        textitem.setFont(self.scene().axis_font)
+        textitem.setBrush(self.scene().axis_color)
+        textitemwidth = textitem.boundingRect().width()
+        textitemheight = textitem.boundingRect().height()
+        textitem.setPos(self.scene().whiaxiszero_x - self.scene().whiaxislength_x/2 - textitemwidth/2, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength / 2 + 4)
+        
+        textitem = QtGui.QGraphicsSimpleTextItem('+1000 ft', parent=self.x_axis_item)
+        textitem.setFont(self.scene().axis_font)
+        textitem.setBrush(self.scene().axis_color)
+        textitemwidth = textitem.boundingRect().width()
+        textitemheight = textitem.boundingRect().height()
+        textitem.setPos(self.scene().whiaxiszero_x + self.scene().whiaxislength_x/2 - textitemwidth/2, self.scene().whiaxiszero_y + self.scene().whiaxismarkinglength / 2 + 4)
+
+
+        textitem = QtGui.QGraphicsSimpleTextItem('-500 ft', parent=self.y_axis_item)
+        textitem.setFont(self.scene().axis_font)
+        textitem.setBrush(self.scene().axis_color)
+        textitemwidth = textitem.boundingRect().width()
+        textitemheight = textitem.boundingRect().height()
+        textitem.setPos(self.scene().whiaxiszero_x - textitemwidth - self.scene().whiaxismarkinglength - 4.0, 
+                        self.scene().whiaxiszero_y + self.scene().whiaxislength_y/2 - textitemheight/2)
+
+        textitem = QtGui.QGraphicsSimpleTextItem('+500 ft', parent=self.y_axis_item)
+        textitem.setFont(self.scene().axis_font)
+        textitem.setBrush(self.scene().axis_color)
+        textitemwidth = textitem.boundingRect().width()
+        textitemheight = textitem.boundingRect().height()
+        textitem.setPos(self.scene().whiaxiszero_x - textitemwidth - self.scene().whiaxismarkinglength - 4.0, 
+                        self.scene().whiaxiszero_y - self.scene().whiaxislength_y/2 - textitemheight/2)
+
+
+
+        self.addToGroup(self.x_axis_item)
+        self.addToGroup(self.y_axis_item)
+        
+        self.draw()
+        
+    
+#    whiaxislength_x = scenetotalheight / 8
+#    whiaxislength_y = whiaxislength_x
+#    whiaxiszero_x = whiaxislength_x * 1.5
+#    whiaxiszero_y = whiaxislength_y * 0.66
