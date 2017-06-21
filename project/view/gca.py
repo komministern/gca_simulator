@@ -11,6 +11,7 @@ class ElevationGCA(QtGui.QGraphicsItemGroup):
 
     def draw(self):
         self.create()
+        self.setVisible(self.scene().radarcover_active and self.scene().connected)
 
     def create(self):
         if self.elevation_gca_item:
@@ -35,6 +36,7 @@ class AzimuthGCA(QtGui.QGraphicsItemGroup):
 
     def draw(self):
         self.create()
+        self.setVisible(self.scene().radarcover_active and self.scene().connected)
 
     def create(self):
         if self.azimuth_gca_item:

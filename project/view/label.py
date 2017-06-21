@@ -180,11 +180,11 @@ class Label(QtGui.QGraphicsItemGroup):
     def drawLeader(self):
         if self.leader_line_item:
             del self.leader_line_item
-            self.leader_line_item = None
+        self.leader_line_item = None
         
         # Leader should now be drawn, if and only if the leader is activated
         
-        if self.parent_track.designated() and self.scene().leader_visible:
+        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating:
             if self.parent_track.active_designated():
                 pen = self.scene().active_leader_pen
             else:

@@ -810,7 +810,7 @@ class MyView(QtGui.QGraphicsView):
         self.main_window_area.newFullButtonRow(3)
         self.button_clear_alerts = FlashingButton('Clear\nAlerts')
         self.main_window_area.registerNextButton(self.button_clear_alerts)
-        self.button_ppi_mode = Button('PPI\nMode')
+        self.button_ppi_mode = FlashingButton('PPI\nMode')
         self.main_window_area.registerNextButton(self.button_ppi_mode)
         self.button_runway_select = ExpandingButton('Runway\nSelect', self.runwayselect_window)
         self.main_window_area.registerNextButton(self.button_runway_select)

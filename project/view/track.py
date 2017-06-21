@@ -59,20 +59,20 @@ class Track(QtCore.QObject):
         
         if self.active_designated():
             self.scene.designated_tracks.remove(self)
-            self.drawPlots(elevation=True, azimuth=True)
-            self.drawWhiPlot()
+            self.draw(elevation=True, azimuth=True, whi=True)
+            #self.drawWhiPlot()
             self.elevation_label.resetOffsets()
             self.azimuth_label.resetOffsets()
             self.resetCallsign()
             
             if len(self.scene.designated_tracks) > 0:
                 self.scene.designated_tracks[0].setActive()
-                self.scene.designated_tracks[0].drawPlots(elevation=True, azimuth=True)
-                self.scene.designated_tracks[0].drawWhiPlot()
+                self.scene.designated_tracks[0].draw(elevation=True, azimuth=True, whi=True)
+                #self.scene.designated_tracks[0].drawWhiPlot()
 
         elif self.designated():
             self.scene.designated_tracks.remove(self)
-            self.drawPlots(elevation=True, azimuth=True)
+            self.draw(elevation=True, azimuth=True)
 
             self.elevation_label.resetOffsets()
             self.azimuth_label.resetOffsets()
@@ -81,13 +81,13 @@ class Track(QtCore.QObject):
         else:
             self.scene.designated_tracks.insert(0, self)
             self.setActive()
-            self.drawPlots(elevation=True, azimuth=True)
-            self.drawWhiPlot()
+            self.draw(elevation=True, azimuth=True, whi=True)
+            #self.drawWhiPlot()
             
             if len(self.scene.designated_tracks) > 1:
                 self.scene.designated_tracks[1].setPassive()
-                self.scene.designated_tracks[1].drawPlots(elevation=True, azimuth=True)
-                self.scene.designated_tracks[1].drawWhiPlot()
+                self.scene.designated_tracks[1].draw(elevation=True, azimuth=True, whi=True)
+                #self.scene.designated_tracks[1].drawWhiPlot()
 
     
     
@@ -129,7 +129,13 @@ class Track(QtCore.QObject):
 
 
 
-    def drawPlots(self, elevation=False, azimuth=False):
+
+    # Structure the drawing of the tracks
+    # Break out the remove plots as separate methods
+    
+
+
+    def draw(self, elevation=False, azimuth=False, whi=False):
         
         if len(self.list_of_coords) > 0:        # Do nothing if there are no plots to draw
         
@@ -139,27 +145,38 @@ class Track(QtCore.QObject):
             self.azimuth_label.update()
         
             # Make labels visible (or the opposite)
-            self.elevation_label.setVisible(self.designated())
-            self.azimuth_label.setVisible(self.designated())
-            self.whi_label.setVisible(self.active_designated())          # More work needed here!!!!!!!!!!!!
-        
-            # Draw the plots
+            self.elevation_label.setVisible(self.designated() and self.scene.radiating)
+            self.azimuth_label.setVisible(self.designated() and self.scene.radiating)
+            self.whi_label.setVisible(self.active_designated() and self.scene.radiating)          # More work needed here!!!!!!!!!!!!
+
+            # Remove the old plots
             if elevation:
-                self.drawElevationPlots()
+                self.removeElevationPlots()
             if azimuth:
-                self.drawAzimuthPlots()
+                self.removeAzimuthPlots()
+            if whi:
+                self.removeWhiPlot()
+
+            # Draw the new plots
+            if self.scene.radiating:
+                if elevation:
+                    self.drawElevationPlots()
+                if azimuth:
+                    self.drawAzimuthPlots()
+                if whi and self.active_designated():
+                    self.drawWhiPlot()
                 
-
-        
-    def drawElevationPlots(self):
-
+    
+    def removeElevationPlots(self):
         # Remove all plots
         for each in self.elevation_plot_items:
             each.remove()
             del each
-
         self.elevation_plot_items = []
-        
+
+
+    def drawElevationPlots(self):
+
         # Draw new plots
         for i in range(len(self.list_of_coords)):
             
@@ -182,16 +199,15 @@ class Track(QtCore.QObject):
                             # This is a historic plot
                             self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
-
-    def drawAzimuthPlots(self):
-
+    def removeAzimuthPlots(self):
         # Remove all plots
         for each in self.azimuth_plot_items:
             each.remove()
             del each
-
         self.azimuth_plot_items = []
-        
+
+
+    def drawAzimuthPlots(self):
         # Draw new plots
         for i in range(len(self.list_of_coords)):
             
@@ -214,16 +230,22 @@ class Track(QtCore.QObject):
                             # This is a historic plot
                             self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
-    def drawWhiPlot(self):
-        
-        if self.whi_plot_item:
-            self.scene.removeItem(self.whi_plot_item)
+
+    def removeWhiPlot(self):
+        if self.whi_plot_item != None:
+            self.whi_plot_item.remove()
+            del self.whi_plot_item
         self.whi_plot_item = None
 
-        self.whi_label.update()
-        self.whi_label.setVisible(self.active_designated() and self.scene.whi_active)
 
-        if self.scene.whi_active and self.active_designated():
+    def drawWhiPlot(self):
+        
+        #self.removeWhiPlot()
+        
+        self.whi_label.update()
+        self.whi_label.setVisible(self.active_designated() and self.scene.whi_active and self.scene.radiating)
+
+        if self.scene.whi_active and self.active_designated() and self.scene.radiating:
 
             if len(self.list_of_coords) > 1:
                 whi_point = self.scene.getWhiPoint(self.list_of_coords[0])

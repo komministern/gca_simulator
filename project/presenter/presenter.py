@@ -6,7 +6,7 @@
 #
 #    This file is part of GCA Simulator.
 
-
+import functools
 from PySide import QtCore, QtGui
 
 
@@ -40,6 +40,7 @@ class MyPresenter(QtCore.QObject):
         
         # Main Window buttons
         self.view.button_whi_tgt_exchange.pressed.connect(self.exchangeWhiTrack)
+        self.view.button_clear_alerts.pressed.connect(self.clearAlerts)
         
         # Radar Control buttons
         self.view.button_ant_drive.pressed.connect(self.toggleAntennaDrive)
@@ -71,12 +72,14 @@ class MyPresenter(QtCore.QObject):
         self.connectLeadDirButtons()
 
         self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
+        
         self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
         self.model.new_airport.connect(self.setupNewStatusWindow)
         self.model.new_airport.connect(self.newAirport)
 
         self.model.new_communication_data.connect(self.updateStatusWindow)
-        self.model.new_connected_state.connect(self.updateConnectButton)
+        
+        self.model.new_connected_state.connect(self.updateConnectedState)
         
         self.model.connection_lost.connect(self.connectionLost)
 
@@ -220,12 +223,16 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_azscale_32000.pressed.connect(self.newAzimuthScaleChosen)
 
 
+    def clearAlerts(self):
+        self.view.scene.alerts_field.clickOnAllAlerts()
 
-    def connectionLost(self):
+
+    def connectionLost(self):                   # Get this method into play together with the connection_state stuff!!!!!!!!!!!!!!!
         print 'connection with x-plane lost'
+        self.updateConnectedState(False)
         
-        self.view.scene.clearAllTracks()
-        self.view.scene.drawAllTracks()
+        #self.view.scene.clearAllTracks()
+        #self.view.scene.drawAllTracks()
         
 
     def setupNewRunwaySelectWindow(self, airport):
@@ -272,15 +279,63 @@ class MyPresenter(QtCore.QObject):
         self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:\t\t{0:.3f}'.format(std_delay) )
 
 
-    def updateConnectButton(self, connected):
-        if self.view.button_connect.inverted ^ connected:
+    def updateConnectedState(self, new_connected_state):
+
+        # Toggle CONNECT button (this updates the property self.connected) (True or False)
+        # The self.connected property actually IS the self.view.button_connect.inverted value!!!
+        if self.connected ^ new_connected_state:
             self.view.button_connect.toggleInverted()
-            
-        if not connected:
+
+        if self.connected:
+            self.view.scene.alerts_field.addAlert('RADAR READY FOR USE')
+            self.view.scene.connected = True
+        
+        elif not self.connected:
             self.view.status_window_area.updateDynamicTextItem('count', 'Message count:')
             self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:')
             self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:')
             self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:')
+            
+            if self.radiating:
+                self.view.button_ant_drive.mousePressEvent(None)        # This should take care of the radiate button as well
+            
+            if self.rain_mode_on:
+                self.view.button_rain_mode.mousePressEvent(None)
+                
+            if self.maint_mode_on:
+                self.view.button_maint_mode.mousePressEvent(None)
+            
+            self.view.scene.alerts_field.addAlert('DISPLAY DISCONNECTED FROM GCA', critical=True)
+            self.view.scene.connected = False
+            
+            # Remove all tracks
+            #self.view.scene.clearAllTracks()
+            self.view.scene.drawAllTracks()
+            self.view.scene.clearAllTracks()
+            self.view.scene.drawAllGraphics()
+            
+            
+
+
+    @property
+    def connected(self):
+        return self.view.button_connect.inverted
+    
+    @property
+    def radiating(self):
+        return self.view.button_radiate.inverted
+    
+    @property
+    def antenna_drive_on(self):
+        return self.view.button_ant_drive.inverted
+    
+    @property
+    def rain_mode_on(self):
+        return self.view.button_rain_mode.inverted
+    
+    @property
+    def maint_mode_on(self):
+        return self.view.button_maint_mode.inverted
 
 
     def loadAirport(self):
@@ -293,6 +348,8 @@ class MyPresenter(QtCore.QObject):
     def newAirport(self, airport):
         # This method is called after a new airport has been succesfully loaded
         self.view.scene.active_airport = airport
+        #self.view.scene.alerts_field.addAlert('NEW AIRPORT LOADED')
+        # Only standard alerts (as IRL I mean)
 
 
     def newACSizeChosen(self, button):
@@ -314,8 +371,12 @@ class MyPresenter(QtCore.QObject):
 
     def newAzAntElevChosen(self, button):
         if button.value != self.view.scene.azantelev:
+            self.azant_timer = QtCore.QTimer.singleShot(400.0, self.view.scene.drawElevationCoverage)
+            if self.view.scene.azantelev != None:
+                self.view.scene.alerts_field.addAlert('AZ ANT ELEV CHANGE IN PROGRESS')
+                self.view.scene.alerts_field.addAlert('AZ ANT ELEV CHANGE COMPLETED', delay=500.0)
             self.view.scene.azantelev = button.value
-            self.view.scene.drawElevationCoverage()
+                #self.view.scene.drawElevationCoverage()
 
 
     def newGlideSlopeChosen(self, button):
@@ -326,12 +387,25 @@ class MyPresenter(QtCore.QObject):
 
 
     def newRunwayChosen(self, button):
+        if self.model.active_runway != None:
+            # No runway change should register when loading airport for the first time!
+
+            self.view.scene.alerts_field.addAlert('RUNWAY CHANGE IN PROGRESS', delay=100.0)
+            self.view.scene.alerts_field.addAlert('RUNWAY CHANGE COMPLETED', delay=1100.0)
+            if self.radiating:
+                self.view.button_radiate.mousePressEvent(None)
+                self.view.scene.drawAllTracks()
+                laterRadiate = functools.partial(self.view.button_radiate.mousePressEvent, None)
+                self.radiate_timer = QtCore.QTimer.singleShot(1200.0, laterRadiate)
+            
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
             
             self.view.scene.clearAllTracks()
             self.view.scene.drawTextInfo()
+            
+            
 
                 
     def newElevationScaleChosen(self, button):
@@ -410,12 +484,12 @@ class MyPresenter(QtCore.QObject):
             self.view.scene.designated_tracks.append(first_track)
         
             self.view.scene.designated_tracks[-1].setPassive()
-            self.view.scene.designated_tracks[-1].drawPlots(elevation=True, azimuth=True)
-            self.view.scene.designated_tracks[-1].drawWhiPlot()
+            self.view.scene.designated_tracks[-1].draw(elevation=True, azimuth=True, whi=True)
+            #self.view.scene.designated_tracks[-1].drawWhiPlot()
             
             self.view.scene.designated_tracks[0].setActive()
-            self.view.scene.designated_tracks[0].drawPlots(elevation=True, azimuth=True)
-            self.view.scene.designated_tracks[0].drawWhiPlot()
+            self.view.scene.designated_tracks[0].draw(elevation=True, azimuth=True, whi=True)
+            #self.view.scene.designated_tracks[0].drawWhiPlot()
         
         
     def toggleLine1(self, button):
@@ -469,21 +543,51 @@ class MyPresenter(QtCore.QObject):
 
     # Radar Control buttons
     
-    def toggleRadiation(self, button):          # To model?
-        self.view.scene.radiation_active = button.inverted
-        print 'toggle radiate'
+    def toggleRadiation(self, button):
+        if (not self.antenna_drive_on) and self.radiating:
+            # If antenna drive is off, turn radiation off as well
+            button.toggleInverted()
+            self.view.scene.alerts_field.addAlert('ANTENNA DRIVE NOT READY')
+        if not self.radiating:
+            # If radiate just was turned off, clear the tracks
+            self.view.scene.clearAllTracks()
         
-    def toggleAntennaDrive(self, button):       # To model?
-        self.view.scene.antennadrive_active = button.inverted
-        print 'toggle antennadrive'
+        self.view.scene.radiating = self.radiating
+
+
+    def toggleAntennaDrive(self, button):
+        if (not self.antenna_drive_on) and self.radiating:
+            # Antenna drive just turned off while radiating
+            self.view.button_radiate.mousePressEvent(None)
+        elif self.antenna_drive_on and (not self.connected):
+            # Antenna drive commanded, but we are not connected
+            button.toggleInverted()
+        elif self.antenna_drive_on and self.connected:
+            # We are connected, and start rotate has just been commanded
+            button.toggleInverted()
+            self.view.scene.alerts_field.addAlert('STARTING ANTENNA DRIVE')
+            self.invert_timer = QtCore.QTimer.singleShot(400.0, button.toggleInverted)
+            self.view.scene.alerts_field.addAlert('ANTENNA DRIVE READY', delay=500.0)
+            
+            
+
         
     def toggleRainMode(self, button):
-        self.view.scene.rainmode_active = button.inverted  # Send to model???
-        print 'toggle rainmode'
+        if (not self.connected) and self.rain_mode_on:
+            button.toggleInverted()
+        #self.view.scene.rain_mode_on = self.rain_mode_on       # Not necessary!?!
+        
         
     def toggleMaintMode(self, button):
-        self.view.scene.maintmode_active = button.inverted
-        print 'toggle maintmode'
+        if (not self.connected) and self.maint_mode_on:
+            # If not connected, and the maint mode button has just been inverted, change back.
+            button.toggleInverted()
+        elif self.connected:
+            if self.maint_mode_on:
+                self.view.scene.alerts_field.addAlert('RADAR IN MAINTENANCE MODE')
+            else:
+                self.view.scene.alerts_field.addAlert('RADAR IN OPERATIONAL MODE')
+        
         
         
 
@@ -504,12 +608,15 @@ class MyPresenter(QtCore.QObject):
     def toggleWhi(self, button):
         self.view.scene.whi_active = button.inverted
         self.view.scene.drawWhiAxis()
+        
         self.view.scene.drawWhiPlot()
 
     def toggleRadarCover(self, button):
         self.view.scene.radarcover_active = button.inverted
         self.view.scene.drawElevationCoverage()
         self.view.scene.drawAzimuthCoverage()
+        self.view.scene.drawElevationGCA()
+        self.view.scene.drawAzimuthGCA()
 
     def toggleHist(self, button):
         self.view.scene.hist_active = button.inverted

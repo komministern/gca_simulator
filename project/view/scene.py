@@ -62,7 +62,7 @@ class MyScene(QtGui.QGraphicsScene):
 
     # **** WHI AXIS
 
-    whiaxislength_x = scenetotalheight / 8
+    whiaxislength_x = scenetotalheight / 7
     whiaxislength_y = whiaxislength_x
     whiaxiszero_x = whiaxislength_x * 1.5
     whiaxiszero_y = whiaxislength_y * 0.8
@@ -119,11 +119,14 @@ class MyScene(QtGui.QGraphicsScene):
     # **** ALERT FIELD
     
     alerts_field_width = 300.0
-    alerts_field_centre_x = graphicsareawidth * 0.6
+    alerts_field_centre_x = graphicsareawidth * 0.55
     alerts_field_top_y = 40.0
     alerts_frame_margin = 10.0
 
-
+    # **** SIGNALS
+    
+    sound_alarm_on = QtCore.Signal()
+    sound_alarm_off = QtCore.Signal()
 
 
     def __init__(self):
@@ -220,8 +223,13 @@ class MyScene(QtGui.QGraphicsScene):
         self.line_2_visible = False
         self.line_3_visible = False
         self.leader_visible = False
+
+
+        # States
+        self.radiating = False
+        self.connected = False
         
-        
+
         # Windows related stuff
         self.movablewindowZval = 20.0
         self.activewindowtopborders = []
@@ -327,11 +335,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.whi_axis_item = WHIAxis(self)
         
         self.alerts_field = AlertsField(self)
-        self.alerts_field.addAlert('RADAR NORMAL NO ALERTS')
-        self.alerts_field.addAlert('FEL 2')
-        self.alerts_field.addAlert('FEL 3')
-        self.alerts_field.addAlert('FEL 4')
-        self.alerts_field.addAlert('FEL 233333')
+        
 
 
 
@@ -342,8 +346,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.previous_time_stamp = self.current_time_stamp
         self.current_time_stamp = new_time_stamp
         self.delta_t = self.current_time_stamp - self.previous_time_stamp
-        
-        
+
+
         self.airplane_coordinate = airplane_coordinate
         self.threshold_coordinate = threshold_coordinate
         self.eor_coordinate = eor_coordinate
@@ -371,22 +375,23 @@ class MyScene(QtGui.QGraphicsScene):
 
     def drawAllElevationTracks(self):
         for each in self.tracks:
-            each.drawPlots(elevation=True, azimuth=False)
+            each.draw(elevation=True, azimuth=False)
         
 
     def drawAllAzimuthTracks(self):
         for each in self.tracks:
-            each.drawPlots(elevation=False, azimuth=True)
+            each.draw(elevation=False, azimuth=True)
         
 
     def drawAllTracks(self):
         for each in self.tracks:
-            each.drawPlots(elevation=True, azimuth=True)
+            each.draw(elevation=True, azimuth=True, whi=True)
         
 
     def clearAllTracks(self):
         for each in self.tracks:
             each.clear()
+            each.resetCallsign()
         
 
     def updateAllTracks(self):
@@ -395,9 +400,9 @@ class MyScene(QtGui.QGraphicsScene):
         self.mti_2_track.update(self.mti_2_coordinate, self.mti_2_hit)
 
 
-    def drawWhiPlot(self):
+    def drawWhiPlot(self):                              # Noooooooooooooooooooooooooooooooooooooooo!!!!!!! Should be inside Track!!!!!!!!!!!!!!!!!
         if len(self.designated_tracks) > 0:
-            self.designated_tracks[0].drawWhiPlot()
+            self.designated_tracks[0].draw(elevation=False, azimuth=False, whi=True)
 
 
     def drawAllGraphics(self):
@@ -529,22 +534,22 @@ class MyScene(QtGui.QGraphicsScene):
 
     def getWhiPoint(self, np_coord):
         if len(np_coord) == 3 and (self.glideslope != None):
-            
+
             range_m = np_coord[0]
             altitude_m = np_coord[2]
             azimuth_m = np_coord[1]
 
             whi_azimuth_ft = azimuth_m * 3.2808399
             #print 'real altitude m  ' + str(altitude_m)
-            
+
             ideal_altitude_m = range_m * np.tan(self.glideslope * np.pi / 180.0)
             #print 'ideal altitude m  ' + str(ideal_altitude_m)
             whi_altitude_ft = (altitude_m + ideal_altitude_m) * 3.2808399
             #print 'whi altitude m  ' + str(whi_altitude_ft / 3.2808399)
             #print ''
-            
+
             if np.absolute(whi_azimuth_ft) < 1000.0 and np.absolute(whi_altitude_ft) < 500.0:
-                
+
                 whi_x_pixel = -(whi_azimuth_ft / 1000.0) * self.whiaxislength_x / 2.0 + self.whiaxiszero_x
                 whi_y_pixel = -(whi_altitude_ft / 500.0) * self.whiaxislength_y / 2.0 + self.whiaxiszero_y
                 return QtCore.QPointF(whi_x_pixel, whi_y_pixel)
@@ -598,7 +603,7 @@ class MyScene(QtGui.QGraphicsScene):
         if len(self.activewindowtopborders) > 0:
             for each in self.activewindowtopborders:
                 each.setUnFocused()
-        
+
     def getNewZVal(self):
         self.movablewindowZval += 0.001
         return self.movablewindowZval

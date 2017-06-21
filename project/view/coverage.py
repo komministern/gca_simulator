@@ -29,7 +29,7 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
         # The if statement above is commented out due to erroneous behavior when changing runway. Inefficiency before error.
         
         # Set visibility
-        self.setVisible(self.scene().radarcover_active)
+        self.setVisible(self.scene().radarcover_active and self.scene().connected)
 
         
     def create(self):
@@ -135,7 +135,7 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
         # The if statement above is commented out due to erroneous behavior when changing runway. Inefficiency before error.
         
         # Set visibility
-        self.setVisible(self.scene().radarcover_active)
+        self.setVisible(self.scene().radarcover_active and self.scene().connected)
         
 
     def create(self):

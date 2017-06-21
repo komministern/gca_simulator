@@ -15,8 +15,8 @@ class ElevationRunway(QtGui.QGraphicsItemGroup):
 
 
     def draw(self):
-        
         self.create()
+        self.setVisible(self.scene().connected)
 
         
         
@@ -76,6 +76,7 @@ class AzimuthRunway(QtGui.QGraphicsItemGroup):
     def draw(self):
         
         self.create()
+        self.setVisible(self.scene().connected)
 
         
         

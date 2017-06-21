@@ -105,7 +105,7 @@ class MyModel(QtCore.QObject):
         self.new_connected_state.emit(self.connected)
         #self.new_plot_extracted.emit([], [], [], [], [], [], 0.0, (False, False), (False, False), (False, False))       # Why?
         self.timer_senddata.stop()
-        self.connection_lost.emit()
+        #self.connection_lost.emit()
         
         #print 'lost connection'
 
