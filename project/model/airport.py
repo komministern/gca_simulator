@@ -36,15 +36,24 @@ class Airport(object):
                 self.runways.append({})
                 self.runways[runway_number]['name'] = self.words[counter + 1]
 
-            elif self.words[counter] == 'LON':
-                self.runways[runway_number]['lon'] = float(self.words[counter + 1])
+            elif self.words[counter] == 'THR_LON':
+                self.runways[runway_number]['thr_lon'] = float(self.words[counter + 1])
 
-            elif self.words[counter] == 'LAT':
-                self.runways[runway_number]['lat'] = float(self.words[counter + 1])
+            elif self.words[counter] == 'THR_LAT':
+                self.runways[runway_number]['thr_lat'] = float(self.words[counter + 1])
 
-            elif self.words[counter] == 'EL':
-                self.runways[runway_number]['el'] = float(self.words[counter + 1])
+            elif self.words[counter] == 'THR_EL':
+                self.runways[runway_number]['thr_el'] = float(self.words[counter + 1])
+                
+            elif self.words[counter] == 'EOR_LON':
+                self.runways[runway_number]['eor_lon'] = float(self.words[counter + 1])
 
+            elif self.words[counter] == 'EOR_LAT':
+                self.runways[runway_number]['eor_lat'] = float(self.words[counter + 1])
+
+            elif self.words[counter] == 'EOR_EL':
+                self.runways[runway_number]['eor_el'] = float(self.words[counter + 1])
+            
             elif self.words[counter] == 'TD':
                 self.runways[runway_number]['td'] = float(self.words[counter + 1])
 

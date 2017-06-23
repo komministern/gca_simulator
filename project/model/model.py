@@ -116,10 +116,20 @@ class MyModel(QtCore.QObject):
         
         list_of_strings = []
         
-        for each in self.airport.runways:
-            list_of_strings.append(str(each['lat']))
-            list_of_strings.append(str(each['lon']))            # This is the threshold coordinate for each runway
-            list_of_strings.append(str(each['el'] * 0.3048))    # El should be in meters, not feet.
+        list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lat']))
+        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['thr_lon']))            # This is the threshold coordinate for each runway
+        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['thr_el'] * 0.3048))    # El should be in meters, not feet.
+        
+        list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lat']))
+        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['eor_lon']))            # This is the threshold coordinate for each runway
+        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
+        
+        
+        
+#        for each in self.airport.runways:
+#            list_of_strings.append(str(each['lat']))
+#            list_of_strings.append(str(each['lon']))            # This is the threshold coordinate for each runway
+#            list_of_strings.append(str(each['el'] * 0.3048))    # El should be in meters, not feet.
 
         string_to_send = ','.join(list_of_strings)
         self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
@@ -151,13 +161,13 @@ class MyModel(QtCore.QObject):
             
             
 
-
+# ****************** FIX THIS MESS. I PREVIOUSLY SENT COORDS FROM ALL RUNWAYS EACH SECOND!!??!! WHY???????????
 
     def processPendingDatagrams(self):
         
         #print 'processing pending datagram'
         
-        self.timer_connection_active.start(5000)
+        self.timer_connection_active.start(3000)
         
         self.latest_receive_timestamp = time.time()
         
