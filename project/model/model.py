@@ -21,7 +21,7 @@ class MyModel(QtCore.QObject):
     new_communication_data = QtCore.Signal(object, object, object, object, object)
     new_connected_state = QtCore.Signal(object)
     connection_lost = QtCore.Signal()
-    
+
 
     def __init__(self):
         super(MyModel, self).__init__()
@@ -41,11 +41,12 @@ class MyModel(QtCore.QObject):
         self.udp_send_socket = QtNetwork.QUdpSocket(self)     # Necessary???????
 
 
-
-        self.airport = None         # 1 to 6 (not 0 to 5)?????????
+        self.airport = None
         self.active_runway = None
         
         self.connected = False
+        self.record = False
+        self.demo_mode = False
         
         self.initTimeDelays()
         
@@ -58,7 +59,6 @@ class MyModel(QtCore.QObject):
         
         
 
-
     def readNewAirport(self, filename):
         try:
             self.airport = Airport(filename)
@@ -70,20 +70,17 @@ class MyModel(QtCore.QObject):
 
 
     def probeXPlanePlugin(self):
-        
         if self.connected:
             print 'closing connection'
             self.connected = False
             self.timer_senddata.stop()
             self.timer_connection_active.stop()
             self.new_connected_state.emit(self.connected)
-            #self.new_plot_extracted.emit([], [], [], [], [], [], 0.0, (False, False), (False, False), (False, False))   # Why this?
         
         elif self.airport:
             print 'sending query'
             string_to_send = 'query'
             self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)
-
         else:
             print 'no airport chosen'
 
@@ -91,7 +88,6 @@ class MyModel(QtCore.QObject):
 
     def startCommunicatingWithXPlanePlugin(self):
         print 'starting communication'
-        
         self.connected = True
         self.new_connected_state.emit(self.connected)
         self.timer_senddata.start(1000)
@@ -100,43 +96,92 @@ class MyModel(QtCore.QObject):
 
 
     def connectionLost(self):
-        print 'lost connection'
+        #print 'lost connection'
         self.connected = False
         self.new_connected_state.emit(self.connected)
-        #self.new_plot_extracted.emit([], [], [], [], [], [], 0.0, (False, False), (False, False), (False, False))       # Why?
         self.timer_senddata.stop()
         #self.connection_lost.emit()
-        
-        #print 'lost connection'
-
-
 
 
     def sendDatagram(self):
         
-        list_of_strings = []
         
-        list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lat']))
-        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['thr_lon']))            # This is the threshold coordinate for each runway
-        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['thr_el'] * 0.3048))    # El should be in meters, not feet.
+        if not self.demo_mode:
         
-        list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lat']))
-        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['eor_lon']))            # This is the threshold coordinate for each runway
-        list_of_strings.append(str(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
-        
-        
-        
-#        for each in self.airport.runways:
-#            list_of_strings.append(str(each['lat']))
-#            list_of_strings.append(str(each['lon']))            # This is the threshold coordinate for each runway
-#            list_of_strings.append(str(each['el'] * 0.3048))    # El should be in meters, not feet.
+            list_of_strings = []
 
-        string_to_send = ','.join(list_of_strings)
-        self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
+            if self.record == True:
+                list_of_strings.append('record')
+                list_of_strings.append(str(self.active_runway))
+        
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lat']))
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lon']))            # This is the threshold coordinate for each runway
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_el'] * 0.3048))    # El should be in meters, not feet.
+        
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lat']))
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lon']))            # This is the threshold coordinate for each runway
+            list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
+
+            string_to_send = ','.join(list_of_strings)
+            self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
+
+        elif self.demo_mode:
+            
+            rwy_1_string_to_send = self.rwy_1_file.readline()
+            rwy_2_string_to_send = self.rwy_2_file.readline()
+            
+            if not rwy_1_string_to_send:        # This is valid for the rwy_2_file as well due to beeing equally large
+                
+                self.rwy_1_file.seek(0)
+                self.rwy_2_file.seek(0)
+                
+                rwy_1_string_to_send = self.rwy_1_file.readline()
+                rwy_2_string_to_send = self.rwy_2_file.readline()
+            
+            if self.active_runway == 0:
+                string_to_send = rwy_1_string_to_send
+            elif self.active_runway == 1:
+                string_to_send = rwy_2_string_to_send
+            
+            self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress('127.0.0.1'), self.UDP_RECEIVEPORT)
+            
+            #print self.active_runway
+
 
         self.latest_send_timestamp = time.time()
         
         
+
+    def initDemoMode(self):
+        
+        #self.demo_mode = True
+        
+        #self.readNewAirport('./resources/airports/arlanda.apt')
+        
+        self.rwy_1_file = open('./resources/recordings/rwy1.txt', 'r')
+        self.rwy_2_file = open('./resources/recordings/rwy2.txt', 'r')
+
+        #self.demo_mode = True
+        
+        self.demo_mode = True
+        
+        self.active_runway = None
+        
+        self.readNewAirport('./resources/airports/arlanda.apt')
+
+        self.startCommunicatingWithXPlanePlugin()
+
+
+
+    def exitDemoMode(self):
+        self.demo_mode = False
+        
+        self.rwy_1_file.close()
+        self.rwy_2_file.close()
+        
+        self.connectionLost()
+
+
 
 
     def initTimeDelays(self):
@@ -158,15 +203,10 @@ class MyModel(QtCore.QObject):
         stddev = array.std()
         self.new_communication_data.emit(self.message_counter, latest_delay, mean, stddev, self.connected)
             
-            
-            
 
-# ****************** FIX THIS MESS. I PREVIOUSLY SENT COORDS FROM ALL RUNWAYS EACH SECOND!!??!! WHY???????????
 
     def processPendingDatagrams(self):
-        
-        #print 'processing pending datagram'
-        
+
         self.timer_connection_active.start(3000)
         
         self.latest_receive_timestamp = time.time()
@@ -183,89 +223,67 @@ class MyModel(QtCore.QObject):
             if datagram == 'answer':
                 print 'success, received an answer'
                 self.startCommunicatingWithXPlanePlugin()
-                
-                #self.latest_receive_timestamp = time.time()
-                
             else:
 
-                #self.latest_receive_timestamp = time.time()
-                
                 # Do math on times here
-                
                 self.processTimeDelays()
-                
-                #print self.latest_receive_timestamp - self.latest_send_timestamp
-
-
-
-                #print 'seem to be receiving an coord update'
 
                 strings = datagram.split(',')
 
-            #print strings
-
                 float_points = map(float, strings)
-
-            # Airplanes coords in local opengl coords
                 self.coord_counter = 0
+
+                # Airplanes coords in local opengl coords
                 self.airplane_point = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
                 self.coord_counter += 3
 
-            # Threshold points in opengl coords in threshold_points list for each pair of runways
-                self.threshold_points = []
-                for runway_counter in range( len(self.airport.runways) ):
-                    self.threshold_points.append( np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]] ) )
-                    self.coord_counter += 3
+                # Threshold point in opengl coords
+                self.threshold_point = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
+                self.coord_counter += 3
+
+                # Eor point in opengl coords
+                self.eor_point = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
+                self.coord_counter += 3
 
                 self.orthonormal_vectors = []
-                for runway_counter in range(0, len(self.airport.runways), 2):
                 # Unit vectors for each runway:
-                # positive x-direction is directed from td to eor
+                # positive x-direction is directed from thr to eor
                 # positive y-direction is directed to the left when landing
                 # positive z-direction is directed up
-                    x_vector = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
-                    z_vector = np.array([float_points[self.coord_counter + 3], float_points[self.coord_counter + 4], float_points[self.coord_counter + 5]])
-                    x_norm = np.linalg.norm(x_vector)
-                    x_unity_vector = x_vector / x_norm
-                    z_norm = np.linalg.norm(z_vector)
-                    z_unity_vector = z_vector / z_norm
-                    y_unity_vector = np.cross(z_unity_vector, x_unity_vector)
+                    
+                x_vector = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
+                z_vector = np.array([float_points[self.coord_counter + 3], float_points[self.coord_counter + 4], float_points[self.coord_counter + 5]])
+                x_norm = np.linalg.norm(x_vector)
+                x_unity_vector = x_vector / x_norm
+                z_norm = np.linalg.norm(z_vector)
+                z_unity_vector = z_vector / z_norm
+                y_unity_vector = np.cross(z_unity_vector, x_unity_vector)
 
-                    self.orthonormal_vectors.append( [x_unity_vector, y_unity_vector, z_unity_vector] )
-                    self.orthonormal_vectors.append( [-1.0*x_unity_vector, -1.0*y_unity_vector, z_unity_vector] )
+                self.orthonormal_vectors = (x_unity_vector, y_unity_vector, z_unity_vector)
 
-                    self.coord_counter += 6
-
-            # TD calculated only for active runway
-
-                td = self.threshold_points[self.active_runway] + self.orthonormal_vectors[self.active_runway][0] * self.airport.runways[self.active_runway]['td']
-
-            # Now calculate all relevant points as coordinates relative to the touchdown point
-
+                td = self.threshold_point + self.orthonormal_vectors[0] * self.airport.runways[self.active_runway]['td']
+                
+                # Now calculate all relevant points as coordinates relative to the touchdown point
                 airplane_relative_to_td = self.airplane_point - td
-                x = np.dot(self.orthonormal_vectors[ self.active_runway ][0], airplane_relative_to_td)
-                y = np.dot(self.orthonormal_vectors[ self.active_runway ][1], airplane_relative_to_td)
-                z = np.dot(self.orthonormal_vectors[ self.active_runway ][2], airplane_relative_to_td)
+                x = np.dot(self.orthonormal_vectors[0], airplane_relative_to_td)
+                y = np.dot(self.orthonormal_vectors[1], airplane_relative_to_td)
+                z = np.dot(self.orthonormal_vectors[2], airplane_relative_to_td)
                 airplane_coordinate = np.array([x, y, z])
 
-                thr_relative_to_td = self.threshold_points[self.active_runway] - td
-                x = np.dot(self.orthonormal_vectors[ self.active_runway ][0], thr_relative_to_td)
-                y = np.dot(self.orthonormal_vectors[ self.active_runway ][1], thr_relative_to_td)
-                z = np.dot(self.orthonormal_vectors[ self.active_runway ][2], thr_relative_to_td)
+                thr_relative_to_td = self.threshold_point - td
+                x = np.dot(self.orthonormal_vectors[0], thr_relative_to_td)
+                y = np.dot(self.orthonormal_vectors[1], thr_relative_to_td)
+                z = np.dot(self.orthonormal_vectors[2], thr_relative_to_td)
                 threshold_coordinate = np.array([x, y, z])
 
-                if self.active_runway % 2 == 0:
-                    eor_relative_to_td = self.threshold_points[self.active_runway + 1] - td
-                else:
-                    eor_relative_to_td = self.threshold_points[self.active_runway - 1] - td
-                x = np.dot(self.orthonormal_vectors[ self.active_runway ][0], eor_relative_to_td)
-                y = np.dot(self.orthonormal_vectors[ self.active_runway ][1], eor_relative_to_td)
-                z = np.dot(self.orthonormal_vectors[ self.active_runway ][2], eor_relative_to_td)
+                eor_relative_to_td = self.eor_point - td
+                x = np.dot(self.orthonormal_vectors[0], eor_relative_to_td)
+                y = np.dot(self.orthonormal_vectors[1], eor_relative_to_td)
+                z = np.dot(self.orthonormal_vectors[2], eor_relative_to_td)
                 eor_coordinate = np.array([x, y, z])
                     
-            # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
-            # It is placed some 100.0 meters from the centre of the airstrip.
-                    
+                # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
+                # It is placed some 100.0 meters from the centre of the airstrip.
                 if self.active_runway % 2 == 0:
                     gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, -100.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
                 else:
@@ -284,6 +302,5 @@ class MyModel(QtCore.QObject):
 
 
     def quit(self):
-        #self.udpSocket.leaveMulticastGroup(QtNetwork.QHostAddress(self.MCAST_GRP))
         QtGui.QApplication.quit()
 

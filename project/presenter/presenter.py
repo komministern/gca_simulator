@@ -131,7 +131,10 @@ class MyPresenter(QtCore.QObject):
 
     def connectStatusButtons(self):
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
-        self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin)
+        self.view.button_connect.pressed.connect(self.connectToXPlane)
+        #self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin)
+        self.view.button_record.pressed.connect(self.toggleRecording)
+        self.view.button_demo.pressed.connect(self.toggleDemoMode)
         
 
     def connectAzAntElevButtons(self):
@@ -223,6 +226,55 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_azscale_32000.pressed.connect(self.newAzimuthScaleChosen)
 
 
+    def connectToXPlane(self):
+        if self.view.scene.active_airport != None and not self.demo_mode:
+            self.model.probeXPlanePlugin()
+
+
+
+    def toggleDemoMode(self):
+        # button_demo is a normal Button
+        if not self.demo_mode and not self.connected:
+            #if not self.view.button_demo.inverted:
+            
+            self.model.initDemoMode()
+            
+            print self.view.button_demo.inverted
+            self.view.button_demo.toggleInverted()
+            print self.view.button_demo.inverted
+            
+            print 'enter demo mode'
+            #self.model.initDemoMode()
+        elif self.demo_mode:
+            print 'exit demo mode'
+            #if self.view.button_demo.inverted:
+            self.view.button_demo.toggleInverted()
+            self.model.exitDemoMode()
+            self.clearAlerts()
+            self.clearAlerts()
+            
+            # How do I get rid of all the tracks left on the screen at this stage????????????????????
+            
+
+
+    def toggleRecording(self):
+        # button_record is not a InvertingButton, just a Button
+        if self.recording and self.connected:
+            self.model.record = False
+            if self.view.button_record.inverted:
+                self.view.button_record.toggleInverted()
+        elif not self.recording and self.connected and not self.demo_mode:
+            self.model.record = True
+            if not self.view.button_record.inverted:
+                self.view.button_record.toggleInverted()
+        # Yes, the following can happen. If coonection is suddenly dropped, a mousePressEvent from the
+        # button_record is dispatched!!!
+        elif self.recording and not self.connected:
+            self.model.record = False
+            if self.view.button_record.inverted:
+                self.view.button_record.toggleInverted()
+
+
     def clearAlerts(self):
         self.view.scene.alerts_field.clickOnAllAlerts()
 
@@ -288,7 +340,7 @@ class MyPresenter(QtCore.QObject):
 
         if self.connected:
             self.view.scene.alerts_field.addAlert('RADAR READY FOR USE')
-            self.view.scene.connected = True
+            self.view.scene.connected = True                                            # ????????????????????
         
         elif not self.connected:
             self.view.status_window_area.updateDynamicTextItem('count', 'Message count:')
@@ -304,6 +356,9 @@ class MyPresenter(QtCore.QObject):
                 
             if self.maint_mode_on:
                 self.view.button_maint_mode.mousePressEvent(None)
+                
+            if self.recording:
+                self.view.button_record.mousePressEvent(None)
             
             self.view.scene.alerts_field.addAlert('DISPLAY DISCONNECTED FROM GCA', critical=True)
             self.view.scene.connected = False
@@ -337,12 +392,21 @@ class MyPresenter(QtCore.QObject):
     def maint_mode_on(self):
         return self.view.button_maint_mode.inverted
 
+    @property
+    def recording(self):
+        return self.model.record
+    
+    @property
+    def demo_mode(self):
+        return self.model.demo_mode
+
 
     def loadAirport(self):
+        if not self.connected:
         # This method is called when user wants to load a new airport
-        filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
-        if filename:
-            self.model.readNewAirport(filename)
+            filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
+            if filename:
+                self.model.readNewAirport(filename)
 
     
     def newAirport(self, airport):
@@ -389,9 +453,11 @@ class MyPresenter(QtCore.QObject):
     def newRunwayChosen(self, button):
         if self.model.active_runway != None:
             # No runway change should register when loading airport for the first time!
-
+            
+            #if not self.demo_mode:
             self.view.scene.alerts_field.addAlert('RUNWAY CHANGE IN PROGRESS', delay=100.0)
             self.view.scene.alerts_field.addAlert('RUNWAY CHANGE COMPLETED', delay=1100.0)
+                
             if self.radiating:
                 self.view.button_radiate.mousePressEvent(None)
                 self.view.scene.drawAllTracks()

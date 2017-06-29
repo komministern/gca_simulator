@@ -67,7 +67,7 @@ class MyView(QtGui.QGraphicsView):
                 self.status_window_area.newTextRowLeft('RWY' + str(counter) + ': ' + each['name'])
                 self.status_window_area.endRow()
                 
-                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(each['lon']) + ', ' + str(each['lat']) + ', ' + str(each['el']) )
+                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(each['thr_lon']) + ', ' + str(each['thr_lat']) + ', ' + str(each['thr_el']) )
                 self.status_window_area.endRow()
                 self.status_window_area.newTextRowLeft('  Dist to TD (m): ' + str(each['td']))
                 self.status_window_area.endRow()
@@ -91,12 +91,21 @@ class MyView(QtGui.QGraphicsView):
         self.status_window_area.endRow()
         
         self.status_window_area.newFullButtonRow(3)
-        self.button_load_new_airport = FlashingButton('Load\nAirport')
+        self.button_load_new_airport = Button('Load\nAirport')
         self.status_window_area.registerNextButton(self.button_load_new_airport)
         
         self.button_connect = Button('Connect')
         self.status_window_area.registerNextButton(self.button_connect)
+        
+        self.button_demo = Button('Demo\nMode')
+        self.status_window_area.registerNextButton(self.button_demo)
+        
         self.status_window_area.endRow()
+        
+        self.status_window_area.newHalfButtonRow(3)                     # TEMPORARY
+        self.button_record = Button('Record')                  #
+        self.status_window_area.registerNextButton(self.button_record)  #
+        self.status_window_area.endRow()                                #
 
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
@@ -107,7 +116,7 @@ class MyView(QtGui.QGraphicsView):
         self.status_window_area.endRow()
         self.status_window_area.newTextRowLeft('Mean delay:     ', dynamic=True, identifier='mean')
         self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Std:            ', dynamic=True, identifier='std')
+        self.status_window_area.newTextRowLeft('Std dev:        ', dynamic=True, identifier='std')
         self.status_window_area.endRow()
         
         self.status_window_area.fixWindow()
