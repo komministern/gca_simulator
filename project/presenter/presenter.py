@@ -82,6 +82,7 @@ class MyPresenter(QtCore.QObject):
         self.model.new_connected_state.connect(self.updateConnectedState)
         
         self.model.connection_lost.connect(self.connectionLost)
+        
 
     def connectLeadDirButtons(self):
         self.view.button_north.pressed.connect(self.newLeadDirChosen)
@@ -243,10 +244,10 @@ class MyPresenter(QtCore.QObject):
             self.view.button_demo.toggleInverted()
             print self.view.button_demo.inverted
             
-            print 'enter demo mode'
+            #print 'enter demo mode'
             #self.model.initDemoMode()
         elif self.demo_mode:
-            print 'exit demo mode'
+            #print 'exit demo mode'
             #if self.view.button_demo.inverted:
             self.view.button_demo.toggleInverted()
             self.model.exitDemoMode()
@@ -332,7 +333,6 @@ class MyPresenter(QtCore.QObject):
 
 
     def updateConnectedState(self, new_connected_state):
-
         # Toggle CONNECT button (this updates the property self.connected) (True or False)
         # The self.connected property actually IS the self.view.button_connect.inverted value!!!
         if self.connected ^ new_connected_state:
@@ -349,6 +349,7 @@ class MyPresenter(QtCore.QObject):
             self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:')
             
             if self.radiating:
+                self.view.button_radiate.mousePressEvent(None)
                 self.view.button_ant_drive.mousePressEvent(None)        # This should take care of the radiate button as well
             
             if self.rain_mode_on:
@@ -365,11 +366,50 @@ class MyPresenter(QtCore.QObject):
             
             # Remove all tracks
             #self.view.scene.clearAllTracks()
-            self.view.scene.drawAllTracks()
+            
+            self.view.scene.removeAllTracks()
+            
             self.view.scene.clearAllTracks()
             self.view.scene.drawAllGraphics()
             
             
+
+            
+
+                
+    def newACSizeChosen(self, button):
+
+        if len(self.view.scene.designated_tracks) > 0:
+            
+            self.view.scene.designated_tracks[0].size_string = button.value
+
+            self.view.scene.drawAllTracks()
+
+    def newLeadDirChosen(self, button):
+
+        if len(self.view.scene.designated_tracks) > 0:
+
+            if button.text == 'ALL':
+                for each in self.view.scene.designated_tracks[1:]:
+                    each.elevation_label.x_offset = self.view.scene.designated_tracks[0].elevation_label.x_offset
+                    each.elevation_label.y_offset = self.view.scene.designated_tracks[0].elevation_label.y_offset
+                    
+                    each.azimuth_label.x_offset = self.view.scene.designated_tracks[0].azimuth_label.x_offset
+                    each.azimuth_label.y_offset = self.view.scene.designated_tracks[0].azimuth_label.y_offset
+                
+            else:
+
+                index = ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW').index(button.text)
+                dx, dy = ((0,-1), (1,-1), (1,0), (1,1), (0,1), (-1,1), (-1,0), (-1,-1))[index]
+                x_offset, y_offset = self.view.scene.label_standard_x_offset_magnitude*dx, self.view.scene.label_standard_y_offset_magnitude*dy
+                
+                self.view.scene.designated_tracks[0].elevation_label.x_offset = x_offset
+                self.view.scene.designated_tracks[0].elevation_label.y_offset = y_offset
+                
+                self.view.scene.designated_tracks[0].azimuth_label.x_offset = x_offset
+                self.view.scene.designated_tracks[0].azimuth_label.y_offset = y_offset
+                
+            self.view.scene.drawAllTracks()
 
 
     @property
@@ -416,8 +456,7 @@ class MyPresenter(QtCore.QObject):
         # Only standard alerts (as IRL I mean)
 
 
-    def newACSizeChosen(self, button):
-        print button.value
+
         
         # Some more work here I guess
 
@@ -603,8 +642,6 @@ class MyPresenter(QtCore.QObject):
                 self.view.button_leader.mousePressEvent(None)
 
 
-    def newLeadDirChosen(self, button):
-        print 'new lead dir ' + button.text
 
 
     # Radar Control buttons

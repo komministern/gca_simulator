@@ -64,6 +64,7 @@ class Track(QtCore.QObject):
             self.elevation_label.resetOffsets()
             self.azimuth_label.resetOffsets()
             self.resetCallsign()
+            self.resetSize()
             
             if len(self.scene.designated_tracks) > 0:
                 self.scene.designated_tracks[0].setActive()
@@ -77,6 +78,7 @@ class Track(QtCore.QObject):
             self.elevation_label.resetOffsets()
             self.azimuth_label.resetOffsets()
             self.resetCallsign()
+            self.resetSize()
 
         else:
             self.scene.designated_tracks.insert(0, self)
@@ -88,7 +90,9 @@ class Track(QtCore.QObject):
                 self.scene.designated_tracks[1].setPassive()
                 self.scene.designated_tracks[1].draw(elevation=True, azimuth=True, whi=True)
                 #self.scene.designated_tracks[1].drawWhiPlot()
-
+        
+        # This signal is for updating the AC and LeaderDirection button windows
+        #self.scene.active_designated_track_changed.emit()
     
     
     def update(self, coord, hit):
@@ -121,6 +125,10 @@ class Track(QtCore.QObject):
         self.elevation_label.setActiveZValue()
         self.azimuth_label.setActiveZValue()
         
+        # This signal is for updating the AC and LeaderDirection button windows
+        #self.scene.active_designated_track_changed.emit()
+        
+        
     def setPassive(self):
         self.elevation_label.setPassiveColors()
         self.azimuth_label.setPassiveColors()
@@ -135,7 +143,7 @@ class Track(QtCore.QObject):
     
 
 
-    def draw(self, elevation=False, azimuth=False, whi=False):
+    def draw(self, elevation=False, azimuth=False, whi=False, only_remove=False):
         
         if len(self.list_of_coords) > 0:        # Do nothing if there are no plots to draw
         
@@ -158,7 +166,7 @@ class Track(QtCore.QObject):
                 self.removeWhiPlot()
 
             # Draw the new plots
-            if self.scene.radiating:
+            if not only_remove:
                 if elevation:
                     self.drawElevationPlots()
                 if azimuth:
@@ -270,6 +278,9 @@ class Track(QtCore.QObject):
 
     def resetCallsign(self):
         self.callsign_string = ''
+
+    def resetSize(self):
+        self.size_string = 'M'
 
 
     def calculateDistanceToTd(self):

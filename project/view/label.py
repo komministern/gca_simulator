@@ -18,8 +18,8 @@ class Label(QtGui.QGraphicsItemGroup):
 
         self.setVisible(False)
 
-        self.x_offset = 150.0
-        self.y_offset = -150.0
+        self.x_offset = self.scene().label_standard_x_offset_magnitude
+        self.y_offset = -self.scene().label_standard_y_offset_magnitude
 
         #self.plot_x_scene_coordinate = 0.0
         #self.plot_y_scene_coordinate = 0.0
@@ -57,8 +57,8 @@ class Label(QtGui.QGraphicsItemGroup):
     
     
     def resetOffsets(self):
-        self.x_offset = 150.0
-        self.y_offset = -150.0
+        self.x_offset = self.scene().label_standard_x_offset_magnitude
+        self.y_offset = -self.scene().label_standard_y_offset_magnitude
     
     
     def centerPoint(self):
@@ -156,7 +156,7 @@ class Label(QtGui.QGraphicsItemGroup):
             #plot_point = self.scene().getElevationPoint(self.parent_track().list_of_coords[0])
             # This is not correct if an extrapolated coordinate is beeing used. FIX.
             
-            self.setPos(self.plot_point.x() + self.x_offset, self.plot_point.y() + self.y_offset)
+            self.setPos(self.plot_point.x() + self.x_offset - self.width/2, self.plot_point.y() + self.y_offset - self.height/2)
 
 
     def getAngle(self, delta_x, delta_y):
@@ -320,8 +320,8 @@ class Label(QtGui.QGraphicsItemGroup):
         super(Label, self).mouseReleaseEvent(event)
         self.label_currently_pressed = False
 
-        self.x_offset = self.scenePos().x() - self.plot_point.x()
-        self.y_offset = self.scenePos().y() - self.plot_point.y()
+        self.x_offset = self.scenePos().x() - self.plot_point.x() + self.width/2
+        self.y_offset = self.scenePos().y() - self.plot_point.y() + self.height/2
         # Calculate the new offset values, x and y
 
     def mouseMoveEvent(self, event):

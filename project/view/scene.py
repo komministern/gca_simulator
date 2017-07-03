@@ -111,10 +111,15 @@ class MyScene(QtGui.QGraphicsScene):
     
     # **** LABEL
     
-    label_displacement_x = 100.0
-    label_displacement_y = 100.0
+    #label_displacement_x = 100.0
+    #label_displacement_y = 100.0
     label_text_distance_x = 8.0
     label_leader_distance = 5.0
+    label_standard_x_offset_magnitude = 150.0
+    label_standard_y_offset_magnitude = 150.0
+    
+    # **** LEADER
+    leader_initial_length = 150.0
     
     # **** ALERT FIELD
     
@@ -127,6 +132,8 @@ class MyScene(QtGui.QGraphicsScene):
     
     sound_alarm_on = QtCore.Signal()
     sound_alarm_off = QtCore.Signal()
+    
+    active_designated_track_changed = QtCore.Signal()
 
 
     def __init__(self):
@@ -381,7 +388,10 @@ class MyScene(QtGui.QGraphicsScene):
     def drawAllAzimuthTracks(self):
         for each in self.tracks:
             each.draw(elevation=False, azimuth=True)
-        
+    
+    def removeAllTracks(self):
+        for each in self.tracks:
+            each.draw(elevation=True, azimuth=True, whi=True, only_remove=True)
 
     def drawAllTracks(self):
         for each in self.tracks:

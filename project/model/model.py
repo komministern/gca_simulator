@@ -233,9 +233,13 @@ class MyModel(QtCore.QObject):
                 float_points = map(float, strings)
                 self.coord_counter = 0
 
-                # Airplanes coords in local opengl coords
+                # Airplane coords in local opengl coords
                 self.airplane_point = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
                 self.coord_counter += 3
+                
+                # Delta time
+                self.real_time_since_last_airplane_point = float_points[self.coord_counter]
+                self.coord_counter += 1
 
                 # Threshold point in opengl coords
                 self.threshold_point = np.array([float_points[self.coord_counter], float_points[self.coord_counter + 1], float_points[self.coord_counter + 2]])
@@ -296,7 +300,8 @@ class MyModel(QtCore.QObject):
                 mti_1_hit = (True, True)
                 mti_2_hit = (True, True)
 
-                self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.latest_receive_timestamp, airplane_hit, mti_1_hit, mti_2_hit)
+                self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.real_time_since_last_airplane_point, airplane_hit, mti_1_hit, mti_2_hit)
+                #self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.latest_receive_timestamp, airplane_hit, mti_1_hit, mti_2_hit)
 
 
 

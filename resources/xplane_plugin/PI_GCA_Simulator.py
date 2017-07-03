@@ -7,23 +7,16 @@ from XPLMProcessing import *
 from XPLMDataAccess import *
 from XPLMUtilities import *
 
-import socket
+import socket, time
 
 class PythonInterface:
 	def XPluginStart(self):
 		global gOutputFile, gPlaneLat, gPlaneLon, gPlaneEl
-		self.Name = "GCA Data"
+		self.Name = "GCA Simulation"
 		self.Sig =  "Oscar Franzen"
-		self.Desc = "A plugin that sends thr1, thr2 and plane position to mc group."
+		self.Desc = "A plugin that provides position and time data to a GCA Simulator."
 
-		"""
-		Open a file to write to.  We locate the X-System directory
-		and then concatenate our file name.  This makes us save in
-		the X-System directory.  Open the file.
-		"""
-		#self.outputPath = XPLMGetSystemPath() + "timedprocessing1.txt"
-		#self.OutputFile = open(self.outputPath, 'w')
-
+		# File stuff for the recording funcionality
 		self.rwy_1_path = XPLMGetSystemPath() + 'rwy1.txt'
 		self.rwy_2_path = XPLMGetSystemPath() + 'rwy2.txt'
 		self.rwy_1_file = None
@@ -31,10 +24,6 @@ class PythonInterface:
 
 
 		""" Find the data refs we want to record."""
-#		self.PlaneLat = XPLMFindDataRef("sim/flightmodel/position/latitude")
-#		self.PlaneLon = XPLMFindDataRef("sim/flightmodel/position/longitude")
-#		self.PlaneEl = XPLMFindDataRef("sim/flightmodel/position/elevation")
-
 		self.plane_local_x = XPLMFindDataRef("sim/flightmodel/position/local_x")
 		self.plane_local_y = XPLMFindDataRef("sim/flightmodel/position/local_y")
 		self.plane_local_z = XPLMFindDataRef("sim/flightmodel/position/local_z")
@@ -46,15 +35,8 @@ class PythonInterface:
 		"""
 		
 		self.FlightLoopCB = self.FlightLoopCallback
-		XPLMRegisterFlightLoopCallback(self, self.FlightLoopCB, 1.0, 0)
+		XPLMRegisterFlightLoopCallback(self, self.FlightLoopCB, 0.1, 0)
 		
-		#self.MCAST_GRP = '224.1.1.1'
-		#self.MCAST_PORT = 5007
-		
-		#self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-		#self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-
-                #self.icao = ''
 		self.ip_address = ''
 
                 #self.UDP_IP = '192.168.1.67'
@@ -77,10 +59,12 @@ class PythonInterface:
 		# Unregister the callback
 		XPLMUnregisterFlightLoopCallback(self, self.FlightLoopCB, 0)
 
-		# Close the file
-		#self.OutputFile.close()
+		if self.rwy_1_file != None:
+			self.rwy_1_file.close()
+			self.rwy_2_file.close()
+			self.rwy_1_file = None
+			self.rwy_2_file = None
 		
-                #self.sock.shutdown(socket.SHUT_RDWR)
 		self.sock.close()
 
 	def XPluginEnable(self):
@@ -102,7 +86,7 @@ class PythonInterface:
 			err = e.args[0]
 			print err
 		except socket.error, e:
-                    #print e    # This happens everytime on OSX. Error 35. EAGAIN on Mac.
+			#print e    # This happens everytime on OSX. Error 35. EAGAIN on Mac.
 			pass
 		else:
 			if data:
@@ -141,10 +125,13 @@ class PythonInterface:
 					
 					self.airport_world_coords = map(float, data_strings)
 
-                # Get local coords for the plane
+				# Get local coords for the plane
 				plane_x = XPLMGetDataf(self.plane_local_x)
 				plane_y = XPLMGetDataf(self.plane_local_y)
 				plane_z = XPLMGetDataf(self.plane_local_z)
+
+				# The exact time at which the plane was in this position
+				time_stamp = time.time()
 
 				thr_x, thr_y, thr_z = XPLMWorldToLocal(self.airport_world_coords[0], self.airport_world_coords[1], self.airport_world_coords[2])
 				eor_x, eor_y, eor_z = XPLMWorldToLocal(self.airport_world_coords[3], self.airport_world_coords[4], self.airport_world_coords[5])
@@ -161,11 +148,12 @@ class PythonInterface:
 				orthogonal_Z_vector_y = temp_thr_y - thr_y
 				orthogonal_Z_vector_z = temp_thr_z - thr_z
 
-                # Now lets construct the string to be sent
+				# Now lets construct the string to be sent
 				string_plane = ','.join(map(str, (plane_x, plane_y, plane_z)))
+				string_time = str(time_stamp)
 				string_airport_local_coords = ','.join(map(str, (thr_x, thr_y, thr_z, eor_x, eor_y, eor_z)))
 				string_span_vectors = ','.join(map(str, (orthogonal_X_vector_x, orthogonal_X_vector_y, orthogonal_X_vector_z, orthogonal_Z_vector_x, orthogonal_Z_vector_y, orthogonal_Z_vector_z)))
-				string_to_send = ','.join([string_plane, string_airport_local_coords, string_span_vectors])
+				string_to_send = ','.join([string_plane, string_time, string_airport_local_coords, string_span_vectors])
 
 				self.sock.sendto(string_to_send, (self.ip_address, self.UDP_SEND_PORT))
 				
@@ -185,22 +173,23 @@ class PythonInterface:
 					eor_x, eor_y, eor_z = temp_x, temp_y, temp_z
 
 					# Now, we define the X-vector as the vector between thr and eor, but with the same altitude at both coords (namely the thr altitude)
-					temp_eor_x, temp_eor_y, temp_eor_z = XPLMWorldToLocal(self.airport_world_coords[3], self.airport_world_coords[4], self.airport_world_coords[2])
+					temp_eor_x, temp_eor_y, temp_eor_z = XPLMWorldToLocal(self.airport_world_coords[0], self.airport_world_coords[1], self.airport_world_coords[5])
 					orthogonal_X_vector_x = temp_eor_x - thr_x
 					orthogonal_X_vector_y = temp_eor_y - thr_y
 					orthogonal_X_vector_z = temp_eor_z - thr_z
 
 					# We define the Z-vector as the vector between thr and thr, but with an altitude 100m greater.
-					temp_thr_x, temp_thr_y, temp_thr_z = XPLMWorldToLocal(self.airport_world_coords[0], self.airport_world_coords[1], self.airport_world_coords[2] + 100.0)
+					temp_thr_x, temp_thr_y, temp_thr_z = XPLMWorldToLocal(self.airport_world_coords[3], self.airport_world_coords[4], self.airport_world_coords[5] + 100.0)
 					orthogonal_Z_vector_x = temp_thr_x - thr_x
 					orthogonal_Z_vector_y = temp_thr_y - thr_y
 					orthogonal_Z_vector_z = temp_thr_z - thr_z
 
 					# Now lets construct the string to be sent
 					string_plane = ','.join(map(str, (plane_x, plane_y, plane_z)))
+					string_time = str(time_stamp)
 					string_airport_local_coords = ','.join(map(str, (thr_x, thr_y, thr_z, eor_x, eor_y, eor_z)))
 					string_span_vectors = ','.join(map(str, (orthogonal_X_vector_x, orthogonal_X_vector_y, orthogonal_X_vector_z, orthogonal_Z_vector_x, orthogonal_Z_vector_y, orthogonal_Z_vector_z)))
-					string_to_send = ','.join([string_plane, string_airport_local_coords, string_span_vectors])
+					string_to_send = ','.join([string_plane, string_time, string_airport_local_coords, string_span_vectors])
 					
 					# Save the string_to_send to the non-active runway file
 					if self.active_runway == 0:
