@@ -59,6 +59,31 @@ class MyPresenter(QtCore.QObject):
         self.view.button_syn_video.pressed.connect(self.toggleSynVideo)
         self.view.button_shutdown.pressed.connect(self.model.quit)
 
+        # Acid entry buttons
+        self.view.button_acid_accept.pressed.connect(self.acid_accept)
+        self.view.button_acid_clear.pressed.connect(self.acid_clear)
+        self.view.button_acid_cancel.pressed.connect(self.acid_cancel)
+        self.view.acid_input_text_item.return_pressed.connect(self.acid_return_pressed)
+        self.view.acid_entry_window.window_gets_focus.connect(self.acid_window_focused)
+        self.view.acid_entry_window.window_gets_shown.connect(self.acid_window_shown)
+
+        # Glideslope entry buttons
+        self.view.button_glideslope_accept.pressed.connect(self.glideslope_accept)
+        self.view.button_glideslope_clear.pressed.connect(self.glideslope_clear)
+        self.view.button_glideslope_cancel.pressed.connect(self.glideslope_cancel)
+        self.view.glideslope_input_text_item.return_pressed.connect(self.glideslope_return_pressed)
+        self.view.glideslope_entry_window.window_gets_focus.connect(self.glideslope_window_focused)
+        self.view.glideslope_entry_window.window_gets_shown.connect(self.glideslope_window_shown)
+
+        # Decsnheight entry buttons
+        self.view.button_decsnheight_accept.pressed.connect(self.decsnheight_accept)
+        self.view.button_decsnheight_clear.pressed.connect(self.decsnheight_clear)
+        self.view.button_decsnheight_cancel.pressed.connect(self.decsnheight_cancel)
+        self.view.decsnheight_input_text_item.return_pressed.connect(self.decsnheight_return_pressed)
+        self.view.decsnheight_entry_window.window_gets_focus.connect(self.decsnheight_window_focused)
+        self.view.decsnheight_entry_window.window_gets_shown.connect(self.decsnheight_window_shown)
+
+
         self.connectACSizeButtons()
         self.connectNHistButtons()
         self.connectStatusButtons()
@@ -67,6 +92,7 @@ class MyPresenter(QtCore.QObject):
         self.connectElScaleButtons()
         self.connectAzScaleButtons()
         self.connectGlideSlopeButtons()
+        self.connectDecisionHeightButtons()
         self.connectAzAntElevButtons()
         self.connectSelDBFldButtons()
         self.connectLeadDirButtons()
@@ -137,6 +163,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_record.pressed.connect(self.toggleRecording)
         self.view.button_demo.pressed.connect(self.toggleDemoMode)
         
+        self.view.button_status_test.pressed.connect(self.test)
+        
 
     def connectAzAntElevButtons(self):
         self.view.button_select_azantalev_000.pressed.connect(self.newAzAntElevChosen)
@@ -190,6 +218,17 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_glideslope_39.pressed.connect(self.newGlideSlopeChosen)
         self.view.button_select_glideslope_40.pressed.connect(self.newGlideSlopeChosen)
 
+    def connectDecisionHeightButtons(self):
+        self.view.button_select_decsnheight_100.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_150.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_200.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_250.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_300.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_350.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_400.pressed.connect(self.newDecisionHeightChosen)
+        self.view.button_select_decsnheight_450.pressed.connect(self.newDecisionHeightChosen)
+
+
     def connectRunwaySelectButtons(self):
         self.view.button_select_runway_1.pressed.connect(self.newRunwayChosen)
         self.view.button_select_runway_2.pressed.connect(self.newRunwayChosen)
@@ -230,6 +269,205 @@ class MyPresenter(QtCore.QObject):
     def connectToXPlane(self):
         if self.view.scene.active_airport != None and not self.demo_mode:
             self.model.probeXPlanePlugin()
+
+
+
+
+    def test(self):
+        self.view.status_window.updateTopBorderText('Jesus Lever!')
+
+
+
+
+    # ACID entry
+    
+    def acid_accept(self, button):
+        str = self.view.acid_input_text_item.toPlainText().upper()
+        if str[0].isalpha() and str[1:].isalnum() and len(str) <= 7:
+
+            if len(self.view.scene.designated_tracks) > 0:
+                self.view.scene.designated_tracks[0].callsign_string = str
+                self.view.scene.drawAllTracks()
+
+            self.view.acid_response_text_item.setPlainText(str)
+            self.view.acid_error_text_item.setPlainText('')
+        else:
+            self.view.acid_error_text_item.setPlainText('ERROR')
+            self.view.acid_response_text_item.setPlainText('')
+        self.view.acid_input_text_item.setFocus()
+    
+    def acid_clear(self, button):
+        self.view.acid_input_text_item.setPlainText('')
+        self.view.acid_error_text_item.setPlainText('')
+        self.view.acid_response_text_item.setPlainText('')
+        self.view.acid_input_text_item.setFocus()
+    
+    def acid_cancel(self, button):
+        if self.view.acid_entry_window.activatingbutton:
+            self.view.acid_entry_window.activatingbutton.toggleExpanded()
+            self.view.acid_entry_window.activatingbutton = None
+        self.view.acid_entry_window.hideWindow()
+        button.hoverLeaveEvent(None)    # Just to get rid of some non esthetic things
+
+    def acid_return_pressed(self):
+        self.view.button_acid_accept.mousePressEvent(None)
+        
+    def acid_window_shown(self):
+        self.acid_clear(None)
+        self.view.acid_input_text_item.setFocus()
+        
+    def acid_window_focused(self):
+        self.view.acid_input_text_item.setFocus()
+
+
+
+
+    # GlideSlope entry
+    
+    def glideslope_accept(self, button):
+        str = self.view.glideslope_input_text_item.toPlainText()
+        
+        try:
+            angle = float(str)
+            
+            if angle >= 1.0 and angle <= 15.0:
+                angle = round(angle, 1)
+                # New glideslope value
+                self.view.glideslope_response_text_item.setPlainText(unicode(angle))
+                self.view.glideslope_error_text_item.setPlainText('')
+                
+                # Fix buttons
+                if angle >= 2.1 and angle <= 4.0:
+                    n = int(round(angle / 0.1)) - 21
+                    buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22,
+                               self.view.button_select_glideslope_23, self.view.button_select_glideslope_24,
+                               self.view.button_select_glideslope_25, self.view.button_select_glideslope_26,
+                               self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
+                               self.view.button_select_glideslope_29, self.view.button_select_glideslope_30,
+                               self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
+                               self.view.button_select_glideslope_33, self.view.button_select_glideslope_34,
+                               self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
+                               self.view.button_select_glideslope_37, self.view.button_select_glideslope_38,
+                               self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
+                    button = buttons[n]
+                    button.mousePressEvent(None)
+                else:
+                    self.view.button_select_glideslope_21.resetExclusiveGroupButtons()
+                    
+                    self.view.scene.glideslope = angle
+                    self.view.scene.drawGlideSlope()
+                    self.view.scene.drawDecisionHeight()
+                    self.view.scene.drawAllElevationTracks()
+                    
+            else:
+                self.view.glideslope_error_text_item.setPlainText('ERROR')
+                self.view.glideslope_response_text_item.setPlainText('')
+                
+            
+        except ValueError:
+            self.view.glideslope_error_text_item.setPlainText('VALUE ERROR')
+            self.view.glideslope_response_text_item.setPlainText('')
+
+        self.view.glideslope_input_text_item.setFocus()
+    
+    def glideslope_clear(self, button):
+        self.view.glideslope_input_text_item.setPlainText('')
+        self.view.glideslope_error_text_item.setPlainText('')
+        self.view.glideslope_response_text_item.setPlainText('')
+        self.view.glideslope_input_text_item.setFocus()
+    
+    def glideslope_cancel(self, button):
+        if self.view.glideslope_entry_window.activatingbutton:
+            self.view.glideslope_entry_window.activatingbutton.toggleExpanded()
+            self.view.glideslope_entry_window.activatingbutton = None
+        self.view.glideslope_entry_window.hideWindow()
+        button.hoverLeaveEvent(None)    # Just to get rid of some non esthetic things
+
+    def glideslope_return_pressed(self):
+        self.view.button_glideslope_accept.mousePressEvent(None)
+        
+    def glideslope_window_shown(self):
+        self.glideslope_clear(None)
+        self.view.glideslope_input_text_item.setFocus()
+        
+    def glideslope_window_focused(self):
+        self.view.glideslope_input_text_item.setFocus()
+        
+
+
+
+    # DecsnHeight entry
+    
+    def decsnheight_accept(self, button):
+        str = self.view.decsnheight_input_text_item.toPlainText()
+        
+        try:
+            height = int(str)
+            
+            if height >= 0 and height <= 999:
+                
+                self.view.decsnheight_response_text_item.setPlainText(unicode(height))
+                self.view.decsnheight_error_text_item.setPlainText('')
+                
+                # Fix buttons
+                if height in [100, 150, 200, 250, 300, 350, 400, 450]:
+                    n = (height / 50) - 2
+                    buttons = [self.view.button_select_decsnheight_100, self.view.button_select_decsnheight_150,
+                               self.view.button_select_decsnheight_200, self.view.button_select_decsnheight_250,
+                               self.view.button_select_decsnheight_300, self.view.button_select_decsnheight_350,
+                               self.view.button_select_decsnheight_400, self.view.button_select_decsnheight_450]
+                    button = buttons[n]
+                    button.mousePressEvent(None)
+                else:
+                    self.view.button_select_decsnheight_100.resetExclusiveGroupButtons()
+                    
+                    self.view.scene.decisionheight = height
+                    self.view.scene.drawDecisionHeight()
+                    #self.view.scene.drawAllElevationTracks()
+                    
+                    #print height
+                    
+            else:
+                self.view.decsnheight_error_text_item.setPlainText('ERROR')
+                self.view.decsnheight_response_text_item.setPlainText('')
+                
+            
+        except ValueError:
+            self.view.decsnheight_error_text_item.setPlainText('VALUE ERROR')
+            self.view.decsnheight_response_text_item.setPlainText('')
+
+        self.view.decsnheight_input_text_item.setFocus()
+    
+    def decsnheight_clear(self, button):
+        self.view.decsnheight_input_text_item.setPlainText('')
+        self.view.decsnheight_error_text_item.setPlainText('')
+        self.view.decsnheight_response_text_item.setPlainText('')
+        self.view.decsnheight_input_text_item.setFocus()
+    
+    def decsnheight_cancel(self, button):
+        if self.view.decsnheight_entry_window.activatingbutton:
+            self.view.decsnheight_entry_window.activatingbutton.toggleExpanded()
+            self.view.decsnheight_entry_window.activatingbutton = None
+        self.view.decsnheight_entry_window.hideWindow()
+        button.hoverLeaveEvent(None)    # Just to get rid of some non esthetic things
+
+    def decsnheight_return_pressed(self):
+        self.view.button_decsnheight_accept.mousePressEvent(None)
+        
+    def decsnheight_window_shown(self):
+        self.decsnheight_clear(None)
+        self.view.decsnheight_input_text_item.setFocus()
+        
+    def decsnheight_window_focused(self):
+        self.view.decsnheight_input_text_item.setFocus()
+
+
+
+
+
+
+
+
 
 
 
@@ -486,7 +724,17 @@ class MyPresenter(QtCore.QObject):
         if button.value != self.view.scene.glideslope:
             self.view.scene.glideslope = button.value
             self.view.scene.drawGlideSlope()
+            self.view.scene.drawDecisionHeight()
             self.view.scene.drawAllElevationTracks()
+
+
+    def newDecisionHeightChosen(self, button):
+        if button.value != self.view.scene.decisionheight:
+            self.view.scene.decisionheight = button.value
+            self.view.scene.drawDecisionHeight()
+            #self.view.scene.drawDecisionHeight()
+
+
 
 
     def newRunwayChosen(self, button):

@@ -10,8 +10,9 @@
 
 from PySide import QtGui, QtCore
 from scene import MyScene
-from window import WindowArea, WindowTopBorder, StatusWindowArea
+from window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea
 from button import Button, InvertingButton, ExpandingButton, FlashingButton
+from mygraphicstextitem import MyGraphicsTextItem
 
 
 
@@ -31,8 +32,14 @@ class MyView(QtGui.QGraphicsView):
         self.leaddir_window = self.createLeadDirWindow()
         self.status_window = self.createStatusWindow()
         self.seldbfld_window = self.createSelDBFldWindow()
+        
+        self.decsnheight_entry_window = self.createDecsnHeightEntryWindow()
+        
         self.decsnheight_window = self.createDecsnHeightWindow()
         self.elantazim_window = self.createSetElAntAzimWindow()
+        
+        self.glideslope_entry_window = self.createGlideSlopeEntryWindow()
+        
         self.glideslope_window = self.createSetGlideSlopeWindow()
         self.azantelev_window = self.createSetAzAntElevWindow()
         self.stc_window = self.createSTCWindow()
@@ -41,6 +48,9 @@ class MyView(QtGui.QGraphicsView):
         self.azscale_window = self.createAzScaleWindow()
         self.ac_window = self.createACWindow()
         self.displaycontrol_window = self.createDisplayControlWindow()
+        
+        self.acid_entry_window = self.createACIDEntryWindow()
+        
         self.radarcontrol_window = self.createRadarControlWindow()
         self.radarmode_window = self.createRadarModeWindow()
         self.runwayselect_window = self.createRunwaySelectWindow()
@@ -50,6 +60,183 @@ class MyView(QtGui.QGraphicsView):
 
 
         # **** CREATE THE 
+
+
+    def createDecsnHeightEntryWindow(self):
+        self.decsnheight_entry_window_area = InputWindowArea()
+        self.scene.addItem(self.decsnheight_entry_window_area)
+
+        self.decsnheight_entry_window_area.newTextRowLeft('HeightT')
+        self.decsnheight_entry_window_area.endRow()
+        self.decsnheight_entry_window_area.newTextRowLeft('Height = Decision Height')
+        self.decsnheight_entry_window_area.endRow()
+        self.decsnheight_entry_window_area.newTextRowLeft('In XXX Feet')
+        self.decsnheight_entry_window_area.endRow()
+        self.decsnheight_entry_window_area.newTextRowLeft('Height = 0-999')
+        self.decsnheight_entry_window_area.endRow()
+        self.decsnheight_entry_window_area.newTextRowLeft('')
+        self.decsnheight_entry_window_area.endRow()
+        self.decsnheight_entry_window_area.newTextRowLeft('ERROR')
+        self.decsnheight_entry_window_area.endRow()
+        
+        self.decsnheight_error_text_item = MyGraphicsTextItem(editable=False)
+        self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_error_text_item)
+        self.decsnheight_entry_window_area.endRow()
+
+        self.decsnheight_entry_window_area.newTextRowLeft('INPUT')
+        self.decsnheight_entry_window_area.endRow()
+
+        self.decsnheight_input_text_item = MyGraphicsTextItem(editable=True)
+        self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_input_text_item)
+        self.decsnheight_entry_window_area.endRow()
+
+        self.decsnheight_entry_window_area.newTextRowLeft('RESPONSE')
+        self.decsnheight_entry_window_area.endRow()
+
+        self.decsnheight_response_text_item = MyGraphicsTextItem(editable=False)
+        self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_response_text_item)
+        self.decsnheight_entry_window_area.endRow()
+
+        self.decsnheight_entry_window_area.newFullButtonRow(4)
+        self.decsnheight_entry_window_area.skipNextButton()
+
+        self.button_decsnheight_accept = FlashingButton('Accept')
+        self.decsnheight_entry_window_area.registerNextButton(self.button_decsnheight_accept)
+        self.button_decsnheight_clear = FlashingButton('Clear')
+        self.decsnheight_entry_window_area.registerNextButton(self.button_decsnheight_clear)
+        self.button_decsnheight_cancel = FlashingButton('Cancel')
+        self.decsnheight_entry_window_area.registerNextButton(self.button_decsnheight_cancel)
+        self.decsnheight_entry_window_area.endRow()
+        
+        self.decsnheight_entry_window_area.fixWindow()
+        
+        self.decsnheight_entry_window_topborder = WindowTopBorder('Decision Height Entry XX:XX:XX')
+        self.scene.addItem(self.decsnheight_entry_window_topborder)
+        self.scene.registerWindowTopBorder(self.decsnheight_entry_window_topborder)
+        self.decsnheight_entry_window_area.attachTo(self.decsnheight_entry_window_topborder)
+        return self.decsnheight_entry_window_topborder
+
+
+
+
+
+
+
+    def createGlideSlopeEntryWindow(self):
+        self.glideslope_entry_window_area = InputWindowArea()
+        self.scene.addItem(self.glideslope_entry_window_area)
+
+        #self.glideslope_entry_window_area.newTextRowLeft('')
+        #self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft('Angle')
+        self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft(' Angle = Glide Slope Angle')
+        self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft('In XX.X Degrees')
+        self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft('Angle = 1.0-15.0')
+        self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft('')
+        self.glideslope_entry_window_area.endRow()
+        self.glideslope_entry_window_area.newTextRowLeft('ERROR')
+        self.glideslope_entry_window_area.endRow()
+        
+        self.glideslope_error_text_item = MyGraphicsTextItem(editable=False)
+        self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_error_text_item)
+        self.glideslope_entry_window_area.endRow()
+
+        self.glideslope_entry_window_area.newTextRowLeft('INPUT')
+        self.glideslope_entry_window_area.endRow()
+
+        self.glideslope_input_text_item = MyGraphicsTextItem(editable=True)
+        self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_input_text_item)
+        self.glideslope_entry_window_area.endRow()
+
+        self.glideslope_entry_window_area.newTextRowLeft('RESPONSE')
+        self.glideslope_entry_window_area.endRow()
+
+        self.glideslope_response_text_item = MyGraphicsTextItem(editable=False)
+        self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_response_text_item)
+        self.glideslope_entry_window_area.endRow()
+
+        self.glideslope_entry_window_area.newFullButtonRow(4)
+        self.glideslope_entry_window_area.skipNextButton()
+
+        self.button_glideslope_accept = FlashingButton('Accept')
+        self.glideslope_entry_window_area.registerNextButton(self.button_glideslope_accept)
+        self.button_glideslope_clear = FlashingButton('Clear')
+        self.glideslope_entry_window_area.registerNextButton(self.button_glideslope_clear)
+        self.button_glideslope_cancel = FlashingButton('Cancel')
+        self.glideslope_entry_window_area.registerNextButton(self.button_glideslope_cancel)
+        self.glideslope_entry_window_area.endRow()
+        
+        self.glideslope_entry_window_area.fixWindow()
+        
+        self.glideslope_entry_window_topborder = WindowTopBorder('Glideslope Entry XX:XX:XX')
+        self.scene.addItem(self.glideslope_entry_window_topborder)
+        self.scene.registerWindowTopBorder(self.glideslope_entry_window_topborder)
+        self.glideslope_entry_window_area.attachTo(self.glideslope_entry_window_topborder)
+        return self.glideslope_entry_window_topborder
+
+
+    def createACIDEntryWindow(self):
+        self.acid_entry_window_area = InputWindowArea()
+        self.scene.addItem(self.acid_entry_window_area)
+
+        self.acid_entry_window_area.newTextRowLeft('1) Pick Designated AC.')
+        self.acid_entry_window_area.endRow()
+        self.acid_entry_window_area.newTextRowLeft('2) Enter ACID.')
+        self.acid_entry_window_area.endRow()
+        self.acid_entry_window_area.newTextRowLeft('')
+        self.acid_entry_window_area.endRow()
+        self.acid_entry_window_area.newTextRow('ACID = AXXXXXX')
+        self.acid_entry_window_area.endRow()
+        self.acid_entry_window_area.newTextRowLeft('')
+        self.acid_entry_window_area.endRow()
+        self.acid_entry_window_area.newTextRowLeft('ERROR')
+        self.acid_entry_window_area.endRow()
+        
+        self.acid_error_text_item = MyGraphicsTextItem(editable=False)
+        self.acid_entry_window_area.registerGraphicsTextItem(self.acid_error_text_item)
+        self.acid_entry_window_area.endRow()
+
+        self.acid_entry_window_area.newTextRowLeft('INPUT')
+        self.acid_entry_window_area.endRow()
+
+        self.acid_input_text_item = MyGraphicsTextItem(editable=True)
+        self.acid_entry_window_area.registerGraphicsTextItem(self.acid_input_text_item)
+        self.acid_entry_window_area.endRow()
+
+        self.acid_entry_window_area.newTextRowLeft('RESPONSE')
+        self.acid_entry_window_area.endRow()
+
+        self.acid_response_text_item = MyGraphicsTextItem(editable=False)
+        self.acid_entry_window_area.registerGraphicsTextItem(self.acid_response_text_item)
+        self.acid_entry_window_area.endRow()
+
+        self.acid_entry_window_area.newFullButtonRow(4)
+        self.acid_entry_window_area.skipNextButton()
+
+        self.button_acid_accept = FlashingButton('Accept')
+        self.acid_entry_window_area.registerNextButton(self.button_acid_accept)
+        self.button_acid_clear = FlashingButton('Clear')
+        self.acid_entry_window_area.registerNextButton(self.button_acid_clear)
+        self.button_acid_cancel = FlashingButton('Cancel')
+        self.acid_entry_window_area.registerNextButton(self.button_acid_cancel)
+        self.acid_entry_window_area.endRow()
+        
+        self.acid_entry_window_area.fixWindow()
+        
+        self.acid_entry_window_topborder = WindowTopBorder('Acid Entry XX:XX:XX')
+        self.scene.addItem(self.acid_entry_window_topborder)
+        self.scene.registerWindowTopBorder(self.acid_entry_window_topborder)
+        self.acid_entry_window_area.attachTo(self.acid_entry_window_topborder)
+        return self.acid_entry_window_topborder
+
+
+
+
+
 
     def createStatusWindow(self, airport=None):
 
@@ -105,7 +292,9 @@ class MyView(QtGui.QGraphicsView):
         self.status_window_area.newHalfButtonRow(3)                     # TEMPORARY
         self.button_record = Button('Record')                  #
         self.status_window_area.registerNextButton(self.button_record)  #
-        self.status_window_area.endRow()                                #
+        self.button_status_test = Button('Test')                  #
+        self.status_window_area.registerNextButton(self.button_status_test)  #
+        self.status_window_area.endRow()
 
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
@@ -237,7 +426,7 @@ class MyView(QtGui.QGraphicsView):
         self.decsnheight_window_area.registerNextButton(self.button_select_decsnheight_450)
         self.decsnheight_window_area.endRow()
         self.decsnheight_window_area.newFullButtonRow(4)
-        self.button_select_decsnheight_Kbd = Button('Kbd')
+        self.button_select_decsnheight_Kbd = ExpandingButton('Kbd', self.decsnheight_entry_window)
         self.decsnheight_window_area.registerNextButton(self.button_select_decsnheight_Kbd)
         self.decsnheight_window_area.skipNextButton()
         self.decsnheight_window_area.skipNextButton()
@@ -326,7 +515,7 @@ class MyView(QtGui.QGraphicsView):
         self.glideslope_window_area.registerNextButton(self.button_select_glideslope_40)
         self.glideslope_window_area.endRow()
         self.glideslope_window_area.newFullButtonRow(5)
-        self.button_select_glideslope_Kbd = Button('Kbd')
+        self.button_select_glideslope_Kbd = ExpandingButton('Kbd', self.glideslope_entry_window)
         self.glideslope_window_area.registerNextButton(self.button_select_glideslope_Kbd)
         self.glideslope_window_area.skipNextButton()
         self.glideslope_window_area.skipNextButton()
@@ -714,6 +903,9 @@ class MyView(QtGui.QGraphicsView):
 
 
 
+
+    # This pairwise thinking is obsolete. Change!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     def createRunwaySelectWindow(self, rwy1='', rwy2='', rwy3='', rwy4='', rwy5='', rwy6=''):
         # Observe that runways must occur in pairs: 1 and 2, 1 and 2 and 3 and 4 or all six. 
         self.runwayselect_window_area = WindowArea()
@@ -795,7 +987,7 @@ class MyView(QtGui.QGraphicsView):
         self.main_window_area.newTextRow('Main Controls                       ')
         self.main_window_area.endRow()
         self.main_window_area.newFullButtonRow(3)
-        self.button_acid_entry = Button('ACID\nEntry')
+        self.button_acid_entry = ExpandingButton('ACID\nEntry', self.acid_entry_window)
         self.main_window_area.registerNextButton(self.button_acid_entry)
         self.button_ac_size = ExpandingButton('AC\nSize', self.ac_window)
         self.main_window_area.registerNextButton(self.button_ac_size)

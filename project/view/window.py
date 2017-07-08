@@ -6,10 +6,11 @@
 
 
 from PySide import QtGui, QtCore
+import time
 from scene import MyScene
 
 
-class WindowTopBorder(QtGui.QGraphicsRectItem):
+class WindowTopBorder(QtCore.QObject, QtGui.QGraphicsRectItem):
 
     windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
     windowwidth = MyScene.buttonwindowareawidth
@@ -21,16 +22,24 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
     
     closerectside = 18
     crossthickness = 2
+    
+    window_gets_shown = QtCore.Signal()
+    window_gets_hidden = QtCore.Signal()
+    window_gets_focus = QtCore.Signal()
+    window_loses_focus = QtCore.Signal()
 
     
-    def __init__(self, text):
+    def __init__(self, text):   #, update_when_made_visible=False):
         
         
-        super(WindowTopBorder, self).__init__()
+        #super(WindowTopBorder, self).__init__()
+        QtCore.QObject.__init__(self)
+        QtGui.QGraphicsRectItem.__init__(self)
+        
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         
         self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
-                self.windowframethickness, self.windowusablewidth, self.borderthickness)
+        self.windowframethickness, self.windowusablewidth, self.borderthickness)
         
         pen = QtGui.QPen()
         pen.setWidth(self.windowframethickness)
@@ -43,10 +52,14 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
 
         self.setAcceptHoverEvents(True)
+        
+        #self.update_when_made_visible = update_when_made_visible
+
+
+        # The following section should be solved differently (see the updateTopBorderText method further down)
 
         font = QtGui.QFont("Helvetica", 10)
         font.setBold(True)
-        
         self.textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self)
             
         self.textitem.setFont(font)
@@ -62,6 +75,11 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         winheight = topborderrect.height()
         
         self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
+
+        # ................
+
+        #self.textitem = None
+        #self.updateTopBorderText(text)
         
         d = (winheight-self.closerectside)/2
         self.closeRect = QtGui.QGraphicsRectItem(winx+winwidth-self.closerectside-d, winy+d, self.closerectside, self.closerectside, parent=self)
@@ -79,7 +97,37 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         self.crossline1.setPen(pen)
         self.crossline2.setPen(pen)
 
-        self.hideWindow()    
+        self.hideWindow()
+        
+#        self.initial_focus_item = None
+
+
+    def updateTopBorderText(self, text):
+        
+        if self.textitem != None:
+            temp_brush = self.textitem.brush()
+            self.textitem.setParentItem(None)   # This line is important, as....
+            del self.textitem           # this one does not alone remove the item from the scene??? (And/or the parent)
+        
+        font = QtGui.QFont("Helvetica", 10)     # This font should be taken directly from the scene instead!!!
+        font.setBold(True)
+        
+        self.textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self)
+            
+        self.textitem.setFont(font)
+        self.textitem.setBrush(temp_brush)
+            
+        textwidth = int(self.textitem.boundingRect().width())
+        textheight = int(self.textitem.boundingRect().height())
+        
+        topborderrect = self.rect()
+        winx = topborderrect.x()
+        winy = topborderrect.y()
+        winwidth = topborderrect.width()
+        winheight = topborderrect.height()
+        
+        self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
+
 
     def isHidden(self):
         return not self.isEnabled()     # Hidden and (not enabled) goes together in this application
@@ -90,6 +138,7 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         self.setEnabled(False)
         self.setOpacity(0.0)
         self.setZValue(0.0)
+        self.window_gets_hidden.emit()
     
     def showWindow(self, button=None):
         self.activatingbutton = button
@@ -97,6 +146,19 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         self.setEnabled(True)
         self.setOpacity(1.0) 
         self.setFocused()
+        self.window_gets_shown.emit()
+
+        # This is most special!!! If the window area is InputWindowArea, the text in the top border always contains
+        # the UTC time of the time of this methods execution. The last 8 chars is removed and replaced with correct time.
+        if type(self.childItems()[0]) is InputWindowArea:
+            temp_text = self.textitem.text()
+            time_text = time.strftime('%H:%M:%S', time.gmtime())
+            new_text = temp_text[0:-8] + time_text
+            self.updateTopBorderText(new_text)
+
+
+#    def setInitialFocusItem(self, item):
+#        self.initial_focus_item = item
 
 
     def setFocused(self):
@@ -118,6 +180,11 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         self.crossline1.setPen(pen)
         self.crossline2.setPen(pen)
         
+#        if self.initial_focus_item != None:
+#            self.initial_focus_item.setFocus()
+
+        self.window_gets_focus.emit()
+        
 
         
     def setUnFocused(self):
@@ -135,6 +202,8 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
         pen.setColor(QtCore.Qt.black)
         self.crossline1.setPen(pen)
         self.crossline2.setPen(pen)
+        
+        self.window_loses_focus.emit()
 
 
     def itemChange(self, change, value):
@@ -144,8 +213,11 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
                 value.setY(0.0)
             # The value 761.0 is taken directly (quite ugly) from the mainwindowarea after it beeing created and moved
             # to the bottom of the screen. Horrific.
-            if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
-                value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
+            
+            #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
+            #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
+            if value.y() > 838.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
+                value.setY(838.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
 
         return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
 
@@ -156,7 +228,7 @@ class WindowTopBorder(QtGui.QGraphicsRectItem):
             if self.activatingbutton:
                 self.activatingbutton.toggleExpanded()
                 self.activatingbutton = None
-                self.hideWindow()
+            self.hideWindow()
         else:
         
             self.setFocused()
@@ -179,8 +251,11 @@ class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
     buttonfourwidth = (windowusablewidth - 5*distance) / 4
     buttonfivewidth = (windowusablewidth - 6*distance) / 5
     
-    buttonhalfheight = buttonfourwidth / 2
-    buttonfullheight = buttonfourwidth
+#    buttonhalfheight = buttonfourwidth / 2
+#    buttonfullheight = buttonfourwidth
+
+    buttonhalfheight = buttonfivewidth / 2
+    buttonfullheight = buttonfivewidth
 
     textrowheight = 24
 
@@ -332,3 +407,72 @@ class StatusWindowArea(WindowArea):
         self.dynamictextitems[identifier].setText(text)
 
 
+class InputWindowArea(StatusWindowArea):
+    
+    def __init__(self):
+        super(InputWindowArea, self).__init__()
+
+    def newFramedTextRow(self, editable=False): # Accept and Clear buttons as arguments perhaps!?!
+        self.presentbuttonheight = self.textrowheight +  self.distance
+        
+        rectangleitem = QtGui.QGraphicsRectItem()
+        
+        textitem = MyGraphicsTextItem(editable)  #, parent=self)
+        #textitem.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        textitem.setTextWidth(self.windowwidth - self.windowframethickness*3 - self.distance*3) # Why 3? It looks better, but why?
+        font = QtGui.QFont("Helvetica", 10)
+        textitem.setFont(font)
+
+        wtext = textitem.boundingRect().width()
+        htext = textitem.boundingRect().height()
+        
+        rectangleitem = QtGui.QGraphicsRectItem(self.xcursor + self.windowframethickness, self.ycursor + self.distance, wtext, htext, parent=self)
+        rectangleitem.setBrush(QtGui.QBrush(QtCore.Qt.white))
+        
+        textitem.setParentItem(self)
+        
+        textitem.setPos(self.xcursor + self.windowframethickness, self.ycursor + self.distance)
+        
+        
+    def registerGraphicsTextItem(self, textitem):
+        
+        self.presentbuttonheight = self.textrowheight +  self.distance
+        #rectangleitem = QtGui.QGraphicsRectItem()
+                
+        textitem.setTextWidth(self.windowwidth - self.windowframethickness*3 - self.distance*3) # Why 3? It looks better, but why?
+        font = QtGui.QFont("Helvetica", 10)
+        textitem.setFont(font)
+
+        wtext = textitem.boundingRect().width()
+        htext = textitem.boundingRect().height()
+        
+        rectangleitem = QtGui.QGraphicsRectItem(self.xcursor + self.windowframethickness, self.ycursor + self.distance, wtext, htext, parent=self)
+        rectangleitem.setBrush(QtGui.QBrush(QtCore.Qt.white))
+        
+        textitem.setParentItem(self)
+        
+        textitem.setPos(self.xcursor + self.windowframethickness, self.ycursor + self.distance)
+        
+        
+        
+    
+        # So, this is the next challenge!!!
+
+        
+#Qt.TextEditable 	The text is fully editable.
+#Qt.TextEditorInteraction 	The default for a text editor.
+
+
+
+#class MyGraphicsTextItem(QtGui.QGraphicsTextItem):
+    
+#    def __init__(self, editable=False):
+#        super(MyGraphicsTextItem, self).__init__('')
+#    
+#        if editable:
+#            self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+#            
+#    def paint(self):
+#        pass
+            
+        

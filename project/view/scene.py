@@ -7,10 +7,12 @@
 from PySide import QtGui, QtCore
 import numpy as np
 import time
+
 from track import Track
 
 from coverage import ElevationCoverage, AzimuthCoverage
 from glideslope import GlideSlope
+from decisionheight import DecisionHeight
 from runway import ElevationRunway, AzimuthRunway
 from textinfo import TextInfo
 from gca import ElevationGCA, AzimuthGCA
@@ -105,6 +107,10 @@ class MyScene(QtGui.QGraphicsScene):
     azimuthaxismax_y = azimuthgraphicsareatopleft_y
     azimuthaxiszero_y = azimuthrangeaxis_y
 
+    # **** DECISIONHEIGHT LINE
+
+    decisionheight_length = 150.0
+
     # **** PLOT SIZE
     
     plot_radius = 4.0
@@ -161,6 +167,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.glideslope_pen = QtGui.QPen(self.glideslope_color)
         self.glideslope_pen.setWidth(2)
         
+        self.decisionheight_pen = self.glideslope_pen
+        
         self.gca_color = QtGui.QColor(139,0,139,255)
         self.gca_brush = QtGui.QBrush(self.gca_color)
         
@@ -211,12 +219,11 @@ class MyScene(QtGui.QGraphicsScene):
         self.glideslope = None
         self.azantelev = None
         self.nhist = None
-        #self.acsize = None
-        self.decisionheight = None
+
+        self.decisionheight = 0         # This one is set here due to no button can set it to zero.
         
         self.active_airport = None
         self.active_runway = None
-        #self.active_track = None                # Hmmmmmmmmmmmm
         
         self.wx_active = False
         self.obs_active = False
@@ -275,7 +282,7 @@ class MyScene(QtGui.QGraphicsScene):
 
 
         # Z Values
-        self.axis_zvalue = 0.0
+        self.axis_zvalue = 0.6
         self.textinfo_zvalue = 0.0
         self.alerts_zvalue = 1.0
         self.runway_zvalue = 3.0
@@ -289,7 +296,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.active_leader_zvalue = 8.0
         self.passive_label_zvalue = 7.0
         self.passive_leader_zvalue = 7.0
-        self.decisionheight_zvalue = self.glideslope_zvalue
+        self.decisionheight_zvalue = 0.5
         self.button_window_zvalue = self.plot_zvalue + 1.0
 
 
@@ -325,6 +332,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.elevation_coverage_item = ElevationCoverage(self)
         self.azimuth_coverage_item = AzimuthCoverage(self)
         self.glideslope_item = GlideSlope(self)
+        
+        self.decisionheight_item = DecisionHeight(self)
         
         self.elevation_runway_item = ElevationRunway(self)
         self.azimuth_runway_item = AzimuthRunway(self)
@@ -431,6 +440,7 @@ class MyScene(QtGui.QGraphicsScene):
 
         self.drawElevationRunway()
         self.drawGlideSlope()
+        self.drawDecisionHeight()
         self.drawElevationGCA()
         self.drawElevationCoverage()
         self.drawAllElevationTracks()
@@ -457,6 +467,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     def drawGlideSlope(self):
         self.glideslope_item.draw()
+        
+    def drawDecisionHeight(self):
+        self.decisionheight_item.draw()
 
     def drawElevationRunway(self):
         self.elevation_runway_item.draw()

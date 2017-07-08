@@ -171,7 +171,14 @@ class InvertingButton(Button):
         if self.exclusivegroup != None:
             self.exclusivegroup.append(self)
 
-    
+
+    def resetExclusiveGroupButtons(self):
+        if self.exclusivegroup:
+            for each in self.exclusivegroup:
+                if each.inverted:
+                    each.toggleInverted()
+
+
     def mousePressEvent(self, event):
         
         if self.exclusivegroup:
