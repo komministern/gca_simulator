@@ -181,8 +181,8 @@ class Label(QtGui.QGraphicsItemGroup):
         if self.leader_line_item:
             del self.leader_line_item
         self.leader_line_item = None
-        
-        # Leader should now be drawn, if and only if the leader is activated
+
+        # Leader should now be drawn, if and only if the leader is activated (and the terms for the azimuth plot above)
         
         if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating:
             if self.parent_track.active_designated():
@@ -313,6 +313,9 @@ class Label(QtGui.QGraphicsItemGroup):
 
     def mousePressEvent(self, event):
         super(Label, self).mousePressEvent(event)
+        
+        self.scene().selectAsFirstDesignatedTarget(self.parent_track)
+        
         self.label_currently_pressed = True
 
 
@@ -436,6 +439,72 @@ class AzimuthLabel(Label):
         
         self.deviation_text_item.setText(azimuth_deviation_string)
         self.deviation_text_item.setVisible(self.scene().line_3_visible)
+
+    def drawLeader(self):
+        if self.leader_line_item:
+            del self.leader_line_item
+        self.leader_line_item = None
+
+        # The fourth condition in the if statement below is for the situation in which the label's associated azimuth plot has a too small y coordinate
+        # (so that i does not scramble the elevation view)
+
+        # Leader should now be drawn, if and only if the leader is activated (and the terms for the azimuth plot above)
+
+        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating and (self.plot_point.y() > (self.scene().azimuthgraphicsareatopleft_y + self.scene().plot_radius)):
+            if self.parent_track.active_designated():
+                pen = self.scene().active_leader_pen
+            else:
+                pen = self.scene().passive_leader_pen
+
+            #plot_point = self.scene().getElevationPoint(self.parent_track().list_of_coords[0])
+            plot_x = self.plot_point.x()
+            plot_y = self.plot_point.y()
+            # This is not correct if an extrapolated coordinate is beeing used. FIX.
+
+            label_center_point = self.centerPoint()
+            center_x = label_center_point.x()
+            center_y = label_center_point.y()
+
+            # zero degrees straight up
+            angle = self.getAngle(center_x-plot_x, center_y-plot_y)
+            delta_angle = 360.0/16
+
+            d = self.scene().label_leader_distance
+            
+            if angle >= 1*delta_angle and angle < 3*delta_angle:
+                end_point = self.bottomLeftPoint() + QtCore.QPointF(-d, d)
+            elif angle >= 3*delta_angle and angle < 5*delta_angle:
+                end_point = self.leftPoint() + QtCore.QPointF(-d, 0.0)
+            elif angle >= 5*delta_angle and angle < 7*delta_angle:
+                end_point = self.topLeftPoint() + QtCore.QPointF(-d, -d)
+            elif angle >= 7*delta_angle and angle < 9*delta_angle:
+                end_point = self.topPoint() + QtCore.QPointF(0.0, -d)
+            elif angle >= 9*delta_angle and angle < 11*delta_angle:
+                end_point = self.topRightPoint() + QtCore.QPointF(d, -d)
+            elif angle >= 11*delta_angle and angle < 13*delta_angle:
+                end_point = self.rightPoint() + QtCore.QPointF(d, 0.0)
+            elif angle >= 13*delta_angle and angle < 15*delta_angle:
+                end_point = self.bottomRightPoint() + QtCore.QPointF(d, d)
+            else:
+                end_point = self.bottomPoint() + QtCore.QPointF(0.0, d)
+
+            end_x = end_point.x()
+            end_y = end_point.y()
+
+            self.leader_line_item = QtGui.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None, scene=self.scene())
+        
+            self.leader_line_item.setPen(pen)
+            self.leader_line_item.setZValue(self.scene().active_leader_zvalue)
+
+
+    def updateLabelPosition(self):
+
+        if self.label_currently_pressed and not (self.plot_point.y() > (self.scene().azimuthgraphicsareatopleft_y + self.scene().plot_radius)):
+            self.label_currently_pressed = False
+        
+        if not self.label_currently_pressed:
+            # This is not correct if an extrapolated coordinate is beeing used. FIX.
+            self.setPos(self.plot_point.x() + self.x_offset - self.width/2, self.plot_point.y() + self.y_offset - self.height/2)
 
 
 

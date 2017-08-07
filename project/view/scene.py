@@ -357,6 +357,22 @@ class MyScene(QtGui.QGraphicsScene):
 
     # METHODS
 
+
+    def selectAsFirstDesignatedTarget(self, track):     # Also see exchangeWhiTrack in presenter......
+        
+        first_track = self.designated_tracks[0]
+        
+        if track != first_track:                # This ensures that len(designated_tracks) > 1
+            self.designated_tracks.remove(track)
+            self.designated_tracks.insert(0, track)
+
+            self.designated_tracks[1].setPassive()
+            self.designated_tracks[1].draw(elevation=True, azimuth=True, whi=True)
+        
+            self.designated_tracks[0].setActive()
+            self.designated_tracks[0].draw(elevation=True, azimuth=True, whi=True)
+
+
     def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, new_time_stamp, airplane_hit, mti_1_hit, mti_2_hit):
 
         self.previous_time_stamp = self.current_time_stamp

@@ -151,10 +151,13 @@ class Track(QtCore.QObject):
         
             self.elevation_label.update()
             self.azimuth_label.update()
-        
+
+            azimuth_point = self.scene.getAzimuthPoint(self.list_of_coords[0])
+            y = azimuth_point.y()
+
             # Make labels visible (or the opposite)
             self.elevation_label.setVisible(self.designated() and self.scene.radiating)
-            self.azimuth_label.setVisible(self.designated() and self.scene.radiating)
+            self.azimuth_label.setVisible(self.designated() and self.scene.radiating and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)))
             self.whi_label.setVisible(self.active_designated() and self.scene.radiating)          # More work needed here!!!!!!!!!!!!
 
             # Remove the old plots
@@ -166,7 +169,7 @@ class Track(QtCore.QObject):
                 self.removeWhiPlot()
 
             # Draw the new plots
-            if not only_remove:
+            if not only_remove and self.scene.radiating:        # Hmmmmmmm..............
                 if elevation:
                     self.drawElevationPlots()
                 if azimuth:
@@ -228,8 +231,8 @@ class Track(QtCore.QObject):
                     x = azimuth_point.x()
                     y = azimuth_point.y()
             
-                    if self.list_of_hits[i][self.AZIMUTH] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)):
-                    # If this is a hit in reasonable x range, draw a visible plot
+                    if self.list_of_hits[i][self.AZIMUTH] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)):
+                    # If this is a hit in reasonable x range, AND in reasonable y range, draw a visible plot
             
                         if i == 0:
                             # This is a ordinary plot
