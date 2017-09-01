@@ -24,8 +24,8 @@ class MyScene(QtGui.QGraphicsScene):
 
     scenetotaltopleft_x = 0.0
     scenetotaltopleft_y = 0.0
-    scenetotalwidth = 1920.0
-    scenetotalheight = 1200.0
+    scenetotalwidth = 1920.0 - 4.0
+    scenetotalheight = 1080.0 - 4.0
 
     buttonwindowareawidth = 320.0
     buttonwindowareaheight = scenetotalheight

@@ -296,12 +296,81 @@ class MyModel(QtCore.QObject):
                 mti_1_coordinate = gca_coordinate + np.array([750.0, 0.0, 5.0])
                 mti_2_coordinate = gca_coordinate + np.array([-900.0, 0.0, 3.5])
 
-                airplane_hit = (True, True)
+                airplane_relative_to_gca_coordinate = airplane_coordinate - gca_coordinate
+
+                # (elevation_hit, azimuth_hit)
+
+                airplane_hit = (self.elevation_hit(airplane_relative_to_gca_coordinate), True)       #(True, True)
                 mti_1_hit = (True, True)
                 mti_2_hit = (True, True)
 
                 self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.real_time_since_last_airplane_point, airplane_hit, mti_1_hit, mti_2_hit)
                 #self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.latest_receive_timestamp, airplane_hit, mti_1_hit, mti_2_hit)
+
+
+
+    def elevation_hit(self, coord):
+        
+        #max_elevation_r_coverage = 20   # Depending on clear or rain mode
+        
+        p_normal = 0.99
+        
+        r_p = 18.0
+        r_q = 20.0      # Do not change r_q!!!!!!!!!!
+        
+        fi_p = 7.0
+        fi_q = 9.0
+        
+        r_xy = np.linalg.norm(coord[:2])        # Distance without height
+        print 'r_xy/1852: ' + str(r_xy/1852)
+        r = np.linalg.norm(coord)               # Distance with height
+        theta = np.arctan(coord[1]/coord[0])    # Side angle
+        print 'theta: ' + str(theta*180/np.pi)
+        fi = np.arcsin(coord[2]/r)              # Height angle
+        print 'fi: ' + str(fi*180/np.pi)
+        
+        print '---- r_x: ' + str(coord[0])
+        # How does the elevation antenna diagram behave in height???
+        
+        if coord[0] > 0 or r_xy/1852 > r_q or np.absolute(theta)*180/np.pi > 23 or fi*180/np.pi > fi_q:
+            elevation_hit = False
+            print 'elevation: Definitely out of range.'
+        else:
+            
+            #r_p = min(max_elevation_r_coverage - 2, theta*180/np_pi)
+            
+            if r_xy/1852 < r_p:
+                p_r_theta = 1.0
+            else:
+                p_r_theta = np.exp(-(2*(r_xy/1852 - r_p)/(r_q - r_p))**2)
+            
+            if fi*180/np.pi < fi_p:
+                p_fi = 1.0
+            else:
+                p_fi = np.exp(-(2*(fi*180/np.pi - fi_p)/(fi_q - fi_p))**2)
+                
+            p_elevation = p_normal * p_r_theta * p_fi
+            
+            print 'elevation: ' + str(p_elevation)
+            
+            elevation_hit = True
+            
+        return (elevation_hit, True)
+            
+            
+                
+            
+            
+
+
+
+
+
+
+
+
+
+
 
 
 

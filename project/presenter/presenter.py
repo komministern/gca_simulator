@@ -163,7 +163,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_record.pressed.connect(self.toggleRecording)
         self.view.button_demo.pressed.connect(self.toggleDemoMode)
         
-        self.view.button_status_test.pressed.connect(self.test)
+        self.view.button_status_fullscreen.pressed.connect(self.fullScreen)
         
 
     def connectAzAntElevButtons(self):
@@ -273,9 +273,18 @@ class MyPresenter(QtCore.QObject):
 
 
 
-    def test(self):
-        self.view.status_window.updateTopBorderText('Jesus Lever!')
-
+    def fullScreen(self):
+        #self.view.status_window.updateTopBorderText('Jesus Lever!')
+        if self.view.button_status_fullscreen.inverted:
+            self.view.fullscreen = True
+            self.view.showFullScreen()
+            #self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            #self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        else:
+            self.view.showNormal()
+            self.view.fullscreen = False
+            #self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            #self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
 
 
@@ -478,9 +487,9 @@ class MyPresenter(QtCore.QObject):
             
             self.model.initDemoMode()
             
-            print self.view.button_demo.inverted
+            #print self.view.button_demo.inverted
             self.view.button_demo.toggleInverted()
-            print self.view.button_demo.inverted
+            #print self.view.button_demo.inverted
             
             #print 'enter demo mode'
             #self.model.initDemoMode()
@@ -560,6 +569,8 @@ class MyPresenter(QtCore.QObject):
         self.connectStatusButtons()
         if self.model.connected:
             self.view.button_connect.toggleInverted()
+        if self.view.fullscreen:
+            self.view.button_status_fullscreen.toggleInverted()
         self.view.status_window.showWindow(self.view.button_status)
 
 

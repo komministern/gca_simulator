@@ -23,7 +23,7 @@ class MyView(QtGui.QGraphicsView):
     def __init__(self):
         super(MyView, self).__init__()
 
-        self.resize(1924, 1204)
+        self.resize(1820, 980)
         self.scene = MyScene()
         self.setScene(self.scene)
 
@@ -57,6 +57,9 @@ class MyView(QtGui.QGraphicsView):
         self.main_window = self.createMainWindow()
         
         self.main_window.setZValue(self.scene.getNewZVal())
+
+
+        self.fullscreen = False
 
 
         # **** CREATE THE 
@@ -292,8 +295,8 @@ class MyView(QtGui.QGraphicsView):
         self.status_window_area.newHalfButtonRow(3)                     # TEMPORARY
         self.button_record = Button('Record')                  #
         self.status_window_area.registerNextButton(self.button_record)  #
-        self.button_status_test = Button('Test')                  #
-        self.status_window_area.registerNextButton(self.button_status_test)  #
+        self.button_status_fullscreen = InvertingButton('Fullscreen')                  #
+        self.status_window_area.registerNextButton(self.button_status_fullscreen)  #
         self.status_window_area.endRow()
 
         self.status_window_area.newWhiteLineSeparator()
