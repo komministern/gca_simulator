@@ -97,7 +97,11 @@ class MyPresenter(QtCore.QObject):
         self.connectSelDBFldButtons()
         self.connectLeadDirButtons()
 
-        self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
+        #self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
+        self.model.new_plots_extracted.connect(self.view.scene.processReceivedPlots)
+
+
+        
         
         self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
         self.model.new_airport.connect(self.setupNewStatusWindow)
@@ -158,8 +162,9 @@ class MyPresenter(QtCore.QObject):
 
     def connectStatusButtons(self):
         self.view.button_load_new_airport.pressed.connect(self.loadAirport)
-        self.view.button_connect.pressed.connect(self.connectToXPlane)
-        #self.view.button_connect.pressed.connect(self.model.probeXPlanePlugin)
+        self.view.button_connect.pressed.connect(self.toggleSendingToPlugin)
+        #self.view.button_connect.pressed.connect(self.connectToXPlane)
+        
         self.view.button_record.pressed.connect(self.toggleRecording)
         self.view.button_demo.pressed.connect(self.toggleDemoMode)
         
@@ -270,7 +275,13 @@ class MyPresenter(QtCore.QObject):
         if self.view.scene.active_airport != None and not self.demo_mode:
             self.model.probeXPlanePlugin()
 
+    def toggleSendingToPlugin(self):
 
+        if self.view.scene.active_airport != None and not self.demo_mode:
+            if not self.model.connected:
+                self.model.startSendingToPlugin()
+            else:
+                self.model.stopSendingToPlugin()    #FIIIIIIIIIIIIIIIIIIIIIIIX!!!!!!!!!!!!!!!!
 
 
     def fullScreen(self):
@@ -545,12 +556,10 @@ class MyPresenter(QtCore.QObject):
             
         self.view.scene.removeItem(self.view.runwayselect_window)
         
-        rwy_names = []
-        for each in airport.runways:
-            rwy_names.append(each['name'])
-        while len(rwy_names) <= 6:
-            rwy_names.append('')
-        self.view.runwayselect_window = self.view.createRunwaySelectWindow(rwy_names[0], rwy_names[1], rwy_names[2], rwy_names[3], rwy_names[4], rwy_names[5])
+        rwy_names = {}
+        for runway_number in airport.runways:
+            rwy_names[runway_number] = airport.runways[runway_number]['name']
+        self.view.runwayselect_window = self.view.createRunwaySelectWindow(rwy_names)
         # Let the garbage collector deal with the old window.
         
         self.view.button_runway_select.window = self.view.runwayselect_window      # Important. Feed the ExpandingButton its needed parameter.
@@ -583,7 +592,7 @@ class MyPresenter(QtCore.QObject):
 
     def updateConnectedState(self, new_connected_state):
         # Toggle CONNECT button (this updates the property self.connected) (True or False)
-        # The self.connected property actually IS the self.view.button_connect.inverted value!!!
+        # The self.connected property actually IS the self.view.button_connect.inverted value!!! NOOOOOOOOOOOOOOOOOOO!!!
         if self.connected ^ new_connected_state:
             self.view.button_connect.toggleInverted()
 
@@ -761,7 +770,9 @@ class MyPresenter(QtCore.QObject):
                 self.view.scene.drawAllTracks()
                 laterRadiate = functools.partial(self.view.button_radiate.mousePressEvent, None)
                 self.radiate_timer = QtCore.QTimer.singleShot(1200.0, laterRadiate)
-            
+        
+        #print(self.model.active_runway)
+
         if button.value != self.model.active_runway:
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value

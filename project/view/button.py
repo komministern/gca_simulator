@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
+#    Copyright ï¿½ 2016, 2017 Oscar Franzï¿½n <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
 
@@ -229,4 +229,6 @@ class FlashingButton(Button):
         self.timer.start(100)
             
         Button.mousePressEvent(self, event)
+
+
 

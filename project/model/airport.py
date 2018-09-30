@@ -18,8 +18,8 @@ class Airport(object):
 
         self.words = s.split()
  
-        runway_number = 0
-        self.runways = []
+        self.runway_number = None
+        self.runways = {}
 
         counter = 0
 
@@ -32,8 +32,9 @@ class Airport(object):
                 self.iata = self.words[counter + 1]
 
             elif self.words[counter][0:3] == 'RWY':
-                runway_number = int(self.words[counter][3:4]) - 1
-                self.runways.append({})
+
+                runway_number = int(self.words[counter][3:4])
+                self.runways[runway_number] = {}
                 self.runways[runway_number]['name'] = self.words[counter + 1]
 
             elif self.words[counter] == 'THR_LON':

@@ -251,15 +251,15 @@ class MyView(QtGui.QGraphicsView):
             self.status_window_area.newTextRowLeft('ICAO/IATA: ' + airport.icao + '/' + airport.iata)
             self.status_window_area.endRow()
         
-            counter = 1
-            for each in airport.runways:
+            #counter = 1
+            for runway_number in airport.runways:
                 
-                self.status_window_area.newTextRowLeft('RWY' + str(counter) + ': ' + each['name'])
+                self.status_window_area.newTextRowLeft('RWY' + str(runway_number) + ': ' + airport.runways[runway_number]['name'])
                 self.status_window_area.endRow()
                 
-                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(each['thr_lon']) + ', ' + str(each['thr_lat']) + ', ' + str(each['thr_el']) )
+                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(airport.runways[runway_number]['thr_lon']) + ', ' + str(airport.runways[runway_number]['thr_lat']) + ', ' + str(airport.runways[runway_number]['thr_el']) )
                 self.status_window_area.endRow()
-                self.status_window_area.newTextRowLeft('  Dist to TD (m): ' + str(each['td']))
+                self.status_window_area.newTextRowLeft('  Dist to TD (m): ' + str(airport.runways[runway_number]['td']))
                 self.status_window_area.endRow()
                 
                 #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
@@ -268,7 +268,7 @@ class MyView(QtGui.QGraphicsView):
                 #self.status_window_area.endRow()
                 
                 
-                counter += 1
+                #counter += 1
         
             self.status_window_area.newTextRowLeft('Plot Bias Z (ft): ' + '0.0')
             self.status_window_area.endRow()
@@ -909,12 +909,63 @@ class MyView(QtGui.QGraphicsView):
 
     # This pairwise thinking is obsolete. Change!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    def createRunwaySelectWindow(self, rwy1='', rwy2='', rwy3='', rwy4='', rwy5='', rwy6=''):
+    def createRunwaySelectWindow(self, rwy_name={}):
         # Observe that runways must occur in pairs: 1 and 2, 1 and 2 and 3 and 4 or all six. 
         self.runwayselect_window_area = WindowArea()
         self.scene.addItem(self.runwayselect_window_area)
         self.runwayselect_window_area.newHalfButtonRow(3)
         self.rwyexclusivegrouplist = []
+        
+        if 1 in rwy_name.keys():
+            self.button_select_runway_1 = InvertingButton(rwy_name[1], value=1, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_1)
+        else:
+            self.button_select_runway_1 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_1)
+
+        if 2 in rwy_name.keys():
+            self.button_select_runway_2 = InvertingButton(rwy_name[2], value=2, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_2)
+        else:
+            self.button_select_runway_2 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_2)
+
+
+        if 3 in rwy_name.keys():
+            self.button_select_runway_3 = InvertingButton(rwy_name[3], value=3, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_3)
+        else:
+            self.button_select_runway_3 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_3)
+
+        self.runwayselect_window_area.endRow()
+        self.runwayselect_window_area.newHalfButtonRow(3)
+
+        if 4 in rwy_name.keys():
+            self.button_select_runway_4 = InvertingButton(rwy_name[4], value=4, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_4)
+        else:
+            self.button_select_runway_4 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_4)
+
+
+        if 5 in rwy_name.keys():
+            self.button_select_runway_5 = InvertingButton(rwy_name[5], value=5, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_5)
+        else:
+            self.button_select_runway_5 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_5)
+
+        if 6 in rwy_name.keys():
+            self.button_select_runway_6 = InvertingButton(rwy_name[6], value=6, exclusivegroup=self.rwyexclusivegrouplist)
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_6)
+        else:
+            self.button_select_runway_6 = Button('')
+            self.runwayselect_window_area.registerNextButton(self.button_select_runway_6)
+
+
+
+        """
         if rwy1 and rwy2:
             self.button_select_runway_1 = InvertingButton(rwy1, value=0, exclusivegroup=self.rwyexclusivegrouplist)
             self.runwayselect_window_area.registerNextButton(self.button_select_runway_1)
@@ -949,6 +1000,9 @@ class MyView(QtGui.QGraphicsView):
             self.runwayselect_window_area.registerNextButton(self.button_select_runway_5)
             self.button_select_runway_6 = Button('')
             self.runwayselect_window_area.registerNextButton(self.button_select_runway_6)
+        
+        """
+
         self.runwayselect_window_area.endRow()
         self.runwayselect_window_area.fixWindow()
         self.runwayselect_window_topborder = WindowTopBorder('Runway Select')

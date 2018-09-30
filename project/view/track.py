@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
+#    Copyright ï¿½ 2016, 2017 Oscar Franzï¿½n <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
 
@@ -43,6 +43,8 @@ class Track(QtCore.QObject):
         self.elevation_deviation = 0.0
         self.azimuth_deviation = 0.0
         self.distance_to_td = 0.0
+
+        self.inactive_due_to_no_updates = False
 
 
     def designated(self):

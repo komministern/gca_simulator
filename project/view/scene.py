@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
+#    Copyright ï¿½ 2016, 2017 Oscar Franzï¿½n <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
 
@@ -250,17 +250,17 @@ class MyScene(QtGui.QGraphicsScene):
 
 
         # Coordinates
-        self.airplane_coordinate = np.array([])
-        self.threshold_coordinate = np.array([])
+        #self.airplane_coordinate = np.array([])
+        self.thr_coordinate = np.array([])
         self.eor_coordinate = np.array([])
         self.gca_coordinate = np.array([])
-        self.mti_1_coordinate = np.array([])
-        self.mti_2_coordinate = np.array([])
+        #self.mti_1_coordinate = np.array([])
+        #self.mti_2_coordinate = np.array([])
         
         # Hits
-        self.airplane_hit = (False, False)
-        self.mti_1_hit = (False, False)
-        self.mti_2_hit = (False, False)
+        #self.airplane_hit = (False, False)
+        #self.mti_1_hit = (False, False)
+        #self.mti_2_hit = (False, False)
 
 
         # Points
@@ -274,10 +274,10 @@ class MyScene(QtGui.QGraphicsScene):
         self.eor_azimuth_point = None
         self.gca_elevation_point = None
         self.gca_azimuth_point = None
-        self.mti_1_elevation_point = None
-        self.mti_1_azimuth_point = None
-        self.mti_2_elevation_point = None
-        self.mti_2_azimuth_point = None
+        #self.mti_1_elevation_point = None
+        #self.mti_1_azimuth_point = None
+        #self.mti_2_elevation_point = None
+        #self.mti_2_azimuth_point = None
 
 
 
@@ -319,11 +319,12 @@ class MyScene(QtGui.QGraphicsScene):
 
 
         # Tracks
-        self.airplane_track = Track(self)
-        self.mti_1_track = Track(self)
-        self.mti_2_track = Track(self)
+        self.tracks = {}
+        #self.airplane_track = Track(self)
+        #self.mti_1_track = Track(self)
+        #self.mti_2_track = Track(self)
         
-        self.tracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
+        #self.tracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
         self.designated_tracks = []
         
 
@@ -373,22 +374,47 @@ class MyScene(QtGui.QGraphicsScene):
             self.designated_tracks[0].draw(elevation=True, azimuth=True, whi=True)
 
 
-    def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, new_time_stamp, airplane_hit, mti_1_hit, mti_2_hit):
+    #def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, new_time_stamp, airplane_hit, mti_1_hit, mti_2_hit):
+
+        #self.previous_time_stamp = self.current_time_stamp
+        #self.current_time_stamp = new_time_stamp
+        #self.delta_t = self.current_time_stamp - self.previous_time_stamp
+
+
+        #self.airplane_coordinate = airplane_coordinate
+        #self.threshold_coordinate = threshold_coordinate
+        #self.eor_coordinate = eor_coordinate
+        #self.gca_coordinate = gca_coordinate
+        #self.mti_1_coordinate = mti_1_coordinate
+        #self.mti_2_coordinate = mti_2_coordinate
+        #self.airplane_hit = airplane_hit
+        #self.mti_1_hit = mti_1_hit
+        #self.mti_2_hit = mti_2_hit
+
+        #self.updateAllTracks()
+
+        #self.drawElevationGraphics()
+        #self.drawAzimuthGraphics()
+        
+        #self.drawWhiPlot()
+
+        #self.drawTextInfo()
+
+
+
+
+    def processReceivedPlots(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, received_plots):
 
         self.previous_time_stamp = self.current_time_stamp
         self.current_time_stamp = new_time_stamp
+
         self.delta_t = self.current_time_stamp - self.previous_time_stamp
 
 
-        self.airplane_coordinate = airplane_coordinate
-        self.threshold_coordinate = threshold_coordinate
+        self.received_plots = received_plots
+        self.thr_coordinate = thr_coordinate
         self.eor_coordinate = eor_coordinate
         self.gca_coordinate = gca_coordinate
-        self.mti_1_coordinate = mti_1_coordinate
-        self.mti_2_coordinate = mti_2_coordinate
-        self.airplane_hit = airplane_hit
-        self.mti_1_hit = mti_1_hit
-        self.mti_2_hit = mti_2_hit
 
         self.updateAllTracks()
 
@@ -398,41 +424,50 @@ class MyScene(QtGui.QGraphicsScene):
         self.drawWhiPlot()
 
         self.drawTextInfo()
-        
+
 
     def resetAllHistoryPlots(self):
-        for each in self.tracks:
-            each.resetHistoryPlots()
-        
+        for track_name in self.tracks:
+            self.tracks[track_name].resetHistoryPlots()
 
     def drawAllElevationTracks(self):
-        for each in self.tracks:
-            each.draw(elevation=True, azimuth=False)
-        
+        for track_name in self.tracks:
+            self.tracks[track_name].draw(elevation=True, azimuth=False)
 
     def drawAllAzimuthTracks(self):
-        for each in self.tracks:
-            each.draw(elevation=False, azimuth=True)
+        for track_name in self.tracks:
+            self.tracks[track_name].draw(elevation=False, azimuth=True)
     
     def removeAllTracks(self):
-        for each in self.tracks:
-            each.draw(elevation=True, azimuth=True, whi=True, only_remove=True)
+        for track_name in self.tracks:
+            self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
 
     def drawAllTracks(self):
-        for each in self.tracks:
-            each.draw(elevation=True, azimuth=True, whi=True)
-        
+        for track_name in self.tracks:
+            self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True)
 
     def clearAllTracks(self):
-        for each in self.tracks:
-            each.clear()
-            each.resetCallsign()
+        #self.tracks = {}
+        #self.removeAllTracks()
+        
+        for track_name in self.tracks:
+            self.tracks[track_name].clear()
+            self.tracks[track_name].resetCallsign()
+        
+        self.tracks = {}
         
 
     def updateAllTracks(self):
-        self.airplane_track.update(self.airplane_coordinate, self.airplane_hit)
-        self.mti_1_track.update(self.mti_1_coordinate, self.mti_1_hit)
-        self.mti_2_track.update(self.mti_2_coordinate, self.mti_2_hit)
+
+        for track_name in self.tracks:
+            if self.tracks[track_name].inactive_due_to_no_updates:
+                del self.tracks[track_name]
+
+        for track_name in self.received_plots:
+            if not track_name in self.tracks:
+                self.tracks[track_name] = Track(self)
+            self.tracks[track_name].update(self.received_plots[track_name], (True, True))
+
 
 
     def drawWhiPlot(self):                              # Noooooooooooooooooooooooooooooooooooooooo!!!!!!! Should be inside Track!!!!!!!!!!!!!!!!!
@@ -448,11 +483,11 @@ class MyScene(QtGui.QGraphicsScene):
     def drawElevationGraphics(self):
         # Calculate all points (except for the track points, which are calculated in the drawElevationTrack method)
         self.touchdown_elevation_point = self.getElevationPoint(np.array([0.0, 0.0, 0.0]))
-        self.threshold_elevation_point = self.getElevationPoint(self.threshold_coordinate)
+        self.threshold_elevation_point = self.getElevationPoint(self.thr_coordinate)
         self.eor_elevation_point = self.getElevationPoint(self.eor_coordinate)
         self.gca_elevation_point = self.getElevationPoint(self.gca_coordinate)
-        self.mti_1_elevation_point = self.getElevationPoint(self.mti_1_coordinate)
-        self.mti_2_elevation_point = self.getElevationPoint(self.mti_2_coordinate)
+        #self.mti_1_elevation_point = self.getElevationPoint(self.mti_1_coordinate)
+        #self.mti_2_elevation_point = self.getElevationPoint(self.mti_2_coordinate)
 
         self.drawElevationRunway()
         self.drawGlideSlope()
@@ -464,11 +499,11 @@ class MyScene(QtGui.QGraphicsScene):
     def drawAzimuthGraphics(self):
         # Calculate all points (except for the track points, which are calculated in the drawAzimuthTrack method)
         self.touchdown_azimuth_point = self.getAzimuthPoint(np.array([0.0, 0.0, 0.0]))
-        self.threshold_azimuth_point = self.getAzimuthPoint(self.threshold_coordinate)
+        self.threshold_azimuth_point = self.getAzimuthPoint(self.thr_coordinate)
         self.eor_azimuth_point = self.getAzimuthPoint(self.eor_coordinate)
         self.gca_azimuth_point = self.getAzimuthPoint(self.gca_coordinate)
-        self.mti_1_azimuth_point = self.getAzimuthPoint(self.mti_1_coordinate)
-        self.mti_2_azimuth_point = self.getAzimuthPoint(self.mti_2_coordinate)
+        #self.mti_1_azimuth_point = self.getAzimuthPoint(self.mti_1_coordinate)
+        #self.mti_2_azimuth_point = self.getAzimuthPoint(self.mti_2_coordinate)
         
         self.drawAzimuthRunway()
         self.drawAzimuthGCA()
