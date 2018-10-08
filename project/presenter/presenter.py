@@ -8,6 +8,7 @@
 
 import functools
 from PySide import QtCore, QtGui
+from view.myipdialog import MyIPDialog
 
 
 class MyPresenter(QtCore.QObject):
@@ -33,7 +34,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_whi.mousePressEvent(None)
         # ...more to follow
         
-        
+        self.trying_to_connect = False
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
@@ -278,10 +279,34 @@ class MyPresenter(QtCore.QObject):
     def toggleSendingToPlugin(self):
 
         if self.view.scene.active_airport != None and not self.demo_mode:
-            if not self.model.connected:
+            if (not self.model.connected) and (not self.trying_to_connect):
+
+                #self.dialog = MyFilterDialog(initial_filter, name_editable, self.view)
+                #if self.dialog.exec_():
+                #filter = self.dialog.get_final_filter()
+                #    self.save_filter(filter)
+
+                self.dialog = MyIPDialog(self.view)
+                if self.dialog.exec_():
+                    print 'Hepp'
+                
+
                 self.model.startSendingToPlugin()
-            else:
-                self.model.stopSendingToPlugin()    #FIIIIIIIIIIIIIIIIIIIIIIIX!!!!!!!!!!!!!!!!
+                self.view.button_connect.setPending(True)
+                self.trying_to_connect = True
+
+            elif (not self.model.connected) and self.trying_to_connect:
+                self.model.stopSendingToPlugin()
+                self.view.button_connect.setPending(False)
+                self.trying_to_connect = False
+
+            elif self.model.connected:
+                self.model.connected = False
+                self.model.stopSendingToPlugin()
+                self.trying_to_connect = False
+                self.view.button_connect.setPending(False)
+                self.view.button_connect.setInverted(False)
+                self.model.connection_lost.emit()
 
 
     def fullScreen(self):
@@ -593,8 +618,29 @@ class MyPresenter(QtCore.QObject):
     def updateConnectedState(self, new_connected_state):
         # Toggle CONNECT button (this updates the property self.connected) (True or False)
         # The self.connected property actually IS the self.view.button_connect.inverted value!!! NOOOOOOOOOOOOOOOOOOO!!!
-        if self.connected ^ new_connected_state:
-            self.view.button_connect.toggleInverted()
+        
+        print self.trying_to_connect
+
+        if new_connected_state == True:
+            self.view.button_connect.setPending(False)
+            self.view.button_connect.setInverted(True)
+
+        elif new_connected_state == False:
+
+            self.view.button_connect.setInverted(False)
+            
+            if self.trying_to_connect == True:
+                self.view.button_connect.setPending(True)
+                print 'kuk'
+            else:
+                self.view.button_connect.setPending(False)
+                print 'fita'
+
+        #if self.connected ^ new_connected_state:
+        #    self.view.button_connect.toggleInverted()
+
+        #if not self.connected and self.trying_to_connect:
+        #    self.view.button_connect.
 
         if self.connected:
             self.view.scene.alerts_field.addAlert('RADAR READY FOR USE')
@@ -625,9 +671,9 @@ class MyPresenter(QtCore.QObject):
             # Remove all tracks
             #self.view.scene.clearAllTracks()
             
-            self.view.scene.removeAllTracks()
+            #self.view.scene.removeAllTracks()
             
-            self.view.scene.clearAllTracks()
+            self.view.scene.removeAllTracks()
             self.view.scene.drawAllGraphics()
             
             
@@ -777,7 +823,7 @@ class MyPresenter(QtCore.QObject):
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
             
-            self.view.scene.clearAllTracks()
+            self.view.scene.removeAllTracks()
             self.view.scene.drawTextInfo()
             
             
@@ -923,7 +969,7 @@ class MyPresenter(QtCore.QObject):
             self.view.scene.alerts_field.addAlert('ANTENNA DRIVE NOT READY')
         if not self.radiating:
             # If radiate just was turned off, clear the tracks
-            self.view.scene.clearAllTracks()
+            self.view.scene.removeAllTracks()
         
         self.view.scene.radiating = self.radiating
 

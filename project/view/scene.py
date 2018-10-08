@@ -403,7 +403,7 @@ class MyScene(QtGui.QGraphicsScene):
 
 
 
-    def processReceivedPlots(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, received_plots):
+    def processReceivedPlots(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, aircraft_coordinates, aircraft_hits):
 
         self.previous_time_stamp = self.current_time_stamp
         self.current_time_stamp = new_time_stamp
@@ -411,10 +411,12 @@ class MyScene(QtGui.QGraphicsScene):
         self.delta_t = self.current_time_stamp - self.previous_time_stamp
 
 
-        self.received_plots = received_plots
+        self.aircraft_coordinates = aircraft_coordinates
         self.thr_coordinate = thr_coordinate
         self.eor_coordinate = eor_coordinate
         self.gca_coordinate = gca_coordinate
+
+        self.aircraft_hits = aircraft_hits
 
         self.updateAllTracks()
 
@@ -440,33 +442,40 @@ class MyScene(QtGui.QGraphicsScene):
     
     def removeAllTracks(self):
         for track_name in self.tracks:
-            self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
+            self.tracks[track_name].destroy()
+        self.tracks = {}
+        #self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
 
     def drawAllTracks(self):
         for track_name in self.tracks:
             self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True)
 
-    def clearAllTracks(self):
+    #def clearAllTracks(self):
         #self.tracks = {}
         #self.removeAllTracks()
         
-        for track_name in self.tracks:
-            self.tracks[track_name].clear()
-            self.tracks[track_name].resetCallsign()
+    #    for track_name in self.tracks:
+    #        self.tracks[track_name].clear()
+    #        self.tracks[track_name].resetCallsign()
         
-        self.tracks = {}
+    #    self.tracks = {}
         
 
     def updateAllTracks(self):
-
+        
+        tracks_to_be_removed = []
         for track_name in self.tracks:
             if self.tracks[track_name].inactive_due_to_no_updates:
-                del self.tracks[track_name]
+                tracks_to_be_removed.append(track_name)
+        
+        for track_name in tracks_to_be_removed:
+            self.tracks[track_name].destroy()
+            del self.tracks[track_name]
 
-        for track_name in self.received_plots:
+        for track_name in self.aircraft_coordinates:
             if not track_name in self.tracks:
                 self.tracks[track_name] = Track(self)
-            self.tracks[track_name].update(self.received_plots[track_name], (True, True))
+            self.tracks[track_name].update(self.aircraft_coordinates[track_name], self.aircraft_hits[track_name])
 
 
 

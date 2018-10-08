@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
+#    Copyright ï¿½ 2016, 2017 Oscar Franzï¿½n <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
 
@@ -239,7 +239,7 @@ class Label(QtGui.QGraphicsItemGroup):
         # Set visibility True or False to the three lines
         # Update the contents in the three lines, always
         
-        if len(self.parent_track.list_of_coords) > 0:
+        if len(self.parent_track.list_of_el_coords) > 0:
         
             self.updatePlotPoint()
         
@@ -369,7 +369,7 @@ class ElevationLabel(Label):
 
     
     def updatePlotPoint(self):
-        self.plot_point = self.scene().getElevationPoint(self.parent_track.list_of_coords[0])
+        self.plot_point = self.scene().getElevationPoint(self.parent_track.list_of_el_coords[0])
 
 
     def updateDeviation(self):
@@ -425,7 +425,7 @@ class AzimuthLabel(Label):
 
 
     def updatePlotPoint(self):
-        self.plot_point = self.scene().getAzimuthPoint(self.parent_track.list_of_coords[0])
+        self.plot_point = self.scene().getAzimuthPoint(self.parent_track.list_of_az_coords[0])
 
 
     def updateDeviation(self):

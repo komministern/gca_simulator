@@ -97,6 +97,10 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.update()
 
 
+    def setInverted(self, abool):
+        if not abool == self.inverted:
+            self.toggleInverted()
+
     def toggleInverted(self):
         if self.inverted:
             self.inverted = False
@@ -232,3 +236,47 @@ class FlashingButton(Button):
 
 
 
+class PendingButton(Button):
+    
+    def __init__(self, text, value=None):
+        super(PendingButton, self).__init__(text, value)
+        self.pending = False
+        self.pending_color = QtGui.QColor(104, 104, 0)
+        
+    def mousePressEvent(self, event):
+        #self.togglePending()
+            
+        Button.mousePressEvent(self, event)
+
+    def setPending(self, abool):
+        if not abool == self.pending:
+            self.togglePending()
+        
+
+    def togglePending(self):
+
+        if self.pending:
+            self.pending = False
+            brush = QtGui.QBrush(QtCore.Qt.black)
+            self.setBrush(brush)
+            if self.hovered:
+                pen = QtGui.QPen(QtCore.Qt.white)
+            else:
+                pen = QtGui.QPen(QtCore.Qt.black)
+            pen.setWidth(4)
+            self.setPen(pen)
+            for each in self.childItems():
+                each.setBrush(QtGui.QBrush(QtCore.Qt.yellow))
+        else:
+            self.pending = True
+            brush = QtGui.QBrush(self.pending_color)
+            self.setBrush(brush)
+            if self.hovered:
+                pen = QtGui.QPen(QtCore.Qt.black)
+            else:
+                pen = QtGui.QPen(self.pending_color)
+            pen.setWidth(4)
+            self.setPen(pen)
+            for each in self.childItems():
+                each.setBrush(QtGui.QBrush(QtCore.Qt.black))
+        self.update()

@@ -11,7 +11,7 @@
 from PySide import QtGui, QtCore
 from scene import MyScene
 from window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea
-from button import Button, InvertingButton, ExpandingButton, FlashingButton
+from button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
 from mygraphicstextitem import MyGraphicsTextItem
 
 
@@ -23,7 +23,7 @@ class MyView(QtGui.QGraphicsView):
     def __init__(self):
         super(MyView, self).__init__()
 
-        self.resize(1820, 980)
+        self.resize(1920, 1080)
         self.scene = MyScene()
         self.setScene(self.scene)
 
@@ -284,7 +284,7 @@ class MyView(QtGui.QGraphicsView):
         self.button_load_new_airport = Button('Load\nAirport')
         self.status_window_area.registerNextButton(self.button_load_new_airport)
         
-        self.button_connect = Button('Connect')
+        self.button_connect = PendingButton('Connect')
         self.status_window_area.registerNextButton(self.button_connect)
         
         self.button_demo = Button('Demo\nMode')

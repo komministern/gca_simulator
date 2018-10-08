@@ -21,9 +21,12 @@ class Track(QtCore.QObject):
         
         self.scene = scene
         
-        self.list_of_coords = []
-        self.list_of_hits = []
-        self.list_of_extrapolated_coords = []
+        self.list_of_el_coords = []
+        self.list_of_az_coords = []
+        self.list_of_el_hits = []
+        self.list_of_az_hits = []
+    
+        #self.list_of_extrapolated_coords = []
         
         self.elevation_plot_items = []
         self.azimuth_plot_items = []
@@ -96,24 +99,67 @@ class Track(QtCore.QObject):
         # This signal is for updating the AC and LeaderDirection button windows
         #self.scene.active_designated_track_changed.emit()
     
-    
-    def update(self, coord, hit):
+
+    def extrapolate(self, new_coord, historic_coord_list):
+        if len(historic_coord_list) > 1:
+            
+            delta = historic_coord_list[0] - historic_coord_list[1]
+            extrapolated_coord = new_coord + delta
+            return extrapolated_coord
+
+        else:
+
+            return None
+
+
+    def update(self, coord, hits):
         # This method is executed only when a new plot is processed. It is guaranteed that coord is
         # a valid coordinate.
         
+        #print coord
+
+        print self.list_of_el_coords
+        print self.list_of_el_hits
+
+        el_hit, az_hit = hits
+
+
+        # Update list of recorded hits for each antenna
+
+        if len(self.list_of_el_hits) == (self.max_historic_tracks + 1):    # List for simulating missed targets in separate antennas
+            del self.list_of_el_hits[-1]
+        self.list_of_el_hits.insert(0, el_hit)
+
+        if len(self.list_of_az_hits) == (self.max_historic_tracks + 1):    # List for simulating missed targets in separate antennas
+            del self.list_of_az_hits[-1]
+        self.list_of_az_hits.insert(0, az_hit)
+
 
         # Update list of plot coordinates
-        if len(self.list_of_coords) == (self.max_historic_tracks + 1):
-            del self.list_of_coords[-1]
-        self.list_of_coords.insert(0, coord)
-        
-        # Update list of recorded hits for each antenna
-        if len(self.list_of_hits) == (self.max_historic_tracks + 1):    # List for simulating missed targets in separate antennas
-            del self.list_of_hits[-1]
-        self.list_of_hits.insert(0, hit)
-        
-        # Extrapolate the next position
-        pass
+
+        if len(self.list_of_el_coords) == (self.max_historic_tracks + 1):
+            del self.list_of_el_coords[-1]
+        if not el_hit:
+            extrapolated_el_coord = self.extrapolate(coord, self.list_of_el_coords)
+            if extrapolated_el_coord:
+                self.list_of_el_coords.insert(0, extrapolated_el_coord)
+            else:
+                self.list_of_el_coords.insert(0, coord)
+        else:
+            self.list_of_el_coords.insert(0, coord)
+
+        if len(self.list_of_az_coords) == (self.max_historic_tracks + 1):
+            del self.list_of_az_coords[-1]
+        if not az_hit:
+            extrapolated_az_coord = self.extrapolate(coord, self.list_of_az_coords)
+            if extrapolated_az_coord:
+                self.list_of_az_coords.insert(0, extrapolated_az_coord)
+            else:
+                self.list_of_az_coords.insert(0, coord)
+        else:
+            self.list_of_az_coords.insert(0, coord)
+
+
         
         # Calculate the varius label values
         self.calculateDistanceToTd()
@@ -147,14 +193,14 @@ class Track(QtCore.QObject):
 
     def draw(self, elevation=False, azimuth=False, whi=False, only_remove=False):
         
-        if len(self.list_of_coords) > 0:        # Do nothing if there are no plots to draw
+        if len(self.list_of_el_coords) > 0:        # Do nothing if there are no plots to draw
         
             self.calculateElevationDeviation()          # This deviation is dependant on the glideslope!!! That is why it is executed here.
         
             self.elevation_label.update()
             self.azimuth_label.update()
 
-            azimuth_point = self.scene.getAzimuthPoint(self.list_of_coords[0])
+            azimuth_point = self.scene.getAzimuthPoint(self.list_of_az_coords[0])
             y = azimuth_point.y()
 
             # Make labels visible (or the opposite)
@@ -191,26 +237,35 @@ class Track(QtCore.QObject):
     def drawElevationPlots(self):
 
         # Draw new plots
-        for i in range(len(self.list_of_coords)):
+        for i in range(len(self.list_of_el_coords)):
             
             if i <= self.scene.nhist:   # 1 + nhist
             
-                elevation_point = self.scene.getElevationPoint(self.list_of_coords[i])
+                elevation_point = self.scene.getElevationPoint(self.list_of_el_coords[i])
                 
                 if elevation_point != None:
                 
                     x = elevation_point.x()
                     y = elevation_point.y()
             
-                    if self.list_of_hits[i][self.ELEVATION] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)):
+                    if (x < (self.scene.graphicsareawidth - self.scene.plot_radius)):
                     # If this is a hit in reasonable x range, draw a visible plot
             
                         if i == 0:
                             # This is a ordinary plot
-                            self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            if self.list_of_el_hits[i]:
+                                self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=True))
+                            else:
+                                self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=False))
+
+
                         elif (i > 0) and self.scene.hist_active:
                             # This is a historic plot
-                            self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            if self.list_of_el_hits[i]:
+                                self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=True))
+                            else:
+                                self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=False))
+
 
     def removeAzimuthPlots(self):
         # Remove all plots
@@ -222,18 +277,18 @@ class Track(QtCore.QObject):
 
     def drawAzimuthPlots(self):
         # Draw new plots
-        for i in range(len(self.list_of_coords)):
+        for i in range(len(self.list_of_az_coords)):
             
             if i <= self.scene.nhist:   # 1 + nhist
             
-                azimuth_point = self.scene.getAzimuthPoint(self.list_of_coords[i])
+                azimuth_point = self.scene.getAzimuthPoint(self.list_of_az_coords[i])
                 
                 if azimuth_point != None:
                 
                     x = azimuth_point.x()
                     y = azimuth_point.y()
             
-                    if self.list_of_hits[i][self.AZIMUTH] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)):
+                    if self.list_of_az_hits[i] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)):
                     # If this is a hit in reasonable x range, AND in reasonable y range, draw a visible plot
             
                         if i == 0:
@@ -252,30 +307,40 @@ class Track(QtCore.QObject):
 
 
     def drawWhiPlot(self):
-        
+
         #self.removeWhiPlot()
         
         self.whi_label.update()
         self.whi_label.setVisible(self.active_designated() and self.scene.whi_active and self.scene.radiating)
 
-        if self.scene.whi_active and self.active_designated() and self.scene.radiating:
+        if self.scene.whi_active and self.active_designated() and self.scene.radiating and self.list_of_az_hits[0] and self.list_of_el_hits[0]:
 
-            if len(self.list_of_coords) > 1:
-                whi_point = self.scene.getWhiPoint(self.list_of_coords[0])
+            if len(self.list_of_el_coords) > 1:
+                whi_point = self.scene.getWhiPoint(self.list_of_el_coords[0])
                 if whi_point:
                     x = whi_point.x()
                     y = whi_point.y()
                 
-                    self.whi_plot_item = WhiPlotItem(x, y, parent=None, scene=self.scene, parent_track=self)
+                    self.whi_plot_item = WhiPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=True)
         
-                
+    def destroy(self):
 
-    def clear(self):
-        # Dumps all plots (coords) and de-designates the track
+        # Make sure we are not designated
         if self.designated():
             self.toggleDesignated()
+
+        # Un-draw all the plots (remove the items)
+        self.draw(elevation=True, azimuth=True, whi=True, only_remove=True)
+
+        # Remove this object from
+
+
+    #def clear(self):
+        # Dumps all plots (coords) and de-designates the track
+    #    if self.designated():
+    #        self.toggleDesignated()
         
-        self.list_of_coords = []        # Could this empty list be a problem???!!!!????
+    #    self.list_of_coords = []        # Could this empty list be a problem???!!!!????
 
 
     def resetHistoryPlots(self):
@@ -288,20 +353,20 @@ class Track(QtCore.QObject):
         self.size_string = 'M'
 
 
-    def calculateDistanceToTd(self):
-        if len(self.list_of_coords[0]) == 3:
-            meters = np.linalg.norm(self.list_of_coords[0])
+    def calculateDistanceToTd(self):    # Let's do this calculation based on the el coords
+        if len(self.list_of_el_coords) > 0:
+            meters = np.linalg.norm(self.list_of_el_coords[0])
             nautical_miles = meters / 1852.0
             self.distance_to_td = nautical_miles
 
             
 
     def calculateVelocity(self):
-        if len(self.list_of_coords) >= 2:
+        if len(self.list_of_el_coords) >= 2:
             
-            if len(self.list_of_coords[0]) == 3 and len(self.list_of_coords[1]) == 3:
+            if len(self.list_of_el_coords[0]) == 3 and len(self.list_of_el_coords[1]) == 3:
                 
-                meters_per_second = np.linalg.norm(self.list_of_coords[1] - self.list_of_coords[0]) / self.scene.delta_t
+                meters_per_second = np.linalg.norm(self.list_of_el_coords[1] - self.list_of_el_coords[0]) / self.scene.delta_t
                 knots = meters_per_second * 1.943844 
                 self.velocity = knots
             else:
@@ -310,9 +375,9 @@ class Track(QtCore.QObject):
 
     def calculateElevationDeviation(self):
         
-        if len(self.list_of_coords[0]) == 3:
-            plot_x = self.list_of_coords[0][0]
-            plot_z = self.list_of_coords[0][2]
+        if len(self.list_of_el_coords) > 0:
+            plot_x = self.list_of_el_coords[0][0]
+            plot_z = self.list_of_el_coords[0][2]
             preferred_height_in_m = -1.0 * plot_x * np.tan(self.scene.glideslope * np.pi / 180.0)
             deviation_from_glideslope_in_m = plot_z - preferred_height_in_m
             deviation_from_glideslope_in_feet = deviation_from_glideslope_in_m * 3.28084
@@ -321,8 +386,8 @@ class Track(QtCore.QObject):
 
     def calculateAzimuthDeviation(self):
 
-        if len(self.list_of_coords[0]) == 3:
-            plot_y = self.list_of_coords[0][1]
+        if len(self.list_of_az_coords) > 0:
+            plot_y = self.list_of_az_coords[0][1]
             
             deviation_from_groundline_in_m = -1.0 * plot_y
             deviation_from_groundline_in_feet = deviation_from_groundline_in_m * 3.28084

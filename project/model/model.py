@@ -18,7 +18,7 @@ class MyModel(QtCore.QObject):
     sim = 'dcs'
     #sim = 'xpl'
 
-    new_plots_extracted = QtCore.Signal(object, object, object, object, object)
+    new_plots_extracted = QtCore.Signal(object, object, object, object, object, object)
     new_airport = QtCore.Signal(object)
     new_communication_data = QtCore.Signal(object, object, object, object, object)
     new_connected_state = QtCore.Signal(object)
@@ -102,7 +102,8 @@ class MyModel(QtCore.QObject):
     def stopSendingToPlugin(self):
         print('stopping to send')
         self.timer_senddata.stop()
-        self.connectionLost()
+        self.timer_connection_active.stop()
+        #self.connectionLost()
 
 
     #def startCommunicatingWithXPlanePlugin(self):
@@ -457,7 +458,10 @@ class MyModel(QtCore.QObject):
                         plot_coordinates[aircraft_name] = np.array([x, y, z])
 
 
-                    
+                    plot_hits = {}
+
+                    for aircraft_name in plot_coordinates:
+                        plot_hits[aircraft_name] = (True, True)     # el, az
 
                     #airplane_relative_to_gca_coordinate = airplane_coordinate - gca_coordinate
 
@@ -468,7 +472,7 @@ class MyModel(QtCore.QObject):
                     #mti_2_hit = (True, True)
 
                     #self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.real_time_since_last_airplane_point, airplane_hit, mti_1_hit, mti_2_hit)
-                    self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, plot_coordinates)
+                    self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, plot_coordinates, plot_hits)
 
 
 
