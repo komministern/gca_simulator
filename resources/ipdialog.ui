@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Flight Sim IP Address</string>
   </property>
   <property name="modal">
    <bool>true</bool>

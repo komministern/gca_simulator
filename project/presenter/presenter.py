@@ -281,20 +281,20 @@ class MyPresenter(QtCore.QObject):
         if self.view.scene.active_airport != None and not self.demo_mode:
             if (not self.model.connected) and (not self.trying_to_connect):
 
-                #self.dialog = MyFilterDialog(initial_filter, name_editable, self.view)
-                #if self.dialog.exec_():
-                #filter = self.dialog.get_final_filter()
-                #    self.save_filter(filter)
-
                 self.dialog = MyIPDialog(self.view)
-                if self.dialog.exec_():
-                    print 'Hepp'
+                ok = self.dialog.exec_()
+                if ok:
                 
+                    
+                    self.model.UDP_IP = self.dialog.active_ip_adress()
 
-                self.model.startSendingToPlugin()
-                self.view.button_connect.setPending(True)
-                self.trying_to_connect = True
-
+                    self.model.startSendingToPlugin()
+                    self.view.button_connect.setPending(True)
+                    self.trying_to_connect = True
+                else:
+                    #print 'No Hepp'
+                    pass
+                
             elif (not self.model.connected) and self.trying_to_connect:
                 self.model.stopSendingToPlugin()
                 self.view.button_connect.setPending(False)
@@ -609,6 +609,7 @@ class MyPresenter(QtCore.QObject):
 
 
     def updateStatusWindow(self, count, latest_delay, mean_delay, std_delay):
+        self.view.status_window_area.updateDynamicTextItem('ip','IP address:\t\t' + self.model.UDP_IP )
         self.view.status_window_area.updateDynamicTextItem('count', 'Message count:\t' + str(count) )
         self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:\t\t{0:.3f}'.format(latest_delay) )
         self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:\t\t{0:.3f}'.format(mean_delay) )
@@ -616,8 +617,8 @@ class MyPresenter(QtCore.QObject):
 
 
     def updateConnectedState(self, new_connected_state):
-        # Toggle CONNECT button (this updates the property self.connected) (True or False)
-        # The self.connected property actually IS the self.view.button_connect.inverted value!!! NOOOOOOOOOOOOOOOOOOO!!!
+
+        # The self.connected property actually IS the self.view.button_connect.inverted value!!! NOOOOOOOOOOOOOOOOOOO, this i STUPID!!!
         
         print self.trying_to_connect
 
@@ -631,10 +632,10 @@ class MyPresenter(QtCore.QObject):
             
             if self.trying_to_connect == True:
                 self.view.button_connect.setPending(True)
-                print 'kuk'
+                
             else:
                 self.view.button_connect.setPending(False)
-                print 'fita'
+                
 
         #if self.connected ^ new_connected_state:
         #    self.view.button_connect.toggleInverted()
@@ -647,6 +648,7 @@ class MyPresenter(QtCore.QObject):
             self.view.scene.connected = True                                            # ????????????????????
         
         elif not self.connected:
+            self.view.status_window_area.updateDynamicTextItem('ip','IP address:')
             self.view.status_window_area.updateDynamicTextItem('count', 'Message count:')
             self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:')
             self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:')

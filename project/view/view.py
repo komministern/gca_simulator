@@ -302,6 +302,8 @@ class MyView(QtGui.QGraphicsView):
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
 
+        self.status_window_area.newTextRowLeft('IP address:     ', dynamic=True, identifier='ip')
+        self.status_window_area.endRow()
         self.status_window_area.newTextRowLeft('Message count:  ', dynamic=True, identifier='count')
         self.status_window_area.endRow()
         self.status_window_area.newTextRowLeft('Latest delay:   ', dynamic=True, identifier='delay')

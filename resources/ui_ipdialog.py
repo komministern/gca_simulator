@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ipdialog.ui'
 #
-# Created: Mon Oct 08 21:34:36 2018
+# Created: Wed Oct 10 20:33:37 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -68,6 +68,6 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Flight Sim IP Address", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Dialog", "Connect to", None, QtGui.QApplication.UnicodeUTF8))
 

@@ -29,7 +29,7 @@ class MyModel(QtCore.QObject):
         super(MyModel, self).__init__()
 
         #self.UDP_IP = '172.20.10.2'
-        self.UDP_IP = '127.0.0.1'
+        #self.UDP_IP = '127.0.0.1'
         #self.UDP_IP = '192.168.1.88'
         self.UDP_SENDPORT = 5005
         self.UDP_RECEIVEPORT = 5006

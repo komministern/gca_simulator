@@ -64,10 +64,10 @@ class MyScene(QtGui.QGraphicsScene):
 
     # **** WHI AXIS
 
-    whiaxislength_x = scenetotalheight / 7
+    whiaxislength_x = scenetotalheight / 5
     whiaxislength_y = whiaxislength_x
-    whiaxiszero_x = whiaxislength_x * 1.5
-    whiaxiszero_y = whiaxislength_y * 0.8
+    whiaxiszero_x = whiaxislength_x * 1.1
+    whiaxiszero_y = whiaxislength_y * 0.7
     whiaxismarkinglength = 10.0
 
     # **** ELEVATION RANGE AXIS
@@ -188,7 +188,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.historic_plot_pen = QtGui.QPen(QtCore.Qt.darkGray)
 
         self.active_label_color = QtCore.Qt.yellow
-        self.passive_label_color = QtCore.Qt.blue
+        self.passive_label_color = QtGui.QColor(102,178,255,255)
         
         self.active_label_pen = QtGui.QPen(self.active_label_color)
         self.active_label_pen.setWidth(2)
