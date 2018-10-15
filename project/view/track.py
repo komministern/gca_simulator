@@ -6,7 +6,7 @@
 
 from PySide import QtGui, QtCore
 import numpy as np
-from plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem
+from plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem, UnCorrelatedPlotItem, InvisiblePlotItem
 from label import ElevationLabel, AzimuthLabel, WhiLabel
 
 class Track(QtCore.QObject):
@@ -104,12 +104,12 @@ class Track(QtCore.QObject):
         if len(historic_coord_list) > 1:
             
             delta = historic_coord_list[0] - historic_coord_list[1]
-            extrapolated_coord = new_coord + delta
+            extrapolated_coord = historic_coord_list[0] + delta
             return extrapolated_coord
 
         else:
 
-            return None
+            return []
 
 
     def update(self, coord, hits):
@@ -118,20 +118,25 @@ class Track(QtCore.QObject):
         
         #print coord
 
-        print self.list_of_el_coords
-        print self.list_of_el_hits
+        #print self.list_of_el_coords
+        #print self.list_of_el_hits
 
         el_hit, az_hit = hits
 
 
         # Update list of recorded hits for each antenna
+        # The first two hit entries of the track will always be True
 
         if len(self.list_of_el_hits) == (self.max_historic_tracks + 1):    # List for simulating missed targets in separate antennas
             del self.list_of_el_hits[-1]
+        if len(self.list_of_el_hits) < 2:
+            el_hit = True
         self.list_of_el_hits.insert(0, el_hit)
 
         if len(self.list_of_az_hits) == (self.max_historic_tracks + 1):    # List for simulating missed targets in separate antennas
             del self.list_of_az_hits[-1]
+        if len(self.list_of_az_hits) < 2:
+            az_hit = True
         self.list_of_az_hits.insert(0, az_hit)
 
 
@@ -139,29 +144,25 @@ class Track(QtCore.QObject):
 
         if len(self.list_of_el_coords) == (self.max_historic_tracks + 1):
             del self.list_of_el_coords[-1]
+
         if not el_hit:
             extrapolated_el_coord = self.extrapolate(coord, self.list_of_el_coords)
-            if extrapolated_el_coord:
-                self.list_of_el_coords.insert(0, extrapolated_el_coord)
-            else:
-                self.list_of_el_coords.insert(0, coord)
+            self.list_of_el_coords.insert(0, extrapolated_el_coord)
         else:
             self.list_of_el_coords.insert(0, coord)
+
 
         if len(self.list_of_az_coords) == (self.max_historic_tracks + 1):
             del self.list_of_az_coords[-1]
         if not az_hit:
             extrapolated_az_coord = self.extrapolate(coord, self.list_of_az_coords)
-            if extrapolated_az_coord:
-                self.list_of_az_coords.insert(0, extrapolated_az_coord)
-            else:
-                self.list_of_az_coords.insert(0, coord)
+            self.list_of_az_coords.insert(0, extrapolated_az_coord)
         else:
             self.list_of_az_coords.insert(0, coord)
 
 
-        
         # Calculate the varius label values
+
         self.calculateDistanceToTd()
         self.calculateVelocity()
         self.calculateAzimuthDeviation()
@@ -190,6 +191,19 @@ class Track(QtCore.QObject):
     # Break out the remove plots as separate methods
     
 
+    def el_label_visible(self):
+        if len(self.list_of_el_hits) > 2:
+            return self.list_of_el_hits[0] or self.list_of_el_hits[1] or self.list_of_el_hits[2]
+        else:
+            return False
+        
+    
+    def az_label_visible(self):
+        if len(self.list_of_az_hits) > 2:
+            return self.list_of_az_hits[0] or self.list_of_az_hits[1] or self.list_of_az_hits[2]
+        else:
+            return False
+
 
     def draw(self, elevation=False, azimuth=False, whi=False, only_remove=False):
         
@@ -204,8 +218,8 @@ class Track(QtCore.QObject):
             y = azimuth_point.y()
 
             # Make labels visible (or the opposite)
-            self.elevation_label.setVisible(self.designated() and self.scene.radiating)
-            self.azimuth_label.setVisible(self.designated() and self.scene.radiating and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)))
+            self.elevation_label.setVisible(self.designated() and self.scene.radiating and self.el_label_visible() )
+            self.azimuth_label.setVisible(self.designated() and self.scene.radiating and self.az_label_visible() and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)))
             self.whi_label.setVisible(self.active_designated() and self.scene.radiating)          # More work needed here!!!!!!!!!!!!
 
             # Remove the old plots
@@ -243,7 +257,7 @@ class Track(QtCore.QObject):
             
                 elevation_point = self.scene.getElevationPoint(self.list_of_el_coords[i])
                 
-                if elevation_point != None:
+                if elevation_point != None:     # Can not happen
                 
                     x = elevation_point.x()
                     y = elevation_point.y()
@@ -253,18 +267,21 @@ class Track(QtCore.QObject):
             
                         if i == 0:
                             # This is a ordinary plot
-                            if self.list_of_el_hits[i]:
-                                self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=True))
+                            if self.list_of_el_hits[0]:
+                                if self.list_of_az_hits[0]:
+                                    self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                else:
+                                    self.elevation_plot_items.append(UnCorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                             else:
-                                self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=False))
+                                self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
 
                         elif (i > 0) and self.scene.hist_active:
                             # This is a historic plot
                             if self.list_of_el_hits[i]:
-                                self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=True))
+                                self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                             else:
-                                self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self, visible=False))
+                                self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
 
     def removeAzimuthPlots(self):
@@ -291,12 +308,32 @@ class Track(QtCore.QObject):
                     if self.list_of_az_hits[i] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)):
                     # If this is a hit in reasonable x range, AND in reasonable y range, draw a visible plot
             
+                        #if i == 0:
+                        #    # This is a ordinary plot
+                        #    self.azimuth_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                        #elif (i > 0) and self.scene.hist_active:
+                        #    # This is a historic plot
+                        #    self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+
                         if i == 0:
                             # This is a ordinary plot
-                            self.azimuth_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            if self.list_of_az_hits[0]:
+                                if self.list_of_el_hits[0]:
+                                    self.azimuth_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                else:
+                                    self.azimuth_plot_items.append(UnCorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            else:
+                                self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+
+
                         elif (i > 0) and self.scene.hist_active:
                             # This is a historic plot
-                            self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            if self.list_of_az_hits[i]:
+                                self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            else:
+                                self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+
+
 
 
     def removeWhiPlot(self):

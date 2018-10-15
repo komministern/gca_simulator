@@ -79,7 +79,7 @@ class MyScene(QtGui.QGraphicsScene):
     elevationrangeaxismax_x = rangeaxismax_x
     elevationrangeaxis_y = 8.0 / 9.0 * elevationgraphicsareaheight + elevationgraphicsareatopleft_y
 
-    elevationminrangegraphicsrange = elevationrangeaxiszero_x / 3.0
+    elevationminrangegraphicsrange = elevationrangeaxiszero_x / 4.0
 
     # **** AZIMUTH RANGE AXIS
 
@@ -183,6 +183,9 @@ class MyScene(QtGui.QGraphicsScene):
         
         self.plot_brush = QtGui.QBrush(QtCore.Qt.white)
         self.plot_pen = QtGui.QPen(QtCore.Qt.white)
+
+        self.uncorrelated_plot_brush = QtGui.QBrush(QtCore.Qt.yellow)
+        self.uncorrelated_plot_pen = QtGui.QPen(QtCore.Qt.yellow)
         
         self.historic_plot_brush = QtGui.QBrush(QtCore.Qt.darkGray)
         self.historic_plot_pen = QtGui.QPen(QtCore.Qt.darkGray)
@@ -219,6 +222,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.glideslope = None
         self.azantelev = None
         self.nhist = None
+        self.elantazim = None
 
         self.decisionheight = 0         # This one is set here due to no button can set it to zero.
         
@@ -465,7 +469,8 @@ class MyScene(QtGui.QGraphicsScene):
         
         tracks_to_be_removed = []
         for track_name in self.tracks:
-            if self.tracks[track_name].inactive_due_to_no_updates:
+            s = set(self.tracks[track_name].list_of_el_hits[0:3]) & set(self.tracks[track_name].list_of_az_hits[0:3])
+            if len(s) == 1 and (False in s):
                 tracks_to_be_removed.append(track_name)
         
         for track_name in tracks_to_be_removed:
@@ -473,8 +478,11 @@ class MyScene(QtGui.QGraphicsScene):
             del self.tracks[track_name]
 
         for track_name in self.aircraft_coordinates:
-            if not track_name in self.tracks:
+            (el_hit, az_hit) = self.aircraft_hits[track_name]
+            if not track_name in self.tracks and (el_hit or az_hit):
                 self.tracks[track_name] = Track(self)
+            
+        for track_name in self.tracks:
             self.tracks[track_name].update(self.aircraft_coordinates[track_name], self.aircraft_hits[track_name])
 
 

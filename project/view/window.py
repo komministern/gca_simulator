@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    Copyright © 2016, 2017 Oscar Franzén <oscarfranzen@yahoo.se>
+#    Copyright ï¿½ 2016, 2017 Oscar Franzï¿½n <oscarfranzen@yahoo.se>
 #
 #    This file is part of GCA Simulator.
 
@@ -214,10 +214,12 @@ class WindowTopBorder(QtCore.QObject, QtGui.QGraphicsRectItem):
             # The value 761.0 is taken directly (quite ugly) from the mainwindowarea after it beeing created and moved
             # to the bottom of the screen. Horrific.
             
+            c = 695.0
+
             #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
             #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
-            if value.y() > 838.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
-                value.setY(838.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
+            if value.y() > c  - self.childrenBoundingRect().height() - 2*self.windowframethickness:
+                value.setY(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)
 
         return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
 
@@ -377,6 +379,7 @@ class WindowArea(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         h = self.boundingRect().height()
         self.moveBy(0, self.windowheight-h-self.windowframethickness)
+        print self.windowheight-h-self.windowframethickness
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable, enabled = False)
         
 

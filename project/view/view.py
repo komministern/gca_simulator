@@ -894,10 +894,17 @@ class MyView(QtGui.QGraphicsView):
         self.radarmodeexclusivegrouplist = []
         self.button_par = InvertingButton('PAR', value=1, exclusivegroup=self.radarmodeexclusivegrouplist)
         self.radarmode_window_area.registerNextButton(self.button_par)
-        self.button_asr = InvertingButton('ASR', value=2, exclusivegroup=self.radarmodeexclusivegrouplist)
+
+        self.button_asr = Button('ASR', value=2)                        # This is just to make choosing ASR and Combined impossible
         self.radarmode_window_area.registerNextButton(self.button_asr)
-        self.button_comb = InvertingButton('Comb', value=3, exclusivegroup=self.radarmodeexclusivegrouplist)
+        self.button_comb = Button('Comb', value=3)
         self.radarmode_window_area.registerNextButton(self.button_comb)
+
+        #self.button_asr = InvertingButton('ASR', value=2, exclusivegroup=self.radarmodeexclusivegrouplist)
+        #self.radarmode_window_area.registerNextButton(self.button_asr)
+        #self.button_comb = InvertingButton('Comb', value=3, exclusivegroup=self.radarmodeexclusivegrouplist)
+        #self.radarmode_window_area.registerNextButton(self.button_comb)
+
         self.radarmode_window_area.endRow()
         self.radarmode_window_area.fixWindow()
         self.radarmode_window_topborder = WindowTopBorder('Radar Mode')

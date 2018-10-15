@@ -10,6 +10,7 @@
 import sys, time
 from PySide import QtCore, QtGui, QtNetwork
 import numpy as np
+import random
 from airport import Airport
 
 
@@ -60,7 +61,14 @@ class MyModel(QtCore.QObject):
         self.timer_connection_active = QtCore.QTimer()
         self.timer_connection_active.setSingleShot(True)
         self.timer_connection_active.timeout.connect(self.connectionLost)
-        
+
+        self.azantelev = None
+        self.elantazim = None
+        #self.ant
+
+
+
+
 
         #self.tracks = {}
 
@@ -128,7 +136,6 @@ class MyModel(QtCore.QObject):
 
     def sendDatagram(self):
         
-        
         if not self.demo_mode:
         
             if self.sim == 'xpl':
@@ -160,21 +167,11 @@ class MyModel(QtCore.QObject):
                 for runway_number in self.airport.runways:  # Order??????!!!!!!!!!!!
                     list_of_strings.append(str(self.airport.runways[runway_number]['thr_lat']))
                     list_of_strings.append(str(self.airport.runways[runway_number]['thr_lon']))              # This is the threshold coordinate for each runway
-                    list_of_strings.append(str(self.airport.runways[runway_number]['thr_el'] * 0.3048))      # El should be in meters, not feet.
+                    list_of_strings.append( format(self.airport.runways[runway_number]['thr_el'] * 0.3048, '.1f') )      # El should be in meters, not feet.
 
                     list_of_strings.append(str(self.airport.runways[runway_number]['eor_lat']))
                     list_of_strings.append(str(self.airport.runways[runway_number]['eor_lon']))              # This is the threshold coordinate for each runway
-                    list_of_strings.append(str(self.airport.runways[runway_number]['eor_el'] * 0.3048))      # El should be in meters, not feet.
-
-
-
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lat']))
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lon']))            # This is the threshold coordinate for each runway
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_el'] * 0.3048))    # El should be in meters, not feet.
-        
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lat']))
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lon']))            # This is the threshold coordinate for each runway
-                #list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
+                    list_of_strings.append(format(self.airport.runways[runway_number]['eor_el'] * 0.3048, '.1f'))      # El should be in meters, not feet.
 
                 string_to_send = ','.join(list_of_strings)
                 print('s: ' + string_to_send)
@@ -196,7 +193,7 @@ class MyModel(QtCore.QObject):
             
             if self.active_runway == 0:
                 string_to_send = rwy_1_string_to_send
-            elif self.active_runway == 1:
+            elif self.active_runway == 1: 
                 string_to_send = rwy_2_string_to_send
             
             self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress('127.0.0.1'), self.UDP_RECEIVEPORT)
@@ -351,9 +348,9 @@ class MyModel(QtCore.QObject):
                 # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
                 # It is placed some 100.0 meters from the centre of the airstrip.
                     if self.active_runway % 2 == 0:
-                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, -100.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
                     else:
-                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, 100.0, 4.0])
+                        gca_coordinate = (threshold_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 4.0])
 
                     mti_1_coordinate = gca_coordinate + np.array([750.0, 0.0, 5.0])
                     mti_2_coordinate = gca_coordinate + np.array([-900.0, 0.0, 3.5])
@@ -374,16 +371,6 @@ class MyModel(QtCore.QObject):
                     if not self.connected:
                         self.connected = True
                         self.new_connected_state.emit(self.connected)
-
-                #for runway in self.airport.runways:
-                #    list_of_strings.append(str(runway['thr_lat']))
-                #    list_of_strings.append(str(runway['thr_lon']))              # This is the threshold coordinate for each runway
-                #    list_of_strings.append(str(runway['thr_el'] * 0.3048))      # El should be in meters, not feet.
-
-                #    list_of_strings.append(str(runway['eor_lat']))
-                #    list_of_strings.append(str(runway['eor_lon']))              # This is the threshold coordinate for each runway
-                #    list_of_strings.append(str(runway['eor_el'] * 0.3048))      # El should be in meters, not feet.
-
 
                     time_stamp = float(strings[1])
 
@@ -439,14 +426,18 @@ class MyModel(QtCore.QObject):
                     # It is placed some 100.0 meters from the centre of the airstrip.
                     
                     if self.active_runway % 2 == 0:
-                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 100.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
+                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
+                        gca_el_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 3.0])      # The centre of the el elevation antenna is about 3m from the ground
+                        gca_az_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 5.0])      # The centre of the az elevation antenna is about 5m from the ground
                     else:
-                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -100.0, 4.0])
+                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 4.0])
+                        gca_el_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 3.0])      # The centre of the el elevation antenna is about 3m from the ground
+                        gca_az_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 5.0])      # The centre of the az elevation antenna is about 5m from the ground
 
 
                     plot_coordinates = {}
 
-                    mti_coordinate = gca_coordinate + np.array([-900.0, 0.0, 4.5])
+                    mti_coordinate = gca_coordinate + np.array([-700.0, 0.0, 0.5])      # MTI 700m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
 
                     plot_coordinates['mti'] = mti_coordinate
 
@@ -461,94 +452,147 @@ class MyModel(QtCore.QObject):
                     plot_hits = {}
 
                     for aircraft_name in plot_coordinates:
-                        plot_hits[aircraft_name] = (True, True)     # el, az
+                        plot_hits[aircraft_name] = (self.elevation_hit( plot_coordinates[aircraft_name], gca_el_coordinate ), self.azimuth_hit( plot_coordinates[aircraft_name], gca_az_coordinate ))     # el, az
 
-                    #airplane_relative_to_gca_coordinate = airplane_coordinate - gca_coordinate
-
-                # (elevation_hit, azimuth_hit)
-
-                    #airplane_hit = (self.elevation_hit(airplane_relative_to_gca_coordinate), True)       #(True, True)
-                    #mti_1_hit = (True, True)
-                    #mti_2_hit = (True, True)
-
-                    #self.new_plot_extracted.emit(airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, self.real_time_since_last_airplane_point, airplane_hit, mti_1_hit, mti_2_hit)
-                    self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, plot_coordinates, plot_hits)
-
-
-
-    
+                    self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, plot_coordinates, plot_hits)
 
 
 
 
 
-
-
-    def elevation_hit(self, coord):
+    def elevation_hit(self, coord, gca_coord):
         
-        #max_elevation_r_coverage = 20   # Depending on clear or rain mode
-        
+        elantazim = self.elantazim
+
         p_normal = 0.99
         
-        r_p = 18.0
-        r_q = 20.0      # Do not change r_q!!!!!!!!!!
+        r_full_prb = 16.0
+        r_zero_prb = 19.0      
         
-        fi_p = 7.0
-        fi_q = 9.0
+        fi_up_full_prb = 7.0
+        fi_up_zero_prb = 7.1
         
-        r_xy = np.linalg.norm(coord[:2])        # Distance without height
-        print 'r_xy/1852: ' + str(r_xy/1852)
-        r = np.linalg.norm(coord)               # Distance with height
-        theta = np.arctan(coord[1]/coord[0])    # Side angle
-        print 'theta: ' + str(theta*180/np.pi)
-        fi = np.arcsin(coord[2]/r)              # Height angle
-        print 'fi: ' + str(fi*180/np.pi)
+        fi_down_full_prb = -1.0
+        fi_down_zero_prb = -1.1
         
-        print '---- r_x: ' + str(coord[0])
-        # How does the elevation antenna diagram behave in height???
-        
-        if coord[0] > 0 or r_xy/1852 > r_q or np.absolute(theta)*180/np.pi > 23 or fi*180/np.pi > fi_q:
+        theta_left_full_prb = 10.0 + elantazim
+        theta_left_zero_prb = 18.0 + elantazim
+
+        theta_right_full_prb = -10.0 + elantazim
+        theta_right_zero_prb = -18.0 + elantazim
+
+        coord_rel_to_gca = coord - gca_coord
+
+        #r_xy = np.linalg.norm(coord_rel_to_gca[:2])        # Distance without height
+        r = np.linalg.norm(coord_rel_to_gca)               # Distance with height
+        theta = np.arctan(coord_rel_to_gca[1]/coord_rel_to_gca[0])    # Side angle (positive is ro the LEFT when watching from the GCA towards the mti reflector)
+        fi = np.arcsin(coord_rel_to_gca[2]/r)              # Height angle (positive is up)
+    
+
+        if coord_rel_to_gca[0] > 0.0 or self.nm(r) > r_zero_prb or self.deg(theta) > theta_left_zero_prb or self.deg(theta) < theta_right_zero_prb or self.deg(fi) > fi_up_zero_prb:
             elevation_hit = False
-            print 'elevation: Definitely out of range.'
+            #print 'elevation probability = 0'
+        
         else:
             
-            #r_p = min(max_elevation_r_coverage - 2, theta*180/np_pi)
+            p_hit = p_normal
+
+            if self.nm(r) > r_full_prb:
+                p_hit *= self.f(self.nm(r), r_full_prb, r_zero_prb)
             
-            if r_xy/1852 < r_p:
-                p_r_theta = 1.0
+            if self.deg(fi) > fi_up_full_prb:
+                p_hit *= self.f(self.deg(fi), fi_up_full_prb, fi_up_zero_prb)
+
+            if self.deg(theta) > theta_left_full_prb:
+                p_hit *= self.f(self.deg(theta), theta_left_full_prb, theta_left_zero_prb)
+            elif self.deg(theta) < theta_right_full_prb:
+                p_hit *= self.f(self.deg(theta), theta_right_full_prb, theta_right_zero_prb)
+            
+            if random.random() < p_hit:
+                elevation_hit = True
             else:
-                p_r_theta = np.exp(-(2*(r_xy/1852 - r_p)/(r_q - r_p))**2)
+                elevation_hit = False
             
-            if fi*180/np.pi < fi_p:
-                p_fi = 1.0
+        return elevation_hit
+
+
+    def azimuth_hit(self, coord, gca_coord):
+        
+        elantazim = self.elantazim
+        azantelev = self.azantelev
+
+        p_normal = 0.99
+        
+        r_full_prb = 15.0
+        r_zero_prb = 18.0      
+        
+        fi_up_full_prb = azantelev + 5.0
+        fi_up_zero_prb = azantelev + 10.0
+        
+        fi_down_full_prb = azantelev - 1.8
+        fi_down_zero_prb = azantelev - 10.0
+
+        theta_left_full_prb = 14.8 + elantazim
+        theta_left_zero_prb = 15.2 + elantazim
+
+        theta_right_full_prb = -14.8 + elantazim
+        theta_right_zero_prb = -15.2 + elantazim
+
+        coord_rel_to_gca = coord - gca_coord
+
+        #r_xy = np.linalg.norm(coord_rel_to_gca[:2])        # Distance without height
+        
+        r = np.linalg.norm(coord_rel_to_gca)               # Distance with height
+        theta = np.arctan(coord_rel_to_gca[1]/coord_rel_to_gca[0])    # Side angle (positive is ro the LEFT when watching from the GCA towards the mti reflector)
+        fi = np.arcsin(coord_rel_to_gca[2]/r)              # Height angle (positive is up)
+        
+
+        if coord_rel_to_gca[0] > 0.0 or self.nm(r) > r_zero_prb or self.deg(theta) > theta_left_zero_prb or self.deg(theta) < theta_right_zero_prb or self.deg(fi) > fi_up_zero_prb or self.deg(fi) < fi_down_zero_prb:
+            azimuth_hit = False
+            #print 'azimuth probability = 0'
+        
+        else:
+            
+            p_hit = p_normal
+
+            #print 'theta ' + str(theta)
+            #print 'fi ' + str(fi)
+            #print 'r ' + str(r)
+
+            if self.nm(r) > r_full_prb:
+                p_hit *= self.f(self.nm(r), r_full_prb, r_zero_prb)
+            #    print 'r ' + str(p_hit)
+
+            if self.deg(fi) > fi_up_full_prb:
+                p_hit *= self.f(self.deg(fi), fi_up_full_prb, fi_up_zero_prb)
+            #    print 'fi_up ' + str(p_hit)
+            elif self.deg(fi) < fi_down_full_prb:
+                p_hit *= self.f(self.deg(fi), fi_down_full_prb, fi_down_zero_prb)
+            #    print 'fi_down ' + str(p_hit)
+
+            if self.deg(theta) > theta_left_full_prb:
+                p_hit *= self.f(self.deg(theta), theta_left_full_prb, theta_left_zero_prb)
+            #    print 'theta_left ' + str(p_hit)
+            elif self.deg(theta) < theta_right_full_prb:
+                p_hit *= self.f(self.deg(theta), theta_right_full_prb, theta_right_zero_prb)
+            #    print 'theta_right ' + str(p_hit)
+           
+            if random.random() < p_hit:
+                azimuth_hit = True
             else:
-                p_fi = np.exp(-(2*(fi*180/np.pi - fi_p)/(fi_q - fi_p))**2)
-                
-            p_elevation = p_normal * p_r_theta * p_fi
+                azimuth_hit = False
             
-            print 'elevation: ' + str(p_elevation)
-            
-            elevation_hit = True
-            
-        return (elevation_hit, True)
-            
-            
-                
-            
-            
+        return azimuth_hit
 
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    def f(self, x, x_full_prb, x_zero_prb):
+        return (x_zero_prb - x) / (x_zero_prb - x_full_prb)
+        
+    def deg(self, radians):
+        return radians*180.0/np.pi
+        
+    def nm(self, meters):
+        return meters/1852.0
 
     def quit(self):
         QtGui.QApplication.quit()

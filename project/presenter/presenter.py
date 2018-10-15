@@ -32,6 +32,9 @@ class MyPresenter(QtCore.QObject):
         self.view.button_radarcover.mousePressEvent(None)
         self.view.button_fdb.mousePressEvent(None)
         self.view.button_whi.mousePressEvent(None)
+        self.view.button_select_elantazim_center.mousePressEvent(None)
+        self.view.button_select_ac_medium.mousePressEvent(None)
+        self.view.button_par.mousePressEvent(None)
         # ...more to follow
         
         self.trying_to_connect = False
@@ -39,6 +42,11 @@ class MyPresenter(QtCore.QObject):
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
         
+        # Elevation Antenna Azimuth buttons
+        self.view.button_select_elantazim_right.pressed.connect(self.newElAntAzimChosen)
+        self.view.button_select_elantazim_left.pressed.connect(self.newElAntAzimChosen)
+        self.view.button_select_elantazim_center.pressed.connect(self.newElAntAzimChosen)
+
         # Main Window buttons
         self.view.button_whi_tgt_exchange.pressed.connect(self.exchangeWhiTrack)
         self.view.button_clear_alerts.pressed.connect(self.clearAlerts)
@@ -364,6 +372,24 @@ class MyPresenter(QtCore.QObject):
     def acid_window_focused(self):
         self.view.acid_input_text_item.setFocus()
 
+
+    # Elevation Antenna Azimuth
+    
+    def newElAntAzimChosen(self, button):
+        if button.value == 1:
+            self.view.scene.elantazim = -5.0
+            self.model.elantazim = -5.0
+            
+        elif button.value == 2:
+            self.view.scene.elantazim = 0.0
+            self.model.elantazim = 0.0
+            
+        else:
+            self.view.scene.elantazim = 5.0
+            self.model.elantazim = 5.0
+        self.view.scene.drawAzimuthCoverage()
+
+        print self.model.elantazim
 
 
 
@@ -760,6 +786,7 @@ class MyPresenter(QtCore.QObject):
         self.view.scene.active_airport = airport
         #self.view.scene.alerts_field.addAlert('NEW AIRPORT LOADED')
         # Only standard alerts (as IRL I mean)
+        self.view.button_select_elantazim_center.mousePressEvent(None)
 
 
 
@@ -785,6 +812,8 @@ class MyPresenter(QtCore.QObject):
                 self.view.scene.alerts_field.addAlert('AZ ANT ELEV CHANGE IN PROGRESS')
                 self.view.scene.alerts_field.addAlert('AZ ANT ELEV CHANGE COMPLETED', delay=500.0)
             self.view.scene.azantelev = button.value
+            
+            self.model.azantelev = self.view.scene.azantelev    # This is not good. States like this one should reside in the model only!
                 #self.view.scene.drawElevationCoverage()
 
 
@@ -807,7 +836,7 @@ class MyPresenter(QtCore.QObject):
 
     def newRunwayChosen(self, button):
         if self.model.active_runway != None:
-            # No runway change should register when loading airport for the first time!
+            # No runway change should register when loading airport for the first time! Why?
             
             #if not self.demo_mode:
             self.view.scene.alerts_field.addAlert('RUNWAY CHANGE IN PROGRESS', delay=100.0)
@@ -822,8 +851,20 @@ class MyPresenter(QtCore.QObject):
         #print(self.model.active_runway)
 
         if button.value != self.model.active_runway:
+
             self.model.active_runway = button.value
             self.view.scene.active_runway = button.value
+
+            gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
+
+            buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
+                        self.view.button_select_glideslope_25, self.view.button_select_glideslope_26, self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
+                        self.view.button_select_glideslope_29, self.view.button_select_glideslope_30, self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
+                        self.view.button_select_glideslope_33, self.view.button_select_glideslope_34, self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
+                        self.view.button_select_glideslope_37, self.view.button_select_glideslope_38, self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
+
+            buttons[gs].mousePressEvent(None)
+            #self.view.scene.active_airport[]
             
             self.view.scene.removeAllTracks()
             self.view.scene.drawTextInfo()
