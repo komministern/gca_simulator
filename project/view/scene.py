@@ -18,6 +18,7 @@ from textinfo import TextInfo
 from gca import ElevationGCA, AzimuthGCA
 from axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
 from alerts import AlertsField
+from mapsymbols import MapSymbols
 
 
 class MyScene(QtGui.QGraphicsScene):
@@ -140,6 +141,7 @@ class MyScene(QtGui.QGraphicsScene):
     sound_alarm_off = QtCore.Signal()
     
     active_designated_track_changed = QtCore.Signal()
+    mti_lost = QtCore.Signal()
 
 
     def __init__(self):
@@ -302,6 +304,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.passive_leader_zvalue = 7.0
         self.decisionheight_zvalue = 0.5
         self.button_window_zvalue = self.plot_zvalue + 1.0
+        self.mapsymbols_zvalue = 0.6
 
 
         # Initialize the button window part of the scene
@@ -356,6 +359,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.whi_axis_item = WHIAxis(self)
         
         self.alerts_field = AlertsField(self)
+
+        self.mapsymbols_item = MapSymbols(self)
         
 
 
@@ -467,12 +472,20 @@ class MyScene(QtGui.QGraphicsScene):
 
     def updateAllTracks(self):
         
+        print self.tracks
+
+        if 'mti' in self.tracks:
+            if (not True in self.tracks['mti'].list_of_el_hits[0:3]) or (not True in self.tracks['mti'].list_of_az_hits[0:3]):
+                self.mti_lost.emit()
+                #print 'lost mti'
+
         tracks_to_be_removed = []
         for track_name in self.tracks:
-            s = set(self.tracks[track_name].list_of_el_hits[0:3]) & set(self.tracks[track_name].list_of_az_hits[0:3])
+            s = set(self.tracks[track_name].list_of_el_hits[0:3]) | set(self.tracks[track_name].list_of_az_hits[0:3])   # union 
             if len(s) == 1 and (False in s):
                 tracks_to_be_removed.append(track_name)
-        
+
+
         for track_name in tracks_to_be_removed:
             self.tracks[track_name].destroy()
             del self.tracks[track_name]

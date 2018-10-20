@@ -8,6 +8,7 @@
 
 import functools
 from PySide import QtCore, QtGui
+from functools import partial
 from view.myipdialog import MyIPDialog
 
 
@@ -19,6 +20,12 @@ class MyPresenter(QtCore.QObject):
         # Store view and model.
         self.model = model
         self.view = view
+
+        self.new_runway = False
+        self.radiate_pending = False
+        self.ant_drive_pending = False
+        self.pending_active_runway = None
+
 
         # Setup all signals.
         self.connectSignals()
@@ -121,7 +128,8 @@ class MyPresenter(QtCore.QObject):
         self.model.new_connected_state.connect(self.updateConnectedState)
         
         self.model.connection_lost.connect(self.connectionLost)
-        
+
+        self.view.scene.mti_lost.connect(self.mtiLost)        
 
     def connectLeadDirButtons(self):
         self.view.button_north.pressed.connect(self.newLeadDirChosen)
@@ -373,23 +381,11 @@ class MyPresenter(QtCore.QObject):
         self.view.acid_input_text_item.setFocus()
 
 
-    # Elevation Antenna Azimuth
-    
-    def newElAntAzimChosen(self, button):
-        if button.value == 1:
-            self.view.scene.elantazim = -5.0
-            self.model.elantazim = -5.0
-            
-        elif button.value == 2:
-            self.view.scene.elantazim = 0.0
-            self.model.elantazim = 0.0
-            
-        else:
-            self.view.scene.elantazim = 5.0
-            self.model.elantazim = 5.0
-        self.view.scene.drawAzimuthCoverage()
 
-        print self.model.elantazim
+
+
+
+
 
 
 
@@ -706,6 +702,8 @@ class MyPresenter(QtCore.QObject):
             
             
 
+    def mtiLost(self):
+        self.view.scene.alerts_field.addAlert('MTI REFLECTOR OUT OF TOLERANCE', critical=True)
             
 
                 
@@ -787,7 +785,14 @@ class MyPresenter(QtCore.QObject):
         #self.view.scene.alerts_field.addAlert('NEW AIRPORT LOADED')
         # Only standard alerts (as IRL I mean)
         self.view.button_select_elantazim_center.mousePressEvent(None)
+        self.view.button_select_runway_1.mousePressEvent(None)
+        print 'selected center and rwy1'
 
+        print 'active runway is now'
+        print self.model.active_runway
+
+        print 'elantazim is now'
+        print self.model.elantazim
 
 
         
@@ -832,46 +837,193 @@ class MyPresenter(QtCore.QObject):
             #self.view.scene.drawDecisionHeight()
 
 
+    def toggleAntennaDrive(self, button):
 
-
-    def newRunwayChosen(self, button):
-        if self.model.active_runway != None:
-            # No runway change should register when loading airport for the first time! Why?
-            
-            #if not self.demo_mode:
-            self.view.scene.alerts_field.addAlert('RUNWAY CHANGE IN PROGRESS', delay=100.0)
-            self.view.scene.alerts_field.addAlert('RUNWAY CHANGE COMPLETED', delay=1100.0)
-                
-            if self.radiating:
-                self.view.button_radiate.mousePressEvent(None)
-                self.view.scene.drawAllTracks()
-                laterRadiate = functools.partial(self.view.button_radiate.mousePressEvent, None)
-                self.radiate_timer = QtCore.QTimer.singleShot(1200.0, laterRadiate)
+        if self.antenna_drive_on and (not self.connected):
+            #print 'Antenna drive commanded, but we are not connected'
+            button.toggleInverted()
         
-        #print(self.model.active_runway)
+        elif (not self.antenna_drive_on) and self.radiating:
+            #print 'Antenna drive just turned off while radiating'
+            self.view.button_radiate.mousePressEvent(None)
 
-        if button.value != self.model.active_runway:
+        elif (not self.antenna_drive_on):
+            #print 'Antenna drive just turned off while not radiating'
+            pass
 
-            self.model.active_runway = button.value
-            self.view.scene.active_runway = button.value
+        elif self.antenna_drive_on and self.connected:
+            #print 'We are connected, and start rotate has just been commanded'
 
-            gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
+            # If a new runway has been chosen -> RCIP-RCC
+            # If no new runway -> SAD-ADR
 
-            buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
+            if self.pending_elantazim != None:
+                self.model.elantazim = self.pending_elantazim
+                self.view.scene.elantazim = self.pending_elantazim
+                #self.pending_elantazim = None
+                #print 'new elantazim actually set'
+
+            if self.pending_active_runway != None:
+
+                self.model.active_runway = self.pending_active_runway
+                self.view.scene.active_runway = self.pending_active_runway
+                #self.pending_active_runway = None
+                #print 'new active runway actually set'
+            
+                gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
+                buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
                         self.view.button_select_glideslope_25, self.view.button_select_glideslope_26, self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
                         self.view.button_select_glideslope_29, self.view.button_select_glideslope_30, self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
                         self.view.button_select_glideslope_33, self.view.button_select_glideslope_34, self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
                         self.view.button_select_glideslope_37, self.view.button_select_glideslope_38, self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
+                buttons[gs].mousePressEvent(None)
+                #print 'new glide slope'
 
-            buttons[gs].mousePressEvent(None)
-            #self.view.scene.active_airport[]
-            
-            self.view.scene.removeAllTracks()
+                button.toggleInverted()
+                if self.ant_drive_pending:
+                    self.view.scene.alerts_field.addAlert('RUNWAY CHANGE IN PROGRESS', delay=100.0)
+                else:
+                    self.view.scene.alerts_field.addAlert('STARTING ANTENNA DRIVE', delay=100.0)
+                self.invert_timer = QtCore.QTimer.singleShot(200.0, button.toggleInverted)
+                self.view.scene.alerts_field.addAlert('ANTENNA ALIGNED TO RUNWAY', delay=1100.0)
+
+            elif self.pending_active_runway == None and not self.ant_drive_pending:
+
+                button.toggleInverted()
+                self.view.scene.alerts_field.addAlert('STARTING ANTENNA DRIVE', delay=100.0)
+                self.invert_timer = QtCore.QTimer.singleShot(200.0, button.toggleInverted)
+                self.view.scene.alerts_field.addAlert('ANTENNA ALIGNED TO RUNWAY', delay=1100.0)
+
+            elif self.pending_active_runway == None and self.ant_drive_pending:
+
+                button.toggleInverted()
+                #self.view.scene.alerts_field.addAlert('XXX', delay=100.0)
+                self.invert_timer = QtCore.QTimer.singleShot(200.0, button.toggleInverted)
+                self.view.scene.alerts_field.addAlert('ANTENNA ALIGNED TO RUNWAY', delay=1100.0)
+
             self.view.scene.drawTextInfo()
-            
+
+            if self.radiate_pending:
+                delayed_function = partial(self.view.button_radiate.mousePressEvent, None)
+                self.radiate_timer = QtCore.QTimer.singleShot(1600.0, delayed_function)
+                #print 'pressed radiate to start radiation again'
+                self.radiate_pending = False
+
+        self.pending_active_runway = None
+        self.pending_elantazim = None
             
 
+
+    def newRunwayChosen(self, button):
+        #print '******************************************'
+        #print button.value
+        #print '******************************************'
+
+        if self.model.active_runway == None:
+            #print 'No active runway'
+            #print self.model.active_runway
+            #print self.model.airport
+            #print 'Setting active runway to rwy1'
+            self.model.active_runway = button.value
+            self.view.scene.active_runway = button.value
+        
+        elif button.value != None:
+
+            if button.value == self.model.active_runway:
+
+                self.pending_active_runway = None
+                #print 'Same runway as active chosen - set pending active runway to None'
+
+            else:
+                print '------------------- runway ' + str(button.value) + ' chosen'
+
+                if self.radiating:
+                    self.radiate_pending = True
+                    print 'radiate pending'
+                else:
+                    self.radiate_pending = False
+                    print 'radiate not pending'
+
+                if self.antenna_drive_on:
+                    self.ant_drive_pending = True
+                    print 'antenna drive pending'
+                    self.view.button_ant_drive.mousePressEvent(None)
+                else:
+                    self.ant_drive_pending = False
+                    print 'antenna drive not pending'
+
+                # It is now guaranteed that there is no radiation and no antenna drive
+
+                self.view.button_select_elantazim_center.mousePressEvent(None)
                 
+                self.pending_active_runway = button.value
+                #print 'set new pending active runway'
+
+                if self.ant_drive_pending:
+                    self.view.button_ant_drive.mousePressEvent(None)
+                    #print 'pressed ant drive to start drive again'
+                    self.ant_drive_pending = False
+
+    # Elevation Antenna Azimuth
+
+    def newElAntAzimChosen(self, button):
+
+        if self.model.elantazim == None:
+            #print 'no elantazim chosen yet'
+            self.model.elantazim = 0.0
+            self.view.scene.elantazim = 0.0
+            #print 'elantazim set to 0.0'
+
+        else:
+
+            d = {-10.0:1, 0.0:2, 10.0:3}
+            old_value = d[self.model.elantazim]
+
+
+
+
+
+            if button.value != old_value:
+
+                if self.radiate_pending or self.ant_drive_pending:
+                    # If this is true, this button press is generated by the newRunwayChosen method
+                    # This also meants that we know that it is the center button which is pressed
+                    self.pending_elantazim = 0.0
+
+                else:
+                    
+                    if self.radiating:
+                        self.radiate_pending = True
+                   else:
+                        self.radiate_pending = False
+
+                    if self.antenna_drive_on:
+                        self.ant_drive_pending = True
+                        self.view.button_ant_drive.mousePressEvent(None)
+                    else:        
+                        self.ant_drive_pending = False
+
+                # It is now guaranteed that there is no radiation and no antenna drive
+
+
+                    if button.value == 1:
+                        self.pending_elantazim = -10.0
+            
+                    elif button.value == 2:
+                        self.pending_elantazim = 0.0
+            
+                    else:
+                        self.pending_elantazim = 10.0
+
+                    if self.ant_drive_pending:
+                        self.view.button_ant_drive.mousePressEvent(None)
+                        self.ant_drive_pending = False
+
+            else:
+                self.pending_elantazim = None
+      
+
+
     def newElevationScaleChosen(self, button):
         self.view.scene.elevationscale = button.value
         self.view.scene.drawElevationAxis()
@@ -1006,6 +1158,7 @@ class MyPresenter(QtCore.QObject):
     # Radar Control buttons
     
     def toggleRadiation(self, button):
+        print 'radiate pressed'
         if (not self.antenna_drive_on) and self.radiating:
             # If antenna drive is off, turn radiation off as well
             button.toggleInverted()
@@ -1013,23 +1166,15 @@ class MyPresenter(QtCore.QObject):
         if not self.radiating:
             # If radiate just was turned off, clear the tracks
             self.view.scene.removeAllTracks()
+            print 'removing all tracks'
         
+        self.view.scene.removeAllTracks()   # This due to the pending_active_runway
+        print 'removing all tracks'
+
         self.view.scene.radiating = self.radiating
 
 
-    def toggleAntennaDrive(self, button):
-        if (not self.antenna_drive_on) and self.radiating:
-            # Antenna drive just turned off while radiating
-            self.view.button_radiate.mousePressEvent(None)
-        elif self.antenna_drive_on and (not self.connected):
-            # Antenna drive commanded, but we are not connected
-            button.toggleInverted()
-        elif self.antenna_drive_on and self.connected:
-            # We are connected, and start rotate has just been commanded
-            button.toggleInverted()
-            self.view.scene.alerts_field.addAlert('STARTING ANTENNA DRIVE')
-            self.invert_timer = QtCore.QTimer.singleShot(400.0, button.toggleInverted)
-            self.view.scene.alerts_field.addAlert('ANTENNA DRIVE READY', delay=500.0)
+
             
             
 

@@ -174,7 +174,7 @@ class MyModel(QtCore.QObject):
                     list_of_strings.append(format(self.airport.runways[runway_number]['eor_el'] * 0.3048, '.1f'))      # El should be in meters, not feet.
 
                 string_to_send = ','.join(list_of_strings)
-                print('s: ' + string_to_send)
+                #print('s: ' + string_to_send)
                 self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
 
 
@@ -462,7 +462,7 @@ class MyModel(QtCore.QObject):
 
     def elevation_hit(self, coord, gca_coord):
         
-        elantazim = self.elantazim
+        elantazim = -self.elantazim
 
         p_normal = 0.99
         
@@ -475,11 +475,11 @@ class MyModel(QtCore.QObject):
         fi_down_full_prb = -1.0
         fi_down_zero_prb = -1.1
         
-        theta_left_full_prb = 10.0 + elantazim
-        theta_left_zero_prb = 18.0 + elantazim
+        theta_left_full_prb = 14.0 + elantazim
+        theta_left_zero_prb = 19.0 + elantazim
 
-        theta_right_full_prb = -10.0 + elantazim
-        theta_right_zero_prb = -18.0 + elantazim
+        theta_right_full_prb = -14.0 + elantazim
+        theta_right_zero_prb = -19.0 + elantazim
 
         coord_rel_to_gca = coord - gca_coord
 
@@ -518,7 +518,7 @@ class MyModel(QtCore.QObject):
 
     def azimuth_hit(self, coord, gca_coord):
         
-        elantazim = self.elantazim
+        elantazim = -self.elantazim
         azantelev = self.azantelev
 
         p_normal = 0.99
