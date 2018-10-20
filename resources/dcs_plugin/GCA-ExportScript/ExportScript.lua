@@ -91,8 +91,8 @@ function LuaExportStart()
 	socket = require('socket')
 	
 	host = '*'
-	listen_port = 9001
-	send_port = 9002
+	listen_port = 5005
+	send_port = 5006
 
 	udp = socket.udp()
 	udp:settimeout(0)
@@ -139,8 +139,6 @@ function LuaExportStop()
 	if PrevExport.LuaExportStop then
 		PrevExport.LuaExportStop()
 	end
-
-
 end
 
 function LuaExportActivityNextEvent(t)
@@ -170,24 +168,40 @@ function LuaExportActivityNextEvent(t)
 		end
 
 		mytable = ExportScript.Tools.split(data,',')
+		size_of_mytable = ExportScript.Tools.tablelength(mytable)
 
-		local mode = mytable[1]
-		local thr_lat_Dec = mytable[2]
-		local thr_lon_Dec = mytable[3]
-		local thr_alt = mytable[4]
-		local eor_lat_Dec = mytable[5]
-		local eor_lon_Dec = mytable[6]
-		local eor_alt = mytable[7]
+		local thr_lat_Dec = {}
+		local thr_lon_Dec = {}
+		local thr_alt = {}
+		local eor_lat_Dec = {}
+		local eor_lon_Dec = {}
+		local eor_alt = {}
+
+		local i = 0
+		repeat
+			thr_lat_Dec[i] = mytable[1+i*6]
+			thr_lon_Dec[i] = mytable[2+i*6]
+			thr_alt[i] = mytable[3+i*6]
+			eor_lat_Dec[i] = mytable[4+i*6]
+			eor_lon_Dec[i] = mytable[5+i*6]
+			eor_alt[i] = mytable[6+i*6]
+			i = i+1
+		until(i*6 == size_of_mytable)
 
 		s_head = 'dcs'
+		s_timestamp = string.format("%.3f", socket.gettime())
+		s_final = s_head..','..s_timestamp
 
-		thr_xyz_coords = LoGeoCoordinatesToLoCoordinates(tonumber(thr_lon_Dec),tonumber(thr_lat_Dec))
-		s_thr = string.format("%.1f", thr_xyz_coords.x)..','..string.format("%.1f", thr_alt)..','..string.format("%.1f", thr_xyz_coords.z)
+		for j=0,i-1,1
+		do
+			thr_xyz_coords = LoGeoCoordinatesToLoCoordinates(tonumber(thr_lon_Dec[j]),tonumber(thr_lat_Dec[j]))
+			s_thr = string.format("%.1f", thr_xyz_coords.x)..','..thr_alt[j]..','..string.format("%.1f", thr_xyz_coords.z)
 
-		eor_xyz_coords = LoGeoCoordinatesToLoCoordinates(tonumber(eor_lon_Dec),tonumber(eor_lat_Dec))
-		s_eor = string.format("%.1f", eor_xyz_coords.x)..','..string.format("%.1f", eor_alt)..','..string.format("%.1f", eor_xyz_coords.z)
+			eor_xyz_coords = LoGeoCoordinatesToLoCoordinates(tonumber(eor_lon_Dec[j]),tonumber(eor_lat_Dec[j]))
+			s_eor = string.format("%.1f", eor_xyz_coords.x)..','..eor_alt[j]..','..string.format("%.1f", eor_xyz_coords.z)
 
-		s_final = s_head..','..s_thr..','..s_eor
+			s_final = s_final..','..s_thr..','..s_eor
+		end
 
 		o = LoGetWorldObjects()
 		for k,v in pairs(o) do
@@ -208,9 +222,9 @@ function LuaExportActivityNextEvent(t)
 
 		udp:sendto(s_final, msg_or_ip, send_port)
 
-		--if default_output_file then
-		--	default_output_file:write(string.format("t = %.2f, Sent: %s\n", t, s_final))
-		--end
+		if default_output_file then
+			default_output_file:write(string.format("t = %.2f, Sent: %s\n", t, s_final))
+		end
 
 	end
 

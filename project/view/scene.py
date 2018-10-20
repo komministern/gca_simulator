@@ -65,9 +65,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     # **** WHI AXIS
 
-    whiaxislength_x = scenetotalheight / 5
+    whiaxislength_x = scenetotalheight / 6.0
     whiaxislength_y = whiaxislength_x
-    whiaxiszero_x = whiaxislength_x * 1.1
+    whiaxiszero_x = whiaxislength_x * 1.4
     whiaxiszero_y = whiaxislength_y * 0.7
     whiaxismarkinglength = 10.0
 
@@ -383,31 +383,7 @@ class MyScene(QtGui.QGraphicsScene):
             self.designated_tracks[0].draw(elevation=True, azimuth=True, whi=True)
 
 
-    #def processReceivedPlot(self, airplane_coordinate, threshold_coordinate, eor_coordinate, gca_coordinate, mti_1_coordinate, mti_2_coordinate, new_time_stamp, airplane_hit, mti_1_hit, mti_2_hit):
 
-        #self.previous_time_stamp = self.current_time_stamp
-        #self.current_time_stamp = new_time_stamp
-        #self.delta_t = self.current_time_stamp - self.previous_time_stamp
-
-
-        #self.airplane_coordinate = airplane_coordinate
-        #self.threshold_coordinate = threshold_coordinate
-        #self.eor_coordinate = eor_coordinate
-        #self.gca_coordinate = gca_coordinate
-        #self.mti_1_coordinate = mti_1_coordinate
-        #self.mti_2_coordinate = mti_2_coordinate
-        #self.airplane_hit = airplane_hit
-        #self.mti_1_hit = mti_1_hit
-        #self.mti_2_hit = mti_2_hit
-
-        #self.updateAllTracks()
-
-        #self.drawElevationGraphics()
-        #self.drawAzimuthGraphics()
-        
-        #self.drawWhiPlot()
-
-        #self.drawTextInfo()
 
 
 
@@ -459,20 +435,15 @@ class MyScene(QtGui.QGraphicsScene):
         for track_name in self.tracks:
             self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True)
 
-    #def clearAllTracks(self):
-        #self.tracks = {}
-        #self.removeAllTracks()
-        
-    #    for track_name in self.tracks:
-    #        self.tracks[track_name].clear()
-    #        self.tracks[track_name].resetCallsign()
-        
-    #    self.tracks = {}
+
+
+
+
         
 
     def updateAllTracks(self):
         
-        print self.tracks
+        #print self.tracks
 
         if 'mti' in self.tracks:
             if (not True in self.tracks['mti'].list_of_el_hits[0:3]) or (not True in self.tracks['mti'].list_of_az_hits[0:3]):

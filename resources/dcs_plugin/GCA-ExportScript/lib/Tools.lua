@@ -15,12 +15,8 @@ function ExportScript.Tools.split(inputstr, sep)
     return t
 end
 
-function ExportScript.Tools.toDegMinSec(inputstr)
-    temp = ExportScript.Tools.split(inputstr, '.')
-    deg = temp[1]
-    dec = temp[2]
-    min = math.floor(tonumber('0.'..dec) * 60)
-    sec = (tonumber('0.'..dec) - min/60) * 3600
-    return deg.."'"..tostring(min).."'"..string.format("%." .. (4) .. "f", sec)
+function ExportScript.Tools.tablelength(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
 end
-

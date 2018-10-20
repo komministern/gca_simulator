@@ -129,7 +129,10 @@ class MyPresenter(QtCore.QObject):
         
         self.model.connection_lost.connect(self.connectionLost)
 
-        self.view.scene.mti_lost.connect(self.mtiLost)        
+        self.view.scene.mti_lost.connect(self.mtiLost)
+
+        self.model.demo_loop.connect(self.flickerRadiate)
+        self.model.demo_init.connect(self.initializeDemoMode)
 
     def connectLeadDirButtons(self):
         self.view.button_north.pressed.connect(self.newLeadDirChosen)
@@ -533,8 +536,26 @@ class MyPresenter(QtCore.QObject):
 
 
 
+    def flickerRadiate(self):
+        self.view.button_radiate.mousePressEvent(None)
+        self.view.button_radiate.mousePressEvent(None)
 
 
+    def initializeDemoMode(self):
+        
+        #self.radiate_pending = True
+        
+        #self.view.button_ant_drive.mousePressEvent(None)
+        #self.view.button_radiate.mousePressEvent(None)
+        
+
+        print 'kuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuk'
+
+        self.radiate_pending = True
+        delayed_function = partial(self.view.button_ant_drive.mousePressEvent, None)
+        self.ant_drive_timer = QtCore.QTimer.singleShot(1100.0, delayed_function)
+                #print 'pressed radiate to start radiation again'
+                #self.radiate_pending = False
 
 
 
@@ -542,11 +563,12 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            
-            self.model.initDemoMode()
+            filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Demo', './resources/recordings', 'Demo Files (*.txt)')
+            if filename:
+                self.model.initDemoMode(filename)
             
             #print self.view.button_demo.inverted
-            self.view.button_demo.toggleInverted()
+                self.view.button_demo.toggleInverted()
             #print self.view.button_demo.inverted
             
             #print 'enter demo mode'
@@ -566,17 +588,17 @@ class MyPresenter(QtCore.QObject):
     def toggleRecording(self):
         # button_record is not a InvertingButton, just a Button
         if self.recording and self.connected:
-            self.model.record = False
+            self.model.recording = False
             if self.view.button_record.inverted:
                 self.view.button_record.toggleInverted()
         elif not self.recording and self.connected and not self.demo_mode:
-            self.model.record = True
+            self.model.recording = True
             if not self.view.button_record.inverted:
                 self.view.button_record.toggleInverted()
         # Yes, the following can happen. If coonection is suddenly dropped, a mousePressEvent from the
         # button_record is dispatched!!!
         elif self.recording and not self.connected:
-            self.model.record = False
+            self.model.recording = False
             if self.view.button_record.inverted:
                 self.view.button_record.toggleInverted()
 
@@ -764,7 +786,7 @@ class MyPresenter(QtCore.QObject):
 
     @property
     def recording(self):
-        return self.model.record
+        return self.model.recording
     
     @property
     def demo_mode(self):
@@ -994,7 +1016,7 @@ class MyPresenter(QtCore.QObject):
                     
                     if self.radiating:
                         self.radiate_pending = True
-                   else:
+                    else:
                         self.radiate_pending = False
 
                     if self.antenna_drive_on:
