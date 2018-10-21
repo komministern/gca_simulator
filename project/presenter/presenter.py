@@ -42,6 +42,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_elantazim_center.mousePressEvent(None)
         self.view.button_select_ac_medium.mousePressEvent(None)
         self.view.button_par.mousePressEvent(None)
+        self.view.button_map.mousePressEvent(None)
         # ...more to follow
         
         self.trying_to_connect = False
@@ -1232,6 +1233,7 @@ class MyPresenter(QtCore.QObject):
 
     def toggleMap(self, button):
         self.view.scene.map_active = button.inverted
+        self.view.scene.mapsymbols_item.draw()
         print 'toggle map'
 
     def toggleWhi(self, button):

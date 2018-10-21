@@ -304,7 +304,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.passive_leader_zvalue = 7.0
         self.decisionheight_zvalue = 0.5
         self.button_window_zvalue = self.plot_zvalue + 1.0
-        self.mapsymbols_zvalue = 0.6
+        self.mapsymbols_zvalue = 0.3
 
 
         # Initialize the button window part of the scene
@@ -507,6 +507,7 @@ class MyScene(QtGui.QGraphicsScene):
         #self.mti_2_azimuth_point = self.getAzimuthPoint(self.mti_2_coordinate)
         
         self.drawAzimuthRunway()
+        self.drawMapSymbols()
         self.drawAzimuthGCA()
         self.drawAzimuthCoverage()
         self.drawAllAzimuthTracks()
@@ -551,19 +552,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.whi_axis_item.draw()
 
     def drawMapSymbols(self):
+        self.mapsymbols_item.draw()
         
-        if self.mapsymbols_item:
-            self.removeItem(self.mapsymbols_item)
-            del self.mapsymbols_item
-            self.mapsymbols_item = None
-            
-        if self.map_active:
-            
-            self.mapsymbols_item = QtGui.QGraphicsItemGroup(parent=None, scene=self)
-            
-            lineitem = QtGui.QGraphicsLineItem(0.0, 0.0, 100.0, 100.0, parent=self.mapsymbols_item)
-            lineitem.setPen(self.axis_pen)
-            
             
 
 
