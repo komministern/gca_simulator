@@ -43,6 +43,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_ac_medium.mousePressEvent(None)
         self.view.button_par.mousePressEvent(None)
         self.view.button_map.mousePressEvent(None)
+        self.view.button_obs.mousePressEvent(None)
         # ...more to follow
         
         self.trying_to_connect = False
@@ -1229,6 +1230,7 @@ class MyPresenter(QtCore.QObject):
 
     def toggleObs(self, button):
         self.view.scene.obs_active = button.inverted
+        self.view.scene.obstruction_item.draw()
         print 'toggle obs'
 
     def toggleMap(self, button):

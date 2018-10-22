@@ -19,6 +19,7 @@ from gca import ElevationGCA, AzimuthGCA
 from axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
 from alerts import AlertsField
 from mapsymbols import MapSymbols
+from obstruction import Obstruction
 
 
 class MyScene(QtGui.QGraphicsScene):
@@ -215,6 +216,11 @@ class MyScene(QtGui.QGraphicsScene):
         self.alerts_field_pen = QtGui.QPen(self.alerts_color)
         self.alerts_field_pen.setWidth(2)
         self.alerts_brush = QtGui.QBrush(self.alerts_color)
+
+        #self.obstruction_color = QtGui.QColor(180,114,23,255)
+        self.obstruction_color = QtGui.QColor(174,114,24,255)
+        self.obstruction_pen = QtGui.QPen(self.obstruction_color)
+        self.obstruction_brush = QtGui.QBrush(self.obstruction_color)
         
 
         # Attributes ('global') relevant for the display
@@ -305,6 +311,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.decisionheight_zvalue = 0.5
         self.button_window_zvalue = self.plot_zvalue + 1.0
         self.mapsymbols_zvalue = 0.3
+        self.obstruction_zvalue = 0.2
 
 
         # Initialize the button window part of the scene
@@ -362,6 +369,7 @@ class MyScene(QtGui.QGraphicsScene):
 
         self.mapsymbols_item = MapSymbols(self)
         
+        self.obstruction_item = Obstruction(self)
 
 
 
@@ -463,7 +471,7 @@ class MyScene(QtGui.QGraphicsScene):
 
         for track_name in self.aircraft_coordinates:
             (el_hit, az_hit) = self.aircraft_hits[track_name]
-            if not track_name in self.tracks and (el_hit or az_hit):
+            if not track_name in self.tracks and (el_hit and az_hit):
                 self.tracks[track_name] = Track(self)
             
         for track_name in self.tracks:
@@ -496,6 +504,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.drawElevationGCA()
         self.drawElevationCoverage()
         self.drawAllElevationTracks()
+        self.drawObstruction()
 
     def drawAzimuthGraphics(self):
         # Calculate all points (except for the track points, which are calculated in the drawAzimuthTrack method)
@@ -553,6 +562,9 @@ class MyScene(QtGui.QGraphicsScene):
 
     def drawMapSymbols(self):
         self.mapsymbols_item.draw()
+
+    def drawObstruction(self):
+        self.obstruction_item.draw()
         
             
 

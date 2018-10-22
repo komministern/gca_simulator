@@ -23,6 +23,8 @@ class MyView(QtGui.QGraphicsView):
     def __init__(self):
         super(MyView, self).__init__()
 
+        self.setStyleSheet("border: 0px")
+
         self.resize(1920, 1080)
         self.scene = MyScene()
         self.setScene(self.scene)
@@ -57,7 +59,6 @@ class MyView(QtGui.QGraphicsView):
         self.main_window = self.createMainWindow()
         
         self.main_window.setZValue(self.scene.getNewZVal())
-
 
         self.fullscreen = False
 

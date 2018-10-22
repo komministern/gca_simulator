@@ -381,7 +381,10 @@ class Track(QtCore.QObject):
 
 
     def resetHistoryPlots(self):
-        self.list_of_coords = self.list_of_coords[:1]
+        self.list_of_el_coords = self.list_of_el_coords[:2]     # If :1 it generates occational faults!!!!!!!!!!!!! Hmmmm......
+        self.list_of_az_coords = self.list_of_az_coords[:2]
+        #self.list_of_el_coords = self.list_of_el_coords[:1]
+        #self.list_of_az_coords = self.list_of_az_coords[:1]
 
     def resetCallsign(self):
         self.callsign_string = ''
