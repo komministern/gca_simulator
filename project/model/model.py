@@ -195,7 +195,7 @@ class MyModel(QtCore.QObject):
                 next_message = self.demo_file.readline().replace('\n', '')
                 self.demo_loop.emit()
 
-            print 'sending message'
+            #print 'sending message'
             self.udp_send_socket.writeDatagram(next_message, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT)
 
         self.latest_send_timestamp = time.time()
@@ -262,7 +262,7 @@ class MyModel(QtCore.QObject):
 
     def processPendingDatagrams(self):
 
-        print 'received a message'
+        #print 'received a message'
 
         self.timer_connection_active.start(3000)
         

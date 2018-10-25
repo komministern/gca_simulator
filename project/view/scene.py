@@ -144,6 +144,8 @@ class MyScene(QtGui.QGraphicsScene):
     active_designated_track_changed = QtCore.Signal()
     mti_lost = QtCore.Signal()
 
+    az_offset_pressed = QtCore.Signal(object)
+
 
     def __init__(self):
         super(MyScene, self).__init__()
@@ -250,6 +252,8 @@ class MyScene(QtGui.QGraphicsScene):
         self.line_3_visible = False
         self.leader_visible = False
 
+        self.az_offset = 0
+
 
         # States
         self.radiating = False
@@ -340,6 +344,8 @@ class MyScene(QtGui.QGraphicsScene):
         
         #self.tracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
         self.designated_tracks = []
+
+        
         
 
 
@@ -666,9 +672,17 @@ class MyScene(QtGui.QGraphicsScene):
         #   0.0         azimuthaxiszero_y
         #   max         azimuthaxismax_y
         #   min         azimuthaxismin_y
+
+        az_offset = self.az_offset
+        delta_y = (self.azimuthaxismax_y - self.azimuthaxiszero_y) / 4
+
         azimuth_ft = 3.2808399 * azimuth_m
         ft_per_pixel = self.azimuthscale / (self.azimuthaxiszero_y - self.azimuthaxismax_y)
-        return self.azimuthaxiszero_y + azimuth_ft / ft_per_pixel
+        return self.azimuthaxiszero_y + az_offset * delta_y + azimuth_ft / ft_per_pixel
+
+        #az_offset = self.scene().az_offset
+        #delta_y = (self.scene().azimuthaxismax_y - self.scene().azimuthaxiszero_y) / 4
+        #y = self.scene().azimuthaxiszero_y + az_offset * delta_y
 
 
     # WINDOW RELATED METHODS
@@ -684,3 +698,6 @@ class MyScene(QtGui.QGraphicsScene):
     def getNewZVal(self):
         self.movablewindowZval += 0.001
         return self.movablewindowZval
+
+
+    

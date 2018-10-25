@@ -102,7 +102,11 @@ class AzimuthRunway(QtGui.QGraphicsItemGroup):
             textitem.setBrush(self.scene().textinfo_brush)
             textitemwidth = textitem.boundingRect().width()
             textitemheight = textitem.boundingRect().height()
-            textitem.setPos(self.scene().azimuthgraphicsareatopleft_x, self.scene().azimuthrangeaxis_y - textitemheight / 2)
+
+            az_offset = self.scene().az_offset
+            delta_y = (self.scene().azimuthaxismax_y - self.scene().azimuthaxiszero_y) / 4
+
+            textitem.setPos(self.scene().azimuthgraphicsareatopleft_x, self.scene().azimuthrangeaxis_y + az_offset * delta_y - textitemheight / 2)
 
             painterpath = QtGui.QPainterPath()
             painterpath.addEllipse(self.scene().threshold_azimuth_point.x() - 3.0, self.scene().threshold_azimuth_point.y(), 6.0, 20.0)

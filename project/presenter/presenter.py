@@ -115,12 +115,11 @@ class MyPresenter(QtCore.QObject):
         self.connectSelDBFldButtons()
         self.connectLeadDirButtons()
 
+        self.view.scene.az_offset_pressed.connect(self.handle_az_offset)
+
         #self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
         self.model.new_plots_extracted.connect(self.view.scene.processReceivedPlots)
 
-
-        
-        
         self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
         self.model.new_airport.connect(self.setupNewStatusWindow)
         self.model.new_airport.connect(self.newAirport)
@@ -135,6 +134,8 @@ class MyPresenter(QtCore.QObject):
 
         self.model.demo_loop.connect(self.flickerRadiate)
         self.model.demo_init.connect(self.initializeDemoMode)
+
+
 
     def connectLeadDirButtons(self):
         self.view.button_north.pressed.connect(self.newLeadDirChosen)
@@ -894,13 +895,13 @@ class MyPresenter(QtCore.QObject):
                 #self.pending_active_runway = None
                 #print 'new active runway actually set'
             
-                gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
-                buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
-                        self.view.button_select_glideslope_25, self.view.button_select_glideslope_26, self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
-                        self.view.button_select_glideslope_29, self.view.button_select_glideslope_30, self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
-                        self.view.button_select_glideslope_33, self.view.button_select_glideslope_34, self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
-                        self.view.button_select_glideslope_37, self.view.button_select_glideslope_38, self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
-                buttons[gs].mousePressEvent(None)
+                #gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
+                #buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
+                #        self.view.button_select_glideslope_25, self.view.button_select_glideslope_26, self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
+                #        self.view.button_select_glideslope_29, self.view.button_select_glideslope_30, self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
+                #        self.view.button_select_glideslope_33, self.view.button_select_glideslope_34, self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
+                #        self.view.button_select_glideslope_37, self.view.button_select_glideslope_38, self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
+                #buttons[gs].mousePressEvent(None)
                 #print 'new glide slope'
 
                 button.toggleInverted()
@@ -926,6 +927,14 @@ class MyPresenter(QtCore.QObject):
                 self.view.scene.alerts_field.addAlert('ANTENNA ALIGNED TO RUNWAY', delay=1100.0)
 
             self.view.scene.drawTextInfo()
+
+            gs = int(round(10 * self.model.airport.runways[self.model.active_runway]['gs'])) - 21
+            buttons = [self.view.button_select_glideslope_21, self.view.button_select_glideslope_22, self.view.button_select_glideslope_23, self.view.button_select_glideslope_24, 
+                        self.view.button_select_glideslope_25, self.view.button_select_glideslope_26, self.view.button_select_glideslope_27, self.view.button_select_glideslope_28,
+                        self.view.button_select_glideslope_29, self.view.button_select_glideslope_30, self.view.button_select_glideslope_31, self.view.button_select_glideslope_32,
+                        self.view.button_select_glideslope_33, self.view.button_select_glideslope_34, self.view.button_select_glideslope_35, self.view.button_select_glideslope_36,
+                        self.view.button_select_glideslope_37, self.view.button_select_glideslope_38, self.view.button_select_glideslope_39, self.view.button_select_glideslope_40]
+            buttons[gs].mousePressEvent(None)
 
             if self.radiate_pending:
                 delayed_function = partial(self.view.button_radiate.mousePressEvent, None)
@@ -959,22 +968,22 @@ class MyPresenter(QtCore.QObject):
                 #print 'Same runway as active chosen - set pending active runway to None'
 
             else:
-                print '------------------- runway ' + str(button.value) + ' chosen'
+                #print '------------------- runway ' + str(button.value) + ' chosen'
 
                 if self.radiating:
                     self.radiate_pending = True
-                    print 'radiate pending'
+                    #print 'radiate pending'
                 else:
                     self.radiate_pending = False
-                    print 'radiate not pending'
+                    #print 'radiate not pending'
 
                 if self.antenna_drive_on:
                     self.ant_drive_pending = True
-                    print 'antenna drive pending'
+                    #print 'antenna drive pending'
                     self.view.button_ant_drive.mousePressEvent(None)
                 else:
                     self.ant_drive_pending = False
-                    print 'antenna drive not pending'
+                    #print 'antenna drive not pending'
 
                 # It is now guaranteed that there is no radiation and no antenna drive
 
@@ -1182,7 +1191,7 @@ class MyPresenter(QtCore.QObject):
     # Radar Control buttons
     
     def toggleRadiation(self, button):
-        print 'radiate pressed'
+        #print 'radiate pressed'
         if (not self.antenna_drive_on) and self.radiating:
             # If antenna drive is off, turn radiation off as well
             button.toggleInverted()
@@ -1190,10 +1199,10 @@ class MyPresenter(QtCore.QObject):
         if not self.radiating:
             # If radiate just was turned off, clear the tracks
             self.view.scene.removeAllTracks()
-            print 'removing all tracks'
+            #print 'removing all tracks'
         
         self.view.scene.removeAllTracks()   # This due to the pending_active_runway
-        print 'removing all tracks'
+        #print 'removing all tracks'
 
         self.view.scene.radiating = self.radiating
 
@@ -1231,12 +1240,12 @@ class MyPresenter(QtCore.QObject):
     def toggleObs(self, button):
         self.view.scene.obs_active = button.inverted
         self.view.scene.obstruction_item.draw()
-        print 'toggle obs'
+        #print 'toggle obs'
 
     def toggleMap(self, button):
         self.view.scene.map_active = button.inverted
         self.view.scene.mapsymbols_item.draw()
-        print 'toggle map'
+        #print 'toggle map'
 
     def toggleWhi(self, button):
         self.view.scene.whi_active = button.inverted
@@ -1260,6 +1269,17 @@ class MyPresenter(QtCore.QObject):
         print 'toggle syn vid'
 
 
+    def handle_az_offset(self, offset):
+
+        if self.view.button_az_offset.inverted:
+            
+            self.view.scene.az_offset = offset.value
+            self.view.button_az_offset.setInverted(False)
+
+            self.view.scene.drawAzimuthAxis()
+        
+            self.view.scene.drawRangeAxis()
+            self.view.scene.drawAzimuthGraphics()
 
 
 

@@ -1,5 +1,6 @@
 
 from PySide import QtGui, QtCore
+from azimuthscaletextitem import AzimuthScaleTextItem
 
 
 class ElevationAxis(QtGui.QGraphicsItemGroup):
@@ -72,6 +73,11 @@ class AzimuthAxis(QtGui.QGraphicsItemGroup):
         
         self.azimuth_y_axis_item = None
         self.setZValue(self.scene().axis_zvalue)
+        self.setHandlesChildEvents(False)
+
+
+
+
         self.create()
 
 
@@ -88,36 +94,51 @@ class AzimuthAxis(QtGui.QGraphicsItemGroup):
 
         if self.scene().azimuthscale and self.scene().rangescale:
 
+            x = self.scene().azimuthaxis_x
+            delta_y = (self.scene().azimuthaxismax_y - self.scene().azimuthaxiszero_y) / 4
+
+            az_offset = self.scene().az_offset     # -4..4
+
+            #self.scene().azimuthrangeaxis_y = self.scene().azimuthgraphicsareaheight / 2 + self.scene().azimuthgraphicsareatopleft_y - az_offset * delta_y
+            #self.scene().azimuthaxiszero_y = self.scene().azimuthrangeaxis_y
+
+            #azimuthrangeaxis_y = azimuthgraphicsareaheight / 2 + azimuthgraphicsareatopleft_y
+            #azimuthaxiszero_y = azimuthrangeaxis_y
+
             line = QtCore.QLineF(self.scene().azimuthaxis_x, self.scene().azimuthaxismax_y, self.scene().azimuthaxis_x, self.scene().azimuthaxismin_y)
             self.azimuth_y_axis_item = QtGui.QGraphicsLineItem(line)
             self.azimuth_y_axis_item.setPen(self.scene().axis_pen)
 
-            x = self.scene().azimuthaxis_x
-            delta_y = (self.scene().azimuthaxismax_y - self.scene().azimuthaxiszero_y) / 4
+            for position in range(-4, 5):
 
-            for c in range(-4, 5):
-
-                y = self.scene().azimuthaxiszero_y + c * delta_y
-                if c != 0:
+                y = self.scene().azimuthaxiszero_y + position * delta_y
+                if position != az_offset:
                     lineitem = QtGui.QGraphicsLineItem(x - self.scene().axismarkinglength / 2,  y, x + self.scene().axismarkinglength / 2, y, parent=self.azimuth_y_axis_item)
                     lineitem.setPen(self.scene().axis_pen)
 
-                    text = str(c * self.scene().azimuthscale / 4)
-                    textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.azimuth_y_axis_item)
+                    text = str((position - az_offset) * self.scene().azimuthscale / 4)
+                    textitem = AzimuthScaleTextItem(text, value=position, parent=self.azimuth_y_axis_item)
+                    #rectitem = TestRect(textitem.boundingRect(), parent=self)
+                    #textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.azimuth_y_axis_item)
                     textitem.setFont(self.scene().axis_font)
+                    #textitem.setDefaultTextColor(self.scene().axis_color)
                     textitem.setBrush(self.scene().axis_color)
                     textitemwidth = textitem.boundingRect().width()
                     textitemheight = textitem.boundingRect().height()
-                    if c == 4:
+                    if position == 4:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y)
-                    elif c == -4:
+                    elif position == -4:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y - textitemheight)
                     else:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y - textitemheight / 2)
                     
+            #print self.azimuth_y_axis_item.filtersChildEvents()
             self.addToGroup(self.azimuth_y_axis_item)
+            #print self.azimuth_y_axis_item.filtersChildEvents()
+            #print self.filtersChildEvents()
 
-
+    #def mousePressEvent(self, event):
+    #    print 'group kuuuuuuuuuuuuuuuuuuuuuuuuuuuk'
 
 class RangeAxis(QtGui.QGraphicsItemGroup):
     
@@ -149,7 +170,12 @@ class RangeAxis(QtGui.QGraphicsItemGroup):
             self.elevation_x_axis_item.setPen(self.scene().axis_pen)
             self.elevation_x_axis_item.setZValue(self.scene().axis_zvalue)
 
-            self.azimuth_x_axis_item = QtGui.QGraphicsLineItem(self.scene().azimuthrangeaxiszero_x, self.scene().azimuthrangeaxis_y, self.scene().azimuthrangeaxismax_x, self.scene().azimuthrangeaxis_y)
+            az_offset = self.scene().az_offset
+            delta_y = (self.scene().azimuthaxismax_y - self.scene().azimuthaxiszero_y) / 4
+            y = self.scene().azimuthaxiszero_y + az_offset * delta_y
+
+            self.azimuth_x_axis_item = QtGui.QGraphicsLineItem(self.scene().azimuthrangeaxiszero_x, y, self.scene().azimuthrangeaxismax_x, y)
+            #self.azimuth_x_axis_item = QtGui.QGraphicsLineItem(self.scene().azimuthrangeaxiszero_x, self.scene().azimuthrangeaxis_y, self.scene().azimuthrangeaxismax_x, self.scene().azimuthrangeaxis_y)
             self.azimuth_x_axis_item.setPen(self.scene().axis_pen)
             self.azimuth_x_axis_item.setZValue(self.scene().axis_zvalue)
 
@@ -178,7 +204,8 @@ class RangeAxis(QtGui.QGraphicsItemGroup):
                 x = self.scene().elevationrangeaxiszero_x + c * delta_x
                 lineitem = QtGui.QGraphicsLineItem(x, self.scene().elevationrangeaxis_y + self.scene().axismarkinglength / 2, x, self.scene().elevationrangeaxis_y - self.scene().axismarkinglength / 2, parent=self.elevation_x_axis_item)
                 lineitem.setPen(self.scene().axis_pen)
-                lineitem2 = QtGui.QGraphicsLineItem(x, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2, x, self.scene().azimuthrangeaxis_y - self.scene().axismarkinglength / 2, parent=self.azimuth_x_axis_item)
+                #lineitem2 = QtGui.QGraphicsLineItem(x, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2, x, self.scene().azimuthrangeaxis_y - self.scene().axismarkinglength / 2, parent=self.azimuth_x_axis_item)
+                lineitem2 = QtGui.QGraphicsLineItem(x, y + self.scene().axismarkinglength / 2, x, y - self.scene().axismarkinglength / 2, parent=self.azimuth_x_axis_item)
                 lineitem2.setPen(self.scene().axis_pen)
 
                 textitem = QtGui.QGraphicsSimpleTextItem(markingtext[c], parent=self.elevation_x_axis_item)
@@ -197,9 +224,11 @@ class RangeAxis(QtGui.QGraphicsItemGroup):
                 textitemwidth = textitem2.boundingRect().width()
                 textitemheight = textitem2.boundingRect().height()
                 if c == len(markingtext) - 1:
-                    textitem2.setPos(x - textitemwidth, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2 + 4)
+                    #textitem2.setPos(x - textitemwidth, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2 + 4)
+                    textitem2.setPos(x - textitemwidth, y + self.scene().axismarkinglength / 2 + 4)
                 else:
-                    textitem2.setPos(x - textitemwidth / 2.0, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2 + 4)
+                    #textitem2.setPos(x - textitemwidth / 2.0, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 2 + 4)
+                    textitem2.setPos(x - textitemwidth / 2.0, y + self.scene().axismarkinglength / 2 + 4)
 
             if self.scene().rangescale == 1:
                 numberofhalfmarkings = numberoffullmarkings - 1
@@ -207,7 +236,8 @@ class RangeAxis(QtGui.QGraphicsItemGroup):
                     x = self.scene().elevationrangeaxiszero_x + c * delta_x
                     line = QtGui.QGraphicsLineItem(x + delta_x / 2, self.scene().elevationrangeaxis_y + self.scene().axismarkinglength / 4, x + delta_x / 2, self.scene().elevationrangeaxis_y - self.scene().axismarkinglength / 4, parent=self.elevation_x_axis_item)
                     line.setPen(self.scene().axis_pen)
-                    line2 = QtGui.QGraphicsLineItem(x + delta_x / 2, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 4, x + delta_x / 2, self.scene().azimuthrangeaxis_y - self.scene().axismarkinglength / 4, parent=self.azimuth_x_axis_item)
+                    #line2 = QtGui.QGraphicsLineItem(x + delta_x / 2, self.scene().azimuthrangeaxis_y + self.scene().axismarkinglength / 4, x + delta_x / 2, self.scene().azimuthrangeaxis_y - self.scene().axismarkinglength / 4, parent=self.azimuth_x_axis_item)
+                    line2 = QtGui.QGraphicsLineItem(x + delta_x / 2, y + self.scene().axismarkinglength / 4, x + delta_x / 2, y - self.scene().axismarkinglength / 4, parent=self.azimuth_x_axis_item)
                     line2.setPen(self.scene().axis_pen)
                     
             self.addToGroup(self.elevation_x_axis_item)
