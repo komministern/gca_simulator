@@ -11,8 +11,10 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
 
     pressed = QtCore.Signal(object)
 
-    buttonnormalframewidth = 4
-    buttonexpandedframewidth = 3
+    #buttonnormalframewidth = 4
+    #buttonexpandedframewidth = 3
+    buttonnormalframewidth = 2
+    buttonexpandedframewidth = 2
 
 
     def __init__(self, text, value=None):
@@ -34,7 +36,8 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.setBrush(brush)
         
         pen = QtGui.QPen(QtCore.Qt.black)
-        pen.setWidth(4)
+        #pen.setWidth(4)
+        pen.setWidth(2)
         self.setPen(pen)
 
         
@@ -45,6 +48,7 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.setRect(x+self.buttonnormalframewidth, y+self.buttonnormalframewidth, width-2*self.buttonnormalframewidth, height-2*self.buttonnormalframewidth)
         
         font = QtGui.QFont("Helvetica", 10)
+        font.setStretch(QtGui.QFont.Expanded)
         
         lines = self.text.split('\n')
         if len(lines) == 1:
@@ -110,7 +114,8 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
                 pen = QtGui.QPen(QtCore.Qt.white)
             else:
                 pen = QtGui.QPen(QtCore.Qt.black)
-            pen.setWidth(4)
+            #pen.setWidth(4)
+            pen.setWidth(2)
             self.setPen(pen)
             for each in self.childItems():
                 each.setBrush(QtGui.QBrush(QtCore.Qt.yellow))
@@ -122,7 +127,8 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
                 pen = QtGui.QPen(QtCore.Qt.black)
             else:
                 pen = QtGui.QPen(QtCore.Qt.yellow)
-            pen.setWidth(4)
+            #pen.setWidth(4)
+            pen.setWidth(2)
             self.setPen(pen)
             for each in self.childItems():
                 each.setBrush(QtGui.QBrush(QtCore.Qt.black))
@@ -132,29 +138,34 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         self.hovered = True
         if self.inverted:
             pen = QtGui.QPen(QtCore.Qt.black)
-            pen.setWidth(4)
+            #pen.setWidth(4)
+            pen.setWidth(3)
             self.setPen(pen)
         else:
             if self.expanded:
                 pen = QtGui.QPen(QtCore.Qt.yellow)
             else:
                 pen = QtGui.QPen(QtCore.Qt.white)
-            pen.setWidth(4)
+            #pen.setWidth(4)
+            pen.setWidth(3)
             self.setPen(pen)
         
     def hoverLeaveEvent(self, event):
         self.hovered = False
         if self.inverted:
             pen = QtGui.QPen(QtCore.Qt.yellow)
-            pen.setWidth(4)
+            #pen.setWidth(4)
+            pen.setWidth(2)
             self.setPen(pen)
         else:
             if self.expanded:
                 pen = QtGui.QPen(QtCore.Qt.yellow)
-                pen.setWidth(3)
+                #pen.setWidth(3)
+                pen.setWidth(2)
             else:
                 pen = QtGui.QPen(QtCore.Qt.black)
-                pen.setWidth(4)
+                #pen.setWidth(4)
+                pen.setWidth(2)
             self.setPen(pen)
         
     def mousePressEvent(self, event):

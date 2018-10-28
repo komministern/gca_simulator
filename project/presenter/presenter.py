@@ -795,6 +795,10 @@ class MyPresenter(QtCore.QObject):
     def demo_mode(self):
         return self.model.demo_mode
 
+    @property
+    def rain_mode(self):
+        return self.model.rain_mode
+
 
     def loadAirport(self):
         if not self.connected:
@@ -1215,6 +1219,9 @@ class MyPresenter(QtCore.QObject):
     def toggleRainMode(self, button):
         if (not self.connected) and self.rain_mode_on:
             button.toggleInverted()
+        
+        self.model.rain_mode = button.inverted
+        print self.model.rain_mode
         #self.view.scene.rain_mode_on = self.rain_mode_on       # Not necessary!?!
         
         

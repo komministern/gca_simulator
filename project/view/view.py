@@ -10,7 +10,7 @@
 
 from PySide import QtGui, QtCore
 from scene import MyScene
-from window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea
+from window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
 from button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
 from mygraphicstextitem import MyGraphicsTextItem
 
@@ -34,6 +34,7 @@ class MyView(QtGui.QGraphicsView):
         self.leaddir_window = self.createLeadDirWindow()
         self.status_window = self.createStatusWindow()
         self.seldbfld_window = self.createSelDBFldWindow()
+        self.colorlegend_window = self.createColorLegendWindow()
         
         self.decsnheight_entry_window = self.createDecsnHeightEntryWindow()
         
@@ -56,6 +57,9 @@ class MyView(QtGui.QGraphicsView):
         self.radarcontrol_window = self.createRadarControlWindow()
         self.radarmode_window = self.createRadarModeWindow()
         self.runwayselect_window = self.createRunwaySelectWindow()
+
+        #self.colorlegend_window = self.createColorLegendWindow()
+
         self.main_window = self.createMainWindow()
         
         self.main_window.setZValue(self.scene.getNewZVal())
@@ -64,6 +68,61 @@ class MyView(QtGui.QGraphicsView):
 
 
         # **** CREATE THE 
+
+    def createColorLegendWindow(self):
+        self.colorlegend_window_area = LegendWindowArea()
+        self.scene.addItem(self.colorlegend_window_area)
+
+        self.colorlegend_window_area.setColumn(0)
+        self.colorlegend_window_area.newText('PAR VIDEO')
+        self.colorlegend_window_area.endRow()
+
+        for i in range(16):
+            self.colorlegend_window_area.newText(str(i))
+            self.colorlegend_window_area.endRow()
+
+        self.colorlegend_window_area.setColumn(1)
+        self.colorlegend_window_area.endRow()
+
+        for color in range(16):
+            self.colorlegend_window_area.newThinColorBar(self.scene.par_video_color[color])
+            self.colorlegend_window_area.endRow()
+
+        self.colorlegend_window_area.setColumn(2)
+        self.colorlegend_window_area.newText('WEATHER')
+        self.colorlegend_window_area.endRow()
+
+        for color in range(1, 4):
+            self.colorlegend_window_area.endRow()
+            self.colorlegend_window_area.newThickColorBar(self.scene.weather_color[color])
+            self.colorlegend_window_area.endRow(2)
+        
+        self.colorlegend_window_area.endRow()
+        self.colorlegend_window_area.newText('OBSTRUCTION')
+        self.colorlegend_window_area.endRow()
+
+        self.colorlegend_window_area.endRow()
+        self.colorlegend_window_area.newThickColorBar(self.scene.obstruction_color)
+        
+        self.colorlegend_window_area.setColumn(3)
+        self.colorlegend_window_area.endRow()
+        self.colorlegend_window_area.newText('1')
+        self.colorlegend_window_area.endRow(3)
+        self.colorlegend_window_area.newText('2')
+        self.colorlegend_window_area.endRow(3)
+        self.colorlegend_window_area.newText('3')
+        self.colorlegend_window_area.endRow(10)
+
+
+        self.colorlegend_window_area.fixWindow()
+        self.colorlegend_window_topborder = WindowTopBorder('Color Legend')
+
+        self.scene.addItem(self.colorlegend_window_topborder)
+        self.scene.registerWindowTopBorder(self.colorlegend_window_topborder)
+        self.colorlegend_window_area.attachTo(self.colorlegend_window_topborder)
+        return self.colorlegend_window_topborder
+
+
 
 
     def createDecsnHeightEntryWindow(self):
@@ -258,9 +317,9 @@ class MyView(QtGui.QGraphicsView):
                 self.status_window_area.newTextRowLeft('RWY' + str(runway_number) + ': ' + airport.runways[runway_number]['name'])
                 self.status_window_area.endRow()
                 
-                self.status_window_area.newTextRowLeft('  THR Lon, Lat, El: ' + str(airport.runways[runway_number]['thr_lon']) + ', ' + str(airport.runways[runway_number]['thr_lat']) + ', ' + str(airport.runways[runway_number]['thr_el']) )
+                self.status_window_area.newTextRowLeft('THR Lon, Lat, El: ' + str(airport.runways[runway_number]['thr_lon']) + ', ' + str(airport.runways[runway_number]['thr_lat']) + ', ' + str(airport.runways[runway_number]['thr_el']) )
                 self.status_window_area.endRow()
-                self.status_window_area.newTextRowLeft('  Dist to TD (m): ' + str(airport.runways[runway_number]['td']))
+                self.status_window_area.newTextRowLeft('Dist to TD (m): ' + str(airport.runways[runway_number]['td']))
                 self.status_window_area.endRow()
                 
                 #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
@@ -316,7 +375,7 @@ class MyView(QtGui.QGraphicsView):
         
         self.status_window_area.fixWindow()
         
-        self.status_window_topborder = WindowTopBorder('Status')
+        self.status_window_topborder = WindowTopBorder('System Status')
         self.scene.addItem(self.status_window_topborder)
         self.scene.registerWindowTopBorder(self.status_window_topborder)
         self.status_window_area.attachTo(self.status_window_topborder)
@@ -816,7 +875,7 @@ class MyView(QtGui.QGraphicsView):
         self.displaycontrol_window_area.registerNextButton(self.button_dbfld)
         self.button_lead_dir = ExpandingButton('Lead\nDir', self.leaddir_window)
         self.displaycontrol_window_area.registerNextButton(self.button_lead_dir)
-        self.button_color_legnd = Button('Color\nLegnd')
+        self.button_color_legnd = ExpandingButton('Color\nLegnd', self.colorlegend_window)
         self.displaycontrol_window_area.registerNextButton(self.button_color_legnd)
         self.displaycontrol_window_area.skipNextButton()
         self.displaycontrol_window_area.endRow()
@@ -1026,7 +1085,7 @@ class MyView(QtGui.QGraphicsView):
     def createMainWindow(self):
         self.main_window_area = WindowArea()
         self.scene.addItem(self.main_window_area)
-        self.main_window_area.newTextRow('Range Scale (nmi)')
+        self.main_window_area.newTextRow('Range Scale (nmi)', 'wide')
         self.main_window_area.endRow()
         self.main_window_area.newHalfButtonRow(4)
         self.button_select_rangescale_down = Button('<---')
@@ -1051,7 +1110,7 @@ class MyView(QtGui.QGraphicsView):
         self.main_window_area.endRow()
         self.main_window_area.newWhiteLineSeparator()
         self.main_window_area.endRow()
-        self.main_window_area.newTextRow('Main Controls                       ')
+        self.main_window_area.newTextRow('Main Controls                       ', 'wide')
         self.main_window_area.endRow()
         self.main_window_area.newFullButtonRow(3)
         self.button_acid_entry = ExpandingButton('ACID\nEntry', self.acid_entry_window)

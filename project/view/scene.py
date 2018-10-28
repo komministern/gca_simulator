@@ -29,7 +29,8 @@ class MyScene(QtGui.QGraphicsScene):
     scenetotalwidth = 1920.0 - 4.0
     scenetotalheight = 1080.0 - 4.0
 
-    buttonwindowareawidth = 320.0
+    #buttonwindowareawidth = 320.0
+    buttonwindowareawidth = 280.0
     buttonwindowareaheight = scenetotalheight
 
     buttonwindowareatopleft_x = scenetotalwidth - buttonwindowareawidth
@@ -153,39 +154,53 @@ class MyScene(QtGui.QGraphicsScene):
 
 
         # Pens, brushes and colors
+
+        # **** BUTTONS
         self.button_window_brush = QtGui.QBrush(QtCore.Qt.darkBlue)
         
+        # **** AXIS
         self.axis_font = QtGui.QFont("Helvetica", 10)
-        self.axis_color = QtGui.QColor(255, 165, 0, 255)
+        self.axis_font.setStretch(QtGui.QFont.Expanded)
+
+        self.axis_color = QtGui.QColor(184, 103, 28, 255)
         
         self.axis_pen = QtGui.QPen(self.axis_color)
         self.axis_pen.setWidth(2.0)
 
-        self.runway_color = QtCore.Qt.darkCyan
+        # **** RUNWAY
+        self.runway_color = QtGui.QColor(14, 112, 112, 255)
         self.runway_pen = QtGui.QPen(self.runway_color)
         self.runway_pen.setWidth(2)
         
         self.runway_font = QtGui.QFont(self.axis_font)
         self.runway_brush = QtGui.QBrush(self.runway_color)
         
-        self.glideslope_color = QtGui.QColor(60, 179, 113, 255)
+        # **** GLIDESLOPE
+        self.glideslope_color = QtGui.QColor(123, 178, 100, 255)
         self.glideslope_pen = QtGui.QPen(self.glideslope_color)
         self.glideslope_pen.setWidth(2)
         
-        self.decisionheight_pen = self.glideslope_pen
+        # **** DECISION HEIGHT MARKER
+        self.decisionheight_pen = QtGui.QPen(self.glideslope_pen)
         
-        self.gca_color = QtGui.QColor(139,0,139,255)
+        # **** gca
+        self.gca_color = QtGui.QColor(153, 16, 84, 255)
         self.gca_brush = QtGui.QBrush(self.gca_color)
         
-        self.coverage_pen = QtGui.QPen(self.gca_color)
+        # **** COVERAGE
+        self.coverage_color = QtGui.QColor(102, 0, 102, 255)
+        self.coverage_pen = QtGui.QPen(self.coverage_color)
         self.coverage_pen.setStyle(QtCore.Qt.DashLine)
         
+        # **** AZANTELEV MARKER
         self.az_ant_elevation_pen = QtGui.QPen(self.coverage_pen)
         
-        self.textinfo_color = self.glideslope_color
+        # **** TEXTINFO
+        self.textinfo_color = QtGui.QColor(91, 250, 179, 255)
         self.textinfo_font = QtGui.QFont(self.axis_font)
         self.textinfo_brush = QtGui.QBrush(self.textinfo_color)
         
+        # **** PLOTS
         self.plot_brush = QtGui.QBrush(QtCore.Qt.white)
         self.plot_pen = QtGui.QPen(QtCore.Qt.white)
 
@@ -195,35 +210,87 @@ class MyScene(QtGui.QGraphicsScene):
         self.historic_plot_brush = QtGui.QBrush(QtCore.Qt.darkGray)
         self.historic_plot_pen = QtGui.QPen(QtCore.Qt.darkGray)
 
+        # **** LABEL
         self.active_label_color = QtCore.Qt.yellow
         self.passive_label_color = QtGui.QColor(102,178,255,255)
         
+        self.label_font = QtGui.QFont(self.axis_font)
+
         self.active_label_pen = QtGui.QPen(self.active_label_color)
         self.active_label_pen.setWidth(2)
         self.active_label_brush = QtGui.QBrush(self.active_label_color)
-        self.active_label_font = QtGui.QFont("Helvetica", 10)
+        self.active_label_font = QtGui.QFont(self.label_font)
+        #self.active_label_font = QtGui.QFont("Helvetica", 10)
         self.active_label_font.setBold(True)
         
         self.passive_label_pen = QtGui.QPen(self.passive_label_color)
         self.passive_label_pen.setWidth(2)
         self.passive_label_brush = QtGui.QBrush(self.passive_label_color)
-        self.passive_label_font = QtGui.QFont("Helvetica", 10)
+        self.passive_label_font = QtGui.QFont(self.label_font)
+        #self.passive_label_font = QtGui.QFont("Helvetica", 10)
         self.passive_label_font.setBold(True)
         
         self.active_leader_pen = QtGui.QPen(self.active_label_color)
         self.passive_leader_pen = QtGui.QPen(self.passive_label_color)
         
-        self.alerts_color = self.textinfo_color
-        self.alerts_font = QtGui.QFont("Helvetica", 10)
+        # **** ALERTS
+        self.alerts_color = QtGui.QColor(62, 170, 110, 255)
+        self.alerts_font = QtGui.QFont(self.axis_font)
+        self.alerts_font.setStretch(QtGui.QFont.Unstretched)
+        #self.alerts_font = QtGui.QFont("Helvetica", 10)
         self.alerts_field_pen = QtGui.QPen(self.alerts_color)
         self.alerts_field_pen.setWidth(2)
         self.alerts_brush = QtGui.QBrush(self.alerts_color)
 
-        #self.obstruction_color = QtGui.QColor(180,114,23,255)
-        self.obstruction_color = QtGui.QColor(174,114,24,255)
+        # **** OBSTRUCTION
+        self.obstruction_color = QtGui.QColor(153,91,91,255)
         self.obstruction_pen = QtGui.QPen(self.obstruction_color)
         self.obstruction_brush = QtGui.QBrush(self.obstruction_color)
         
+        # **** COLOR LEGEND
+        self.weather_color_1 = QtGui.QColor(129, 145, 244, 255)
+        self.weather_color_2 = QtGui.QColor(91, 100, 159, 255)
+        self.weather_color_3 = QtGui.QColor(20, 30, 100, 255)
+        self.weather_color = {}
+        self.weather_color[1] = self.weather_color_1
+        self.weather_color[2] = self.weather_color_2
+        self.weather_color[3] = self.weather_color_3
+
+        self.par_video_color_0 = QtGui.QColor(0, 0, 0, 255)
+        self.par_video_color_1 = QtGui.QColor(187, 246, 253, 255)
+        self.par_video_color_2 = QtGui.QColor(32, 126, 138, 255)
+        self.par_video_color_3 = QtGui.QColor(54, 115, 180, 255)
+        self.par_video_color_4 = QtGui.QColor(225, 249, 158, 255)
+        self.par_video_color_5 = QtGui.QColor(130, 247, 181, 255)
+        self.par_video_color_6 = QtGui.QColor(31, 186, 99, 255)
+        self.par_video_color_7 = QtGui.QColor(41, 108, 34, 255)
+        self.par_video_color_8 = QtGui.QColor(209, 202, 57, 255)
+        self.par_video_color_9 = QtGui.QColor(255, 147, 21, 255)
+        self.par_video_color_10 = QtGui.QColor(253, 155, 111, 255)
+        self.par_video_color_11 = QtGui.QColor(255, 23, 23, 255)
+        self.par_video_color_12 = QtGui.QColor(179, 81, 55, 255)
+        self.par_video_color_13 = QtGui.QColor(254, 7, 226, 255)
+        self.par_video_color_14 = QtGui.QColor(201, 40, 115, 255)
+        self.par_video_color_15 = QtGui.QColor(255, 255, 255, 255)
+        self.par_video_color = {}
+        self.par_video_color[0] = self.par_video_color_0
+        self.par_video_color[1] = self.par_video_color_1
+        self.par_video_color[2] = self.par_video_color_2
+        self.par_video_color[3] = self.par_video_color_3
+        self.par_video_color[4] = self.par_video_color_4
+        self.par_video_color[5] = self.par_video_color_5
+        self.par_video_color[6] = self.par_video_color_6
+        self.par_video_color[7] = self.par_video_color_7
+        self.par_video_color[8] = self.par_video_color_8
+        self.par_video_color[9] = self.par_video_color_9
+        self.par_video_color[10] = self.par_video_color_10
+        self.par_video_color[11] = self.par_video_color_11
+        self.par_video_color[12] = self.par_video_color_12
+        self.par_video_color[13] = self.par_video_color_13
+        self.par_video_color[14] = self.par_video_color_14
+        self.par_video_color[15] = self.par_video_color_15
+        
+
 
         # Attributes ('global') relevant for the display
         self.rangescale = None

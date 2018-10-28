@@ -47,6 +47,16 @@ class ElevationAxis(QtGui.QGraphicsItemGroup):
                 textitemheight = textitem.boundingRect().height()
                 if c == 4:
                     textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y)
+
+                    saved_width = textitemwidth
+                    text = 'FT'
+                    textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.elevation_y_axis_item)
+                    textitem.setFont(self.scene().axis_font)
+                    textitem.setBrush(self.scene().axis_color)
+                    textitemwidth = textitem.boundingRect().width()
+                    textitemheight = textitem.boundingRect().height()
+                    textitem.setPos(self.scene().elevationgraphicsareatopleft_x + saved_width - textitemwidth, y + textitemheight)
+
                 else:
                     textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y - textitemheight / 2)
 
@@ -62,6 +72,18 @@ class ElevationAxis(QtGui.QGraphicsItemGroup):
             textitemheight = textitem.boundingRect().height()
             textitem.setPos(0.0, y - textitemheight)
 
+
+            text = 'HAT'
+            textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.elevation_y_axis_item)
+            textitem.setFont(self.scene().axis_font)
+            textitem.setBrush(self.scene().axis_color)
+            textitemwidth = textitem.boundingRect().width()
+            textitemheight = textitem.boundingRect().height()
+            textitem.setPos(self.scene().elevationaxis_x + 20.0, self.scene().elevationaxismax_y + 5.0)
+
+
+
+
             self.addToGroup(self.elevation_y_axis_item)
 
 
@@ -74,9 +96,6 @@ class AzimuthAxis(QtGui.QGraphicsItemGroup):
         self.azimuth_y_axis_item = None
         self.setZValue(self.scene().axis_zvalue)
         self.setHandlesChildEvents(False)
-
-
-
 
         self.create()
 
@@ -118,17 +137,33 @@ class AzimuthAxis(QtGui.QGraphicsItemGroup):
 
                     text = str((position - az_offset) * self.scene().azimuthscale / 4)
                     textitem = AzimuthScaleTextItem(text, value=position, parent=self.azimuth_y_axis_item)
-                    #rectitem = TestRect(textitem.boundingRect(), parent=self)
-                    #textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.azimuth_y_axis_item)
                     textitem.setFont(self.scene().axis_font)
-                    #textitem.setDefaultTextColor(self.scene().axis_color)
                     textitem.setBrush(self.scene().axis_color)
                     textitemwidth = textitem.boundingRect().width()
                     textitemheight = textitem.boundingRect().height()
                     if position == 4:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y)
+
+                        saved_width = textitemwidth
+                        text = 'FT'
+                        textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.azimuth_y_axis_item)
+                        textitem.setFont(self.scene().axis_font)
+                        textitem.setBrush(self.scene().axis_color)
+                        textitemwidth = textitem.boundingRect().width()
+                        textitemheight = textitem.boundingRect().height()
+                        textitem.setPos(self.scene().elevationgraphicsareatopleft_x + saved_width - textitemwidth, y + textitemheight)
+                    
                     elif position == -4:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y - textitemheight)
+
+                        saved_width = textitemwidth
+                        text = 'FT'
+                        textitem = QtGui.QGraphicsSimpleTextItem(text, parent=self.azimuth_y_axis_item)
+                        textitem.setFont(self.scene().axis_font)
+                        textitem.setBrush(self.scene().axis_color)
+                        textitemwidth = textitem.boundingRect().width()
+                        textitemheight = textitem.boundingRect().height()
+                        textitem.setPos(self.scene().elevationgraphicsareatopleft_x + saved_width - textitemwidth, y - 2*textitemheight)
                     else:
                         textitem.setPos(self.scene().elevationgraphicsareatopleft_x, y - textitemheight / 2)
                     

@@ -70,6 +70,8 @@ class MyModel(QtCore.QObject):
 
         self.azantelev = None
         self.elantazim = None
+
+        self.rain_mode = False
         #self.ant
 
 
@@ -419,8 +421,12 @@ class MyModel(QtCore.QObject):
 
         p_normal = 0.99
         
-        r_full_prb = 16.0
-        r_zero_prb = 19.0      
+        if self.rain_mode:
+            r_full_prb = 13.0
+            r_zero_prb = 16.0 
+        else:
+            r_full_prb = 16.0
+            r_zero_prb = 19.0      
         
         fi_up_full_prb = 7.0
         fi_up_zero_prb = 7.1
@@ -476,8 +482,12 @@ class MyModel(QtCore.QObject):
 
         p_normal = 0.99
         
-        r_full_prb = 15.0
-        r_zero_prb = 18.0      
+        if self.rain_mode:
+            r_full_prb = 12.0
+            r_zero_prb = 15.0
+        else:   
+            r_full_prb = 15.0
+            r_zero_prb = 18.0      
         
         #fi_up_full_prb = azantelev + 5.0
         #fi_up_zero_prb = azantelev + 10.1
