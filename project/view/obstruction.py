@@ -103,16 +103,16 @@ class Obstruction(QtGui.QGraphicsItemGroup):
             
                 topleft = QtCore.QPointF(self.scene().range_to_scenexcoord(-n_x * self.dx), self.scene().altitude_to_sceneycoord(n_y * self.dy))
                 bottomright = QtCore.QPointF(self.scene().range_to_scenexcoord(-(n_x + 1) * self.dx), self.scene().altitude_to_sceneycoord(0.0))
-                rect = QtCore.QRectF(topleft, bottomright)
-                rectitem = QtGui.QGraphicsRectItem(rect, parent=self.obstruction_item)
-                rectitem.setPen(self.scene().obstruction_pen)
-                rectitem.setBrush(self.scene().obstruction_brush)
+                if topleft.x() < self.scene().elevationgraphicsareabottomright_x:
+                    rect = QtCore.QRectF(topleft, bottomright)
+                    rectitem = QtGui.QGraphicsRectItem(rect, parent=self.obstruction_item)
+                    rectitem.setPen(self.scene().obstruction_pen)
+                    rectitem.setBrush(self.scene().obstruction_brush)
 
                 p_increase = 1.0 * (n_y_end - n_y) / (n_x_end - n_x)
                 if (self.random.random() < p_increase) and ( (n_y + 1) * self.dy < self.limiting_height((n_x + 1) * self.dx) ):
                     n_y += 1
                 
                 n_x += 1
-
 
             self.addToGroup(self.obstruction_item)

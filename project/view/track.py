@@ -215,11 +215,13 @@ class Track(QtCore.QObject):
             self.azimuth_label.update()
 
             azimuth_point = self.scene.getAzimuthPoint(self.list_of_az_coords[0])
-            y = azimuth_point.y()
+            az_y = azimuth_point.y()
+            elevation_point = self.scene.getElevationPoint(self.list_of_el_coords[0])
+            el_y = elevation_point.y()
 
             # Make labels visible (or the opposite)
-            self.elevation_label.setVisible(self.designated() and self.scene.radiating and self.el_label_visible() )
-            self.azimuth_label.setVisible(self.designated() and self.scene.radiating and self.az_label_visible() and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)))
+            self.elevation_label.setVisible(self.designated() and self.scene.radiating and self.el_label_visible() and elevation_point.y() > (self.scene.elevationgraphicsareatopleft_y + self.scene.plot_radius) and elevation_point.x() < self.scene.elevationgraphicsareabottomright_x)
+            self.azimuth_label.setVisible(self.designated() and self.scene.radiating and self.az_label_visible() and azimuth_point.y() > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius) and azimuth_point.y() < (self.scene.azimuthgraphicsareabottomright_y + self.scene.plot_radius) and azimuth_point.x() < self.scene.azimuthgraphicsareabottomright_x)
             self.whi_label.setVisible(self.active_designated() and self.scene.radiating)          # More work needed here!!!!!!!!!!!!
 
             # Remove the old plots
@@ -262,7 +264,7 @@ class Track(QtCore.QObject):
                     x = elevation_point.x()
                     y = elevation_point.y()
             
-                    if (x < (self.scene.graphicsareawidth - self.scene.plot_radius)):
+                    if (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.elevationgraphicsareatopleft_y + self.scene.plot_radius)):
                     # If this is a hit in reasonable x range, draw a visible plot
             
                         if i == 0:
@@ -305,7 +307,7 @@ class Track(QtCore.QObject):
                     x = azimuth_point.x()
                     y = azimuth_point.y()
             
-                    if self.list_of_az_hits[i] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)):
+                    if self.list_of_az_hits[i] and (x < (self.scene.graphicsareawidth - self.scene.plot_radius)) and (y > (self.scene.azimuthgraphicsareatopleft_y + self.scene.plot_radius)) and (y < (self.scene.azimuthgraphicsareabottomright_y + self.scene.plot_radius)):
                     # If this is a hit in reasonable x range, AND in reasonable y range, draw a visible plot
             
                         #if i == 0:

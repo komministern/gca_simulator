@@ -119,15 +119,14 @@ class MyScene(QtGui.QGraphicsScene):
     plot_radius = 4.0
     
     # **** LABEL
-    
-    #label_displacement_x = 100.0
-    #label_displacement_y = 100.0
+
     label_text_distance_x = 8.0
     label_leader_distance = 5.0
     label_standard_x_offset_magnitude = 150.0
     label_standard_y_offset_magnitude = 150.0
     
     # **** LEADER
+
     leader_initial_length = 150.0
     
     # **** ALERT FIELD
@@ -146,6 +145,8 @@ class MyScene(QtGui.QGraphicsScene):
     mti_lost = QtCore.Signal()
 
     az_offset_pressed = QtCore.Signal(object)
+
+
 
 
     def __init__(self):
@@ -212,30 +213,32 @@ class MyScene(QtGui.QGraphicsScene):
 
         # **** LABEL
         self.active_label_color = QtCore.Qt.yellow
-        self.passive_label_color = QtGui.QColor(102,178,255,255)
+        self.passive_label_color = QtGui.QColor(102, 178, 255, 255)
         
-        self.label_font = QtGui.QFont(self.axis_font)
+        self.label_font = QtGui.QFont("Helvetica", 10)
+        self.label_font.setBold(True)
+        self.label_font.setStretch(QtGui.QFont.Expanded)
 
         self.active_label_pen = QtGui.QPen(self.active_label_color)
         self.active_label_pen.setWidth(2)
         self.active_label_brush = QtGui.QBrush(self.active_label_color)
         self.active_label_font = QtGui.QFont(self.label_font)
         #self.active_label_font = QtGui.QFont("Helvetica", 10)
-        self.active_label_font.setBold(True)
+        #self.active_label_font.setBold(True)
         
         self.passive_label_pen = QtGui.QPen(self.passive_label_color)
         self.passive_label_pen.setWidth(2)
         self.passive_label_brush = QtGui.QBrush(self.passive_label_color)
         self.passive_label_font = QtGui.QFont(self.label_font)
         #self.passive_label_font = QtGui.QFont("Helvetica", 10)
-        self.passive_label_font.setBold(True)
+        #self.passive_label_font.setBold(True)
         
         self.active_leader_pen = QtGui.QPen(self.active_label_color)
         self.passive_leader_pen = QtGui.QPen(self.passive_label_color)
         
         # **** ALERTS
         self.alerts_color = QtGui.QColor(62, 170, 110, 255)
-        self.alerts_font = QtGui.QFont(self.axis_font)
+        self.alerts_font = QtGui.QFont("Helvetica", 10)
         self.alerts_font.setStretch(QtGui.QFont.Unstretched)
         #self.alerts_font = QtGui.QFont("Helvetica", 10)
         self.alerts_field_pen = QtGui.QPen(self.alerts_color)
@@ -243,7 +246,7 @@ class MyScene(QtGui.QGraphicsScene):
         self.alerts_brush = QtGui.QBrush(self.alerts_color)
 
         # **** OBSTRUCTION
-        self.obstruction_color = QtGui.QColor(153,91,91,255)
+        self.obstruction_color = QtGui.QColor(153, 91, 91, 255)
         self.obstruction_pen = QtGui.QPen(self.obstruction_color)
         self.obstruction_brush = QtGui.QBrush(self.obstruction_color)
         

@@ -340,7 +340,7 @@ class ElevationLabel(Label):
 
         # Leader should now be drawn, if and only if the leader is activated (and the terms for the azimuth plot above)
         
-        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating and self.parent_track.el_label_visible():
+        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating and self.parent_track.el_label_visible() and self.plot_point.y() > (self.scene().elevationgraphicsareatopleft_y + self.scene().plot_radius) and self.plot_point.x() < self.scene().elevationgraphicsareabottomright_x:
             if self.parent_track.active_designated():
                 pen = self.scene().active_leader_pen
             else:
@@ -456,7 +456,7 @@ class AzimuthLabel(Label):
 
         # Leader should now be drawn, if and only if the leader is activated (and the terms for the azimuth plot above)
 
-        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating and (self.plot_point.y() > (self.scene().azimuthgraphicsareatopleft_y + self.scene().plot_radius)) and self.parent_track.az_label_visible():
+        if self.parent_track.designated() and self.scene().leader_visible and self.scene().radiating and (self.plot_point.y() > (self.scene().azimuthgraphicsareatopleft_y + self.scene().plot_radius)) and (self.plot_point.y() < self.scene().azimuthgraphicsareabottomright_y + self.scene().plot_radius) and self.parent_track.az_label_visible() and self.plot_point.x() < self.scene().azimuthgraphicsareabottomright_x:
             if self.parent_track.active_designated():
                 pen = self.scene().active_leader_pen
             else:

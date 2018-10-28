@@ -209,7 +209,7 @@ class MyModel(QtCore.QObject):
         self.demo_file = open(filename, 'r')
         airport_filename = self.demo_file.readline().replace('\n', '')
 
-        print airport_filename
+        #print airport_filename
 
         self.readNewAirport(airport_filename)
         
@@ -473,6 +473,7 @@ class MyModel(QtCore.QObject):
                 elevation_hit = False
             
         return elevation_hit
+        #return True
 
 
     def azimuth_hit(self, coord, gca_coord):
@@ -552,6 +553,7 @@ class MyModel(QtCore.QObject):
                 azimuth_hit = False
             
         return azimuth_hit
+        #return True
 
     
     def f(self, x, x_full_prb, x_zero_prb):

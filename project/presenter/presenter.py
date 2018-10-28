@@ -44,6 +44,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_par.mousePressEvent(None)
         self.view.button_map.mousePressEvent(None)
         self.view.button_obs.mousePressEvent(None)
+
         # ...more to follow
         
         self.trying_to_connect = False
@@ -550,9 +551,6 @@ class MyPresenter(QtCore.QObject):
         
         #self.view.button_ant_drive.mousePressEvent(None)
         #self.view.button_radiate.mousePressEvent(None)
-        
-
-        print 'kuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuk'
 
         self.radiate_pending = True
         delayed_function = partial(self.view.button_ant_drive.mousePressEvent, None)
@@ -815,13 +813,13 @@ class MyPresenter(QtCore.QObject):
         # Only standard alerts (as IRL I mean)
         self.view.button_select_elantazim_center.mousePressEvent(None)
         self.view.button_select_runway_1.mousePressEvent(None)
-        print 'selected center and rwy1'
+        #print 'selected center and rwy1'
 
-        print 'active runway is now'
-        print self.model.active_runway
+        #print 'active runway is now'
+        #print self.model.active_runway
 
-        print 'elantazim is now'
-        print self.model.elantazim
+        #print 'elantazim is now'
+        #print self.model.elantazim
 
 
         

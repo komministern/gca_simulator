@@ -9,7 +9,7 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
         
         self.lower_line_item = None
         self.upper_line_item = None
-        self.az_ant_elevation_item = None
+        self.azantelev_item = None
         
         self.rangescale = None
         self.elevationscale = None
@@ -38,10 +38,10 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
         if self.lower_line_item != None and self.upper_line_item != None:   # These really either both exists, or not.
             self.removeFromGroup(self.lower_line_item)
             self.removeFromGroup(self.upper_line_item)
-            self.removeFromGroup(self.az_ant_elevation_item)
+            self.removeFromGroup(self.azantelev_item)
             self.upper_line_item = None                 # Let the garbage collector do its job
             self.lower_line_item = None
-            self.az_ant_elevation_item = None
+            self.azantelev_item = None
         
         
         if self.scene().rangescale and self.scene().elevationscale and self.scene().gca_elevation_point and (self.scene().azantelev != None):# and self.scene().radarcover_active:
@@ -57,18 +57,25 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
             start_point = self.scene().gca_elevation_point
             
             upper_slope = np.tan(7.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
-        
             upper_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - upper_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
         
+            # Keep upper coverage line inside the elevation graphics area
+            if upper_end_point.y() < self.scene().elevationgraphicsareatopleft_y:
+                new_x = -1.0 * (self.scene().elevationgraphicsareatopleft_y - start_point.y()) / upper_slope + start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                upper_end_point = QtCore.QPointF(new_x, start_point.y() - upper_slope*delta_x)
+
             upper_line = QtCore.QLineF(start_point, upper_end_point)
         
             self.upper_line_item = QtGui.QGraphicsLineItem(upper_line)
             self.upper_line_item.setPen(self.scene().coverage_pen)
             
             self.addToGroup(self.upper_line_item)
-
-            #self.upper_line_item.setZValue(self.coverage_zvalue)
         
+
             lower_slope = np.tan(-1.0*np.pi/180) * m_per_x_pixel / m_per_y_pixel
             lower_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - lower_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
             
@@ -79,25 +86,33 @@ class ElevationCoverage(QtGui.QGraphicsItemGroup):
                     new_x = self.scene().rangeaxismax_x
                 
                 delta_x = new_x - start_point.x()
-                
                 lower_end_point = QtCore.QPointF(new_x, start_point.y() - lower_slope*delta_x)
                 
             lower_line = QtCore.QLineF(start_point, lower_end_point)
-            
             self.lower_line_item = QtGui.QGraphicsLineItem(lower_line)
             self.lower_line_item.setPen(self.scene().coverage_pen)
             
             self.addToGroup(self.lower_line_item)
             
-        
-            az_ant_slope = np.tan(self.scene().azantelev*np.pi/180) * m_per_x_pixel / m_per_y_pixel
-            end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - az_ant_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
-            az_ant_line = QtCore.QLineF(start_point, end_point)
 
-            self.az_ant_elevation_item = QtGui.QGraphicsLineItem(az_ant_line)
-            self.az_ant_elevation_item.setPen(self.scene().az_ant_elevation_pen)
+            azantelev_slope = np.tan(self.scene().azantelev*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            azantelev_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - azantelev_slope*(self.scene().rangeaxismax_x - self.scene().gca_elevation_point.x()))
+            
+            # Keep azantelev coverage line inside the elevation graphics area
+            if azantelev_end_point.y() < self.scene().elevationgraphicsareatopleft_y:
+                new_x = -1.0 * (self.scene().elevationgraphicsareatopleft_y - start_point.y()) / azantelev_slope + start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                azantelev_end_point = QtCore.QPointF(new_x, start_point.y() - azantelev_slope*delta_x)
+            
+            azantelev_line = QtCore.QLineF(start_point, azantelev_end_point)
 
-            self.addToGroup(self.az_ant_elevation_item)
+            self.azantelev_item = QtGui.QGraphicsLineItem(azantelev_line)
+            self.azantelev_item.setPen(self.scene().coverage_pen)
+
+            self.addToGroup(self.azantelev_item)
         
         else:
             #print 'ERROR - ElevationCoverage created without necessary inputs'
@@ -163,9 +178,14 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
             start_point = self.scene().gca_azimuth_point
             
             upper_slope = np.tan((15.0 - self.elantazim)*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            lower_slope = np.tan((-15.0 - self.elantazim)*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            middle_slope = np.tan((0.0 - self.elantazim)*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+
             delta_x = self.scene().rangeaxismax_x - start_point.x()
             
             upper_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - upper_slope*delta_x)
+            lower_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - lower_slope*delta_x)
+            middle_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - middle_slope*delta_x)
         
             # Keep upper coverage line inside the azimuth graphics area
             if upper_end_point.y() < self.scene().azimuthgraphicsareatopleft_y:
@@ -179,32 +199,53 @@ class AzimuthCoverage(QtGui.QGraphicsItemGroup):
             
             upper_line = QtCore.QLineF(start_point, upper_end_point)
 
+            # Keep lower coverage line inside the azimuth graphics area
+            if lower_end_point.y() > self.scene().azimuthgraphicsareabottomright_y:
+
+                new_x = -1.0 * (self.scene().azimuthgraphicsareabottomright_y - start_point.y()) / lower_slope + start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                lower_end_point = QtCore.QPointF(new_x, start_point.y() - lower_slope*delta_x)
+            
+            lower_line = QtCore.QLineF(start_point, lower_end_point)
+
+            # Keep middle coverage line inside the azimuth graphics area
+            if middle_end_point.y() < self.scene().azimuthgraphicsareatopleft_y:
+
+                new_x = -1.0 * (self.scene().azimuthgraphicsareatopleft_y - start_point.y()) / middle_slope + start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                middle_end_point = QtCore.QPointF(new_x, start_point.y() - middle_slope*delta_x)
+            
+            elif middle_end_point.y() > self.scene().azimuthgraphicsareabottomright_y:
+
+                new_x = -1.0 * (self.scene().azimuthgraphicsareabottomright_y - start_point.y()) / middle_slope + start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - start_point.x()
+                middle_end_point = QtCore.QPointF(new_x, start_point.y() - middle_slope*delta_x)
+
+            middle_line = QtCore.QLineF(start_point, middle_end_point)
+
+
             self.upper_line_item = QtGui.QGraphicsLineItem(upper_line)
             self.upper_line_item.setPen(self.scene().coverage_pen)
-            
-            self.addToGroup(self.upper_line_item)
-        
 
-            lower_slope = np.tan((-15.0 - self.elantazim)*np.pi/180) * m_per_x_pixel / m_per_y_pixel
-            #delta_x = self.scene().rangeaxismax_x - start_point.x()
-        
-            lower_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - lower_slope*(self.scene().rangeaxismax_x - self.scene().gca_azimuth_point.x()))
-            lower_line = QtCore.QLineF(start_point, lower_end_point)
-            
             self.lower_line_item = QtGui.QGraphicsLineItem(lower_line)
             self.lower_line_item.setPen(self.scene().coverage_pen)
-            
-            self.addToGroup(self.lower_line_item)
-            
-            middle_slope = np.tan((- self.elantazim)*np.pi/180) * m_per_x_pixel / m_per_y_pixel
 
-            #middle_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y())
-            middle_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, start_point.y() - middle_slope*(self.scene().rangeaxismax_x - self.scene().gca_azimuth_point.x()))
-            middle_line = QtCore.QLineF(start_point, middle_end_point)
-            
             self.middle_line_item = QtGui.QGraphicsLineItem(middle_line)
             self.middle_line_item.setPen(self.scene().coverage_pen)
+
+
             
+            self.addToGroup(self.upper_line_item)
+            self.addToGroup(self.lower_line_item)
             self.addToGroup(self.middle_line_item)
             
         else:

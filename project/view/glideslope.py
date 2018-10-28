@@ -40,12 +40,23 @@ class GlideSlope(QtGui.QGraphicsItemGroup):
             self.rangescale = self.scene().rangescale
             self.elevationscale = self.scene().elevationscale
 
+            m_per_x_pixel = self.scene().rangescale*1852.0 / (self.scene().rangeaxismax_x - self.scene().rangeaxiszero_x)
+            m_per_y_pixel = self.scene().elevationscale*0.3048 / (self.scene().elevationaxiszero_y - self.scene().elevationaxismax_y)
+
             glideslope_start_point = self.scene().touchdown_elevation_point
-            
-            glideslope_end_coordinate = np.array([-1852.0*self.rangescale, 0.0, np.tan(self.glideslope*np.pi/180)*1852.0*self.rangescale])
-            glideslope_end_point = self.scene().getElevationPoint(glideslope_end_coordinate)
+            glideslope_slope = np.tan(self.scene().glideslope*np.pi/180) * m_per_x_pixel / m_per_y_pixel
+            glideslope_end_point = QtCore.QPointF(self.scene().rangeaxismax_x, glideslope_start_point.y() - glideslope_slope*(self.scene().rangeaxismax_x - glideslope_start_point.x()))
+           
+            # Keep glideslope line inside the elevation graphics area
+            if glideslope_end_point.y() < self.scene().elevationgraphicsareatopleft_y:
+                new_x = -1.0 * (self.scene().elevationgraphicsareatopleft_y - glideslope_start_point.y()) / glideslope_slope + glideslope_start_point.x()
+                if new_x > self.scene().rangeaxismax_x:
+                    new_x = self.scene().rangeaxismax_x
+                
+                delta_x = new_x - glideslope_start_point.x()
+                glideslope_end_point = QtCore.QPointF(new_x, glideslope_start_point.y() - glideslope_slope*delta_x)
+
             line = QtCore.QLineF(glideslope_start_point, glideslope_end_point)
-            
             self.glideslope_item = QtGui.QGraphicsLineItem(line)
             self.glideslope_item.setPen(self.scene().glideslope_pen)
             
@@ -71,7 +82,8 @@ class GlideSlope(QtGui.QGraphicsItemGroup):
             for c in range(numberoffullmarkings):
                 x = self.scene().elevationrangeaxiszero_x + c * delta_x
                 y = self.scene().elevationrangeaxis_y + c * delta_y
-                lineitem = QtGui.QGraphicsLineItem(x, y + self.scene().glideslopemarkinglength / 2, x, y - self.scene().glideslopemarkinglength / 2, parent=self.glideslope_item)
-                lineitem.setPen(self.scene().glideslope_pen)
+                if y > self.scene().elevationgraphicsareatopleft_y:
+                    lineitem = QtGui.QGraphicsLineItem(x, y + self.scene().glideslopemarkinglength / 2, x, y - self.scene().glideslopemarkinglength / 2, parent=self.glideslope_item)
+                    lineitem.setPen(self.scene().glideslope_pen)
         
         
