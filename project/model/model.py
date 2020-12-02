@@ -8,10 +8,10 @@
 
 
 import sys, time
-from PySide import QtCore, QtGui, QtNetwork
+from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
 import numpy as np
 import random
-from airport import Airport
+from .airport import Airport
 
 
 class MyModel(QtCore.QObject):
@@ -85,10 +85,10 @@ class MyModel(QtCore.QObject):
         
 
     def readNewAirport(self, filename):
-        try:
-            self.airport = Airport(filename)
-        except:
-            print 'Some error occured trying to read ' + filename
+        #try:
+        self.airport = Airport(filename)
+        #except:
+        #    print('Some error occured trying to read ' + filename)
         if self.airport: 
             self.new_airport.emit(self.airport)
             self.present_airport_filename = filename
@@ -97,18 +97,18 @@ class MyModel(QtCore.QObject):
 
     def probeXPlanePlugin(self):
         if self.connected:
-            print 'closing connection'
+            print('closing connection')
             self.connected = False
             self.timer_senddata.stop()
             self.timer_connection_active.stop()
             self.new_connected_state.emit(self.connected)
         
         elif self.airport:
-            print 'sending query'
+            print('sending query')
             string_to_send = 'query'
             self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)
         else:
-            print 'no airport chosen'
+            print('no airport chosen')
 
 
     def startSendingToPlugin(self):
@@ -133,7 +133,7 @@ class MyModel(QtCore.QObject):
 
 
     def connectionLost(self):
-        print 'lost connection'
+        print('lost connection')
         self.connected = False
         self.new_connected_state.emit(self.connected)
         #self.timer_senddata.stop()
@@ -164,7 +164,7 @@ class MyModel(QtCore.QObject):
                 list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
 
                 string_to_send = ','.join(list_of_strings)
-                self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
+                self.udp_send_socket.writeDatagram(string_to_send.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
 
             elif self.sim == 'dcs':
 
@@ -184,7 +184,7 @@ class MyModel(QtCore.QObject):
 
                 string_to_send = ','.join(list_of_strings)
                 #print('s: ' + string_to_send)
-                self.udp_send_socket.writeDatagram(string_to_send, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
+                self.udp_send_socket.writeDatagram(string_to_send.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
 
 
         elif self.demo_mode:
@@ -198,7 +198,7 @@ class MyModel(QtCore.QObject):
                 self.demo_loop.emit()
 
             #print 'sending message'
-            self.udp_send_socket.writeDatagram(next_message, QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT)
+            self.udp_send_socket.writeDatagram(next_message.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT)
 
         self.latest_send_timestamp = time.time()
         
@@ -271,20 +271,29 @@ class MyModel(QtCore.QObject):
         self.latest_receive_timestamp = time.time()
         
         while self.udp_receive_socket.hasPendingDatagrams():
+            
             datagram, host, port = self.udp_receive_socket.readDatagram(self.udp_receive_socket.pendingDatagramSize())
-            try:
+            
+            #try:
                 # Python v3.
-                datagram = str(datagram, encoding='ascii')
-            except TypeError:
+            #    datagram = str(datagram, encoding='ascii')
+            #except TypeError:
                 # Python v2.
-                pass
+            #    pass
+
+            received_string = datagram.data().decode()
+
+            #print(type(received_string))
 
             if True:
 
                 # Do math on times here
                 self.processTimeDelays()
 
-                strings = datagram.split(',')
+                #strings = datagram.split(',')
+                strings = received_string.split(',')
+
+                #print(strings)
 
 
                 if strings[0] == 'dcs':
@@ -300,13 +309,18 @@ class MyModel(QtCore.QObject):
 
                     i = 2
                     for runway_number in self.airport.runways:
-                        thr_rwy[runway_number] = np.array(map(float, strings[i:i+3]))
-                        eor_rwy[runway_number] = np.array(map(float, strings[i+3:i+6]))
+
+                        thr_rwy[runway_number] = np.array([float(coord) for coord in strings[i:i+3]])
+                        eor_rwy[runway_number] = np.array([float(coord) for coord in strings[i+3:i+6]])
+
+                        #thr_rwy[runway_number] = np.array(map(float, strings[i:i+3]))
+                        #eor_rwy[runway_number] = np.array(map(float, strings[i+3:i+6]))
                         i += 6
 
                     aircrafts = {}
                     while i < len(strings):
-                        aircrafts[strings[i]] = np.array(map(float, strings[i+1:i+4])) #Every track starts with an identifier string named by the flight simulator, followed by three coordinates
+                        #aircrafts[strings[i]] = np.array(map(float, strings[i+1:i+4])) #Every track starts with an identifier string named by the flight simulator, followed by three coordinates
+                        aircrafts[strings[i]] = np.array([float(coord) for coord in strings[i+1:i+4]])
                         i += 4
 
                     # x is north
@@ -315,6 +329,9 @@ class MyModel(QtCore.QObject):
 
                     thr = thr_rwy[self.active_runway]
                     eor = eor_rwy[self.active_runway]
+
+                    print(thr)
+                    print(type(thr))
 
                     orthonormal_vectors = {}
 
@@ -387,7 +404,7 @@ class MyModel(QtCore.QObject):
 
                 if self.recording:
                     self.record_file.write(datagram + '\n')
-                    print datagram + '\n'
+                    print(datagram + '\n')
 
                 
                     
@@ -566,5 +583,5 @@ class MyModel(QtCore.QObject):
         return meters/1852.0
 
     def quit(self):
-        QtGui.QApplication.quit()
+        QtWidgets.QApplication.quit()
 

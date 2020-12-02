@@ -8,7 +8,7 @@
 
 
 import sys
-from PySide import QtGui
+from PySide2 import QtWidgets
 from view.view import MyView
 from presenter.presenter import MyPresenter
 from model.model import MyModel
@@ -16,7 +16,7 @@ from model.model import MyModel
 
 if __name__ == '__main__':
     
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     view = MyView() 
     model = MyModel()

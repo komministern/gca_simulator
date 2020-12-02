@@ -8,15 +8,16 @@
 
 
 
-from PySide import QtGui, QtCore
-from scene import MyScene
-from window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
-from button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
-from mygraphicstextitem import MyGraphicsTextItem
+#from PySide import QtGui, QtCore
+from PySide2 import QtCore, QtWidgets, QtGui
+from .scene import MyScene
+from .window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
+from .button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
+from .mygraphicstextitem import MyGraphicsTextItem
 
 
 
-class MyView(QtGui.QGraphicsView):
+class MyView(QtWidgets.QGraphicsView):
 
     quit = QtCore.Signal()
 

@@ -4,25 +4,25 @@
 #
 #    This file is part of GCA Simulator.
 
-from PySide import QtGui, QtCore
+from PySide2 import QtWidgets, QtGui, QtCore
 import numpy as np
 import time
 
-from track import Track
+from .track import Track
 
-from coverage import ElevationCoverage, AzimuthCoverage
-from glideslope import GlideSlope
-from decisionheight import DecisionHeight
-from runway import ElevationRunway, AzimuthRunway
-from textinfo import TextInfo
-from gca import ElevationGCA, AzimuthGCA
-from axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
-from alerts import AlertsField
-from mapsymbols import MapSymbols
-from obstruction import Obstruction
+from .coverage import ElevationCoverage, AzimuthCoverage
+from .glideslope import GlideSlope
+from .decisionheight import DecisionHeight
+from .runway import ElevationRunway, AzimuthRunway
+from .textinfo import TextInfo
+from .gca import ElevationGCA, AzimuthGCA
+from .axis import ElevationAxis, AzimuthAxis, RangeAxis, WHIAxis
+from .alerts import AlertsField
+from .mapsymbols import MapSymbols
+from .obstruction import Obstruction
 
 
-class MyScene(QtGui.QGraphicsScene):
+class MyScene(QtWidgets.QGraphicsScene):
 
     scenetotaltopleft_x = 0.0
     scenetotaltopleft_y = 0.0
@@ -151,6 +151,7 @@ class MyScene(QtGui.QGraphicsScene):
 
     def __init__(self):
         super(MyScene, self).__init__()
+
         self.setBackgroundBrush(QtCore.Qt.black)
 
 
@@ -390,7 +391,7 @@ class MyScene(QtGui.QGraphicsScene):
 
         # Initialize the button window part of the scene
         self.setSceneRect(0.0, 0.0, self.scenetotalwidth, self.scenetotalheight)
-        self.button_window_rect = QtGui.QGraphicsRectItem(self.buttonwindowareatopleft_x, self.buttonwindowareatopleft_y, self.buttonwindowareawidth, self.buttonwindowareaheight)
+        self.button_window_rect = QtWidgets.QGraphicsRectItem(self.buttonwindowareatopleft_x, self.buttonwindowareatopleft_y, self.buttonwindowareawidth, self.buttonwindowareaheight)
         self.button_window_rect.setBrush(self.button_window_brush)
         self.button_window_rect.setZValue(self.button_window_zvalue)
         self.addItem(self.button_window_rect)
@@ -422,6 +423,7 @@ class MyScene(QtGui.QGraphicsScene):
         # Items
         self.elevation_coverage_item = ElevationCoverage(self)
         self.azimuth_coverage_item = AzimuthCoverage(self)
+        
         self.glideslope_item = GlideSlope(self)
         
         self.decisionheight_item = DecisionHeight(self)

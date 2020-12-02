@@ -1,13 +1,19 @@
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
+
 import random
 import numpy as np
 
-class Obstruction(QtGui.QGraphicsItemGroup):
+class Obstruction(QtWidgets.QGraphicsItemGroup):
     
     def __init__(self, scene):
-        super(Obstruction, self).__init__(scene=scene)
-        self.setZValue(self.scene().obstruction_zvalue)
+        super(Obstruction, self).__init__()
+
+        self.scene = scene
+
+        self.scene.addItem(self)
+
+        self.setZValue(self.scene.obstruction_zvalue)
         
         self.obstruction_item = None
 
@@ -19,7 +25,7 @@ class Obstruction(QtGui.QGraphicsItemGroup):
 
     def calculate(self):
 
-        seed = int( self.scene().active_airport.runways[self.scene().active_runway]['thr_lon'] * 10000 )
+        seed = int( self.scene.active_airport.runways[self.scene.active_runway]['thr_lon'] * 10000 )
         self.random.seed(seed)
 
         self.dx = 1.0 / 6 * 1852                            # One sixth of a nautical mile (m)
@@ -49,7 +55,7 @@ class Obstruction(QtGui.QGraphicsItemGroup):
         self.n_min_obs_start_height = 1
         self.n_max_obs_start_height = self.n_limiting_height(self.n_obs_start_distance * self.dx)
 
-        self.n_min_obs_end_height = self.n_limiting_height(self.n_obs_end_distance * self.dx) / 2
+        self.n_min_obs_end_height = self.n_limiting_height(self.n_obs_end_distance * self.dx) // 2
         self.n_max_obs_end_height = self.n_limiting_height(self.n_obs_end_distance * self.dx)
 
 
@@ -75,23 +81,29 @@ class Obstruction(QtGui.QGraphicsItemGroup):
     def draw(self):
         #self.calculate()
         self.create()
-        self.setVisible(self.scene().obs_active)
+        self.setVisible(self.scene.obs_active)
 
-        #print self.scene().active_airport
-        #if self.scene().active_airport != None:
-        #    print int( self.scene().active_airport.runways[self.scene().active_runway]['thr_lon'] * 10000 )
+        #print self.scene.active_airport
+        #if self.scene.active_airport != None:
+        #    print int( self.scene.active_airport.runways[self.scene.active_runway]['thr_lon'] * 10000 )
     
 
     def create(self):
         if self.obstruction_item:
+
+            self.scene.removeItem(self)
+
             self.removeFromGroup(self.obstruction_item)
+
             self.obstruction_item = None
         
-        if self.scene().rangescale and self.scene().active_airport != None:
+            self.scene.addItem(self)
+
+        if self.scene.rangescale and self.scene.active_airport != None:
 
             self.calculate()
 
-            self.obstruction_item = QtGui.QGraphicsItemGroup()
+            self.obstruction_item = QtWidgets.QGraphicsItemGroup()
   
             n_x = self.n_obs_start_distance
             n_y = self.n_obs_start_height
@@ -101,13 +113,13 @@ class Obstruction(QtGui.QGraphicsItemGroup):
 
             while( (n_x_end - n_x) > 0 ):
             
-                topleft = QtCore.QPointF(self.scene().range_to_scenexcoord(-n_x * self.dx), self.scene().altitude_to_sceneycoord(n_y * self.dy))
-                bottomright = QtCore.QPointF(self.scene().range_to_scenexcoord(-(n_x + 1) * self.dx), self.scene().altitude_to_sceneycoord(0.0))
-                if topleft.x() < self.scene().elevationgraphicsareabottomright_x:
+                topleft = QtCore.QPointF(self.scene.range_to_scenexcoord(-n_x * self.dx), self.scene.altitude_to_sceneycoord(n_y * self.dy))
+                bottomright = QtCore.QPointF(self.scene.range_to_scenexcoord(-(n_x + 1) * self.dx), self.scene.altitude_to_sceneycoord(0.0))
+                if topleft.x() < self.scene.elevationgraphicsareabottomright_x:
                     rect = QtCore.QRectF(topleft, bottomright)
-                    rectitem = QtGui.QGraphicsRectItem(rect, parent=self.obstruction_item)
-                    rectitem.setPen(self.scene().obstruction_pen)
-                    rectitem.setBrush(self.scene().obstruction_brush)
+                    rectitem = QtWidgets.QGraphicsRectItem(rect, parent=self.obstruction_item)
+                    rectitem.setPen(self.scene.obstruction_pen)
+                    rectitem.setBrush(self.scene.obstruction_brush)
 
                 p_increase = 1.0 * (n_y_end - n_y) / (n_x_end - n_x)
                 if (self.random.random() < p_increase) and ( (n_y + 1) * self.dy < self.limiting_height((n_x + 1) * self.dx) ):

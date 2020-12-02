@@ -1,8 +1,9 @@
 
 
-from PySide import QtGui, QtCore
+from PySide2 import QtCore, QtWidgets, QtGui
 
-class AzimuthScaleTextItem(QtGui.QGraphicsSimpleTextItem):
+
+class AzimuthScaleTextItem(QtWidgets.QGraphicsSimpleTextItem):
 
     def __init__(self, text, value=None, parent=None):
         super(AzimuthScaleTextItem, self).__init__(text, parent=parent)

@@ -6,11 +6,12 @@
 
 
 
-from PySide import QtGui, QtCore
-from ui_ipdialog import Ui_Dialog
+from PySide2 import QtCore, QtWidgets, QtGui
+
+from .ui_ipdialog import Ui_Dialog
 import os
 
-class MyIPDialog(QtGui.QDialog, Ui_Dialog):
+class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
 
 
     def __init__(self, parent=None):

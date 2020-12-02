@@ -4,10 +4,10 @@
 #
 #    This file is part of GCA Simulator.
 
-from PySide import QtGui, QtCore
+from PySide2 import QtCore, QtWidgets, QtGui
 import numpy as np
-from plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem, UnCorrelatedPlotItem, InvisiblePlotItem
-from label import ElevationLabel, AzimuthLabel, WhiLabel
+from .plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem, UnCorrelatedPlotItem, InvisiblePlotItem
+from .label import ElevationLabel, AzimuthLabel, WhiLabel
 
 class Track(QtCore.QObject):
     

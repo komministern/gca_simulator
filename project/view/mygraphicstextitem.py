@@ -1,8 +1,7 @@
 
-from PySide import QtGui, QtCore
+from PySide2 import QtCore, QtWidgets, QtGui
 
-
-class MyGraphicsTextItem(QtGui.QGraphicsTextItem):
+class MyGraphicsTextItem(QtWidgets.QGraphicsTextItem):
 
     return_pressed = QtCore.Signal()
     
@@ -24,8 +23,8 @@ class MyGraphicsTextItem(QtGui.QGraphicsTextItem):
             
     def paint(self, painter, option, widget):
         # This takes care of the dashed frame
-        o = QtGui.QStyleOptionGraphicsItem(option)
-        o.state &= (not QtGui.QStyle.State_Selected) and (not QtGui.QStyle.State_HasFocus)
+        o = QtWidgets.QStyleOptionGraphicsItem(option)
+        o.state &= (not QtWidgets.QStyle.State_Selected) and (not QtWidgets.QStyle.State_HasFocus)
         super(MyGraphicsTextItem, self).paint(painter, o, widget)
         
         

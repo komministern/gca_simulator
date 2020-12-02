@@ -7,7 +7,8 @@
 #    This file is part of GCA Simulator.
 
 import functools
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
+
 from functools import partial
 from view.myipdialog import MyIPDialog
 
@@ -473,19 +474,19 @@ class MyPresenter(QtCore.QObject):
     # DecsnHeight entry
     
     def decsnheight_accept(self, button):
-        str = self.view.decsnheight_input_text_item.toPlainText()
+        input_string = self.view.decsnheight_input_text_item.toPlainText()
         
         try:
-            height = int(str)
+            height = int(input_string)
             
             if height >= 0 and height <= 999:
                 
-                self.view.decsnheight_response_text_item.setPlainText(unicode(height))
+                self.view.decsnheight_response_text_item.setPlainText(str(height))
                 self.view.decsnheight_error_text_item.setPlainText('')
                 
                 # Fix buttons
                 if height in [100, 150, 200, 250, 300, 350, 400, 450]:
-                    n = (height / 50) - 2
+                    n = (height // 50) - 2
                     buttons = [self.view.button_select_decsnheight_100, self.view.button_select_decsnheight_150,
                                self.view.button_select_decsnheight_200, self.view.button_select_decsnheight_250,
                                self.view.button_select_decsnheight_300, self.view.button_select_decsnheight_350,
@@ -564,7 +565,7 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Demo', './resources/recordings', 'Demo Files (*.txt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Demo', './resources/recordings', 'Demo Files (*.txt)')
             if filename:
                 self.model.initDemoMode(filename)
             
@@ -609,7 +610,7 @@ class MyPresenter(QtCore.QObject):
 
 
     def connectionLost(self):                   # Get this method into play together with the connection_state stuff!!!!!!!!!!!!!!!
-        print 'connection with x-plane lost'
+        print('connection with x-plane lost')
         self.updateConnectedState(False)
         
         #self.view.scene.clearAllTracks()
@@ -665,7 +666,7 @@ class MyPresenter(QtCore.QObject):
 
         # The self.connected property actually IS the self.view.button_connect.inverted value!!! NOOOOOOOOOOOOOOOOOOO, this i STUPID!!!
         
-        print self.trying_to_connect
+        print(self.trying_to_connect)
 
         if new_connected_state == True:
             self.view.button_connect.setPending(False)
@@ -801,7 +802,7 @@ class MyPresenter(QtCore.QObject):
     def loadAirport(self):
         if not self.connected:
         # This method is called when user wants to load a new airport
-            filename, _ = QtGui.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
             if filename:
                 self.model.readNewAirport(filename)
 
@@ -1219,7 +1220,7 @@ class MyPresenter(QtCore.QObject):
             button.toggleInverted()
         
         self.model.rain_mode = button.inverted
-        print self.model.rain_mode
+        print(self.model.rain_mode)
         #self.view.scene.rain_mode_on = self.rain_mode_on       # Not necessary!?!
         
         
@@ -1240,7 +1241,7 @@ class MyPresenter(QtCore.QObject):
 
     def toggleWx(self, button):
         self.view.scene.wx_active = button.inverted
-        print 'toggle wx'
+        print('toggle wx')
 
     def toggleObs(self, button):
         self.view.scene.obs_active = button.inverted
@@ -1271,7 +1272,7 @@ class MyPresenter(QtCore.QObject):
 
     def toggleSynVideo(self, button):
         self.view.scene.synvid_active = button.inverted
-        print 'toggle syn vid'
+        print('toggle syn vid')
 
 
     def handle_az_offset(self, offset):

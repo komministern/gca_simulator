@@ -4,10 +4,9 @@
 #
 #    This file is part of GCA Simulator.
 
-from PySide import QtGui, QtCore
+from PySide2 import QtCore, QtWidgets, QtGui
 
-
-class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
+class Button(QtCore.QObject, QtWidgets.QGraphicsRectItem):
 
     pressed = QtCore.Signal(object)
 
@@ -20,7 +19,7 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
     def __init__(self, text, value=None):
         
         QtCore.QObject.__init__(self)
-        QtGui.QGraphicsRectItem.__init__(self)
+        QtWidgets.QGraphicsRectItem.__init__(self)
 
         self.value = value
 
@@ -52,7 +51,7 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
         
         lines = self.text.split('\n')
         if len(lines) == 1:
-            self.textitem = QtGui.QGraphicsSimpleTextItem(lines[0], parent=self)
+            self.textitem = QtWidgets.QGraphicsSimpleTextItem(lines[0], parent=self)
             self.textitem.setFont(font)
             self.textitem.setBrush(QtCore.Qt.yellow)
             wtext = (self.textitem.boundingRect().width())
@@ -61,8 +60,8 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
 
         elif len(lines) == 2:
             
-            self.textitemtop = QtGui.QGraphicsSimpleTextItem(lines[0], parent=self)
-            self.textitembottom = QtGui.QGraphicsSimpleTextItem(lines[1], parent=self)
+            self.textitemtop = QtWidgets.QGraphicsSimpleTextItem(lines[0], parent=self)
+            self.textitembottom = QtWidgets.QGraphicsSimpleTextItem(lines[1], parent=self)
             self.textitemtop.setFont(font)
             self.textitemtop.setBrush(QtCore.Qt.yellow)
             self.textitembottom.setFont(font)
@@ -79,7 +78,7 @@ class Button(QtCore.QObject, QtGui.QGraphicsRectItem):
 
         else:
             
-            print 'ERROR!!!!!!!!!!'
+            print('ERROR!!!!!!!!!!')
 
     def toggleExpanded(self):
         if self.expanded:

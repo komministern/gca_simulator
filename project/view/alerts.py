@@ -1,6 +1,7 @@
 
 import functools
-from PySide import QtGui, QtCore
+#from PySide import QtGui, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
 
 
 class AlertsField(QtCore.QObject):
@@ -23,7 +24,8 @@ class AlertsField(QtCore.QObject):
             if len(self.alerts) == 0:
                 self.alerts.append(NonClickableAlert('ALERT', self, scene=self.scene))
 
-            if unicode(' ' + text + ' ') not in [each.toPlainText() for each in self.alerts]:
+            #if unicode(' ' + text + ' ') not in [each.toPlainText() for each in self.alerts]:
+            if ' ' + text + ' ' not in [each.toPlainText() for each in self.alerts]:
                 if not critical:
                     self.alerts.append(Alert(text, self, scene=self.scene))
                 else:
@@ -68,9 +70,11 @@ class AlertsField(QtCore.QObject):
                 y += each.height
 
             # Some kind of minimal width perhaps? Or even better. See to it that all alert texts are of some decent minimum length (and maximum)
-            self.frame_item = QtGui.QGraphicsRectItem(self.scene.alerts_field_centre_x - largest_width/2.0 - self.scene.alerts_frame_margin, self.scene.alerts_field_top_y - self.scene.alerts_frame_margin, 
-                                                      largest_width + self.scene.alerts_frame_margin*2, y + self.scene.alerts_frame_margin*2, scene=self.scene)
+            self.frame_item = QtWidgets.QGraphicsRectItem(self.scene.alerts_field_centre_x - largest_width/2.0 - self.scene.alerts_frame_margin, self.scene.alerts_field_top_y - self.scene.alerts_frame_margin, 
+                                                      largest_width + self.scene.alerts_frame_margin*2, y + self.scene.alerts_frame_margin*2)#, scene=self.scene)
             
+            self.scene.addItem(self.frame_item)
+
             self.frame_item.setPen(self.scene.alerts_field_pen)
             self.alerts = updated_alerts
         else:
@@ -81,10 +85,13 @@ class AlertsField(QtCore.QObject):
             self.scene.sound_alarm_off.emit()
 
 
-class Alert(QtGui.QGraphicsTextItem):
+class Alert(QtWidgets.QGraphicsTextItem):
         
     def __init__(self, text, field, scene):
-        super(Alert, self).__init__(' ' + text + ' ', scene=scene)
+        super(Alert, self).__init__(' ' + text + ' ')   #, scene=scene)
+
+        scene.addItem(self)
+
         self.field = field
         self.setFont(self.scene().alerts_font)
         self.setZValue(self.scene().alerts_zvalue)
