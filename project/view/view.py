@@ -358,6 +358,7 @@ class MyView(QtWidgets.QGraphicsView):
         self.status_window_area.registerNextButton(self.button_record)  #
         self.button_status_fullscreen = InvertingButton('Fullscreen')                  #
         self.status_window_area.registerNextButton(self.button_status_fullscreen)  #
+
         self.status_window_area.endRow()
 
         self.status_window_area.newWhiteLineSeparator()
@@ -380,6 +381,9 @@ class MyView(QtWidgets.QGraphicsView):
         self.scene.addItem(self.status_window_topborder)
         self.scene.registerWindowTopBorder(self.status_window_topborder)
         self.status_window_area.attachTo(self.status_window_topborder)
+
+        self.button_status_fullscreen.setEnabled(False)     # Only ........................
+
         return self.status_window_topborder
 
 
