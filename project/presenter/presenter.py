@@ -408,7 +408,7 @@ class MyPresenter(QtCore.QObject):
             if angle >= 1.0 and angle <= 15.0:
                 angle = round(angle, 1)
                 # New glideslope value
-                self.view.glideslope_response_text_item.setPlainText(unicode(angle))
+                self.view.glideslope_response_text_item.setPlainText(str(angle))
                 self.view.glideslope_error_text_item.setPlainText('')
                 
                 # Fix buttons
@@ -565,7 +565,7 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Demo', './resources/recordings', 'Demo Files (*.txt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Demo', self.model.default_recordings_directory, 'Demo Files (*.txt)')
             if filename:
                 self.model.initDemoMode(filename)
             
@@ -802,7 +802,7 @@ class MyPresenter(QtCore.QObject):
     def loadAirport(self):
         if not self.connected:
         # This method is called when user wants to load a new airport
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', './resources/airports', 'Airport Files (*.apt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', self.model.default_airports_directory, 'Airport Files (*.apt)')
             if filename:
                 self.model.readNewAirport(filename)
 

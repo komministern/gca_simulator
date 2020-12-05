@@ -6,13 +6,16 @@
 #
 #    This file is part of GCA Simulator.
 
-
-import sys, time
-from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
-import numpy as np
+import os
+import sys
+import time
 import random
-from .airport import Airport
 
+import numpy as np
+from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
+
+from .airport import Airport
+from mycommonfunctions import path as mypath
 
 class MyModel(QtCore.QObject):
 
@@ -31,6 +34,12 @@ class MyModel(QtCore.QObject):
 
     def __init__(self):
         super(MyModel, self).__init__()
+
+        self.working_directory = mypath.current_working_directory()
+        print(self.working_directory)
+        self.default_resources_directory = os.path.join(self.working_directory, 'resources')
+        self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
+        self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
 
         #self.UDP_IP = '172.20.10.2'
         #self.UDP_IP = '127.0.0.1'
@@ -207,11 +216,12 @@ class MyModel(QtCore.QObject):
     def initDemoMode(self, filename):
         
         self.demo_file = open(filename, 'r')
+        
         airport_filename = self.demo_file.readline().replace('\n', '')
 
         #print airport_filename
 
-        self.readNewAirport(airport_filename)
+        self.readNewAirport(os.path.join(self.default_airports_directory, airport_filename))
         
         self.demo_mode = True
         
@@ -400,11 +410,14 @@ class MyModel(QtCore.QObject):
 
                 elif self.recording and self.record_file == None:
                     self.record_file = open('./resources/recordings/default.txt', 'w')
-                    self.record_file.write(self.present_airport_filename + '\n')
+
+                    head, tail = os.path.split(self.record_file)
+
+                    self.record_file.write(tail + '\n')         # Save ONLY the actual filename, not the complete path!!!!!!!!!!!!!!
 
                 if self.recording:
                     self.record_file.write(datagram + '\n')
-                    print(datagram + '\n')
+                    #print(datagram + '\n')
 
                 
                     
@@ -584,4 +597,8 @@ class MyModel(QtCore.QObject):
 
     def quit(self):
         QtWidgets.QApplication.quit()
+
+
+
+            
 
