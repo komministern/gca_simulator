@@ -6,6 +6,7 @@
 #
 #    This file is part of GCA Simulator.
 
+import os
 import functools
 from PySide2 import QtCore, QtWidgets, QtGui
 
@@ -31,6 +32,10 @@ class MyPresenter(QtCore.QObject):
         # Setup all signals.
         self.connectSignals()
 
+        self.view.button_status_fullscreen.setInverted(True)
+        self.fullScreen()
+        self.view.button_status_fullscreen.setEnabled(False)
+
         # Initialize buttons
         self.view.button_select_rangescale_10.mousePressEvent(None)
         self.view.button_select_glideslope_28.mousePressEvent(None)
@@ -49,6 +54,25 @@ class MyPresenter(QtCore.QObject):
         # ...more to follow
         
         self.trying_to_connect = False
+
+
+
+
+    def exit_app(self):
+
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        
+        if modifiers != QtCore.Qt.ControlModifier:
+            print('Trying to run script.')
+
+            os.system('~/Desktop/quit.sh')  # Does not work in Windows
+            self.model.quit()
+
+        else:
+
+            print('Just quitting.')
+            self.model.quit()
+
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
@@ -77,7 +101,7 @@ class MyPresenter(QtCore.QObject):
         self.view.button_clear_hist.pressed.connect(self.clearHist)
         self.view.button_radarcover.pressed.connect(self.toggleRadarCover)
         self.view.button_syn_video.pressed.connect(self.toggleSynVideo)
-        self.view.button_shutdown.pressed.connect(self.model.quit)
+        self.view.button_shutdown.pressed.connect(self.exit_app)
 
         # Acid entry buttons
         self.view.button_acid_accept.pressed.connect(self.acid_accept)
