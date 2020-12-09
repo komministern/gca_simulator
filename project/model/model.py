@@ -25,6 +25,7 @@ class MyModel(QtCore.QObject):
     new_plots_extracted = QtCore.Signal(object, object, object, object, object, object)
     new_airport = QtCore.Signal(object)
     new_communication_data = QtCore.Signal(object, object, object, object, object)
+    new_flightsim_local_coord = QtCore.Signal(object)
     new_connected_state = QtCore.Signal(object)
     connection_lost = QtCore.Signal()
     demo_loop = QtCore.Signal()
@@ -40,6 +41,13 @@ class MyModel(QtCore.QObject):
         self.default_resources_directory = os.path.join(self.working_directory, 'resources')
         self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
         self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
+
+
+        self.runway_password = 'plt'
+        self.radar_mode_password = 'smc'
+        self.radar_control_password = 'plt'
+        self.ppi_password = 'plt'
+
 
         #self.UDP_IP = '172.20.10.2'
         #self.UDP_IP = '127.0.0.1'
@@ -122,7 +130,7 @@ class MyModel(QtCore.QObject):
 
     def startSendingToPlugin(self):
         print('starting to send')
-        self.timer_senddata.start(1000)
+        self.timer_senddata.start(250)
         self.initTimeDelays()
 
     def stopSendingToPlugin(self):
@@ -276,11 +284,13 @@ class MyModel(QtCore.QObject):
 
         #print 'received a message'
 
-        self.timer_connection_active.start(3000)
+        self.timer_connection_active.start(5000)
         
-        self.latest_receive_timestamp = time.time()
+        #self.latest_receive_timestamp = time.time()
         
         while self.udp_receive_socket.hasPendingDatagrams():
+
+            self.latest_receive_timestamp = time.time()
             
             datagram, host, port = self.udp_receive_socket.readDatagram(self.udp_receive_socket.pendingDatagramSize())
             
@@ -320,18 +330,35 @@ class MyModel(QtCore.QObject):
                     i = 2
                     for runway_number in self.airport.runways:
 
-                        thr_rwy[runway_number] = np.array([float(coord) for coord in strings[i:i+3]])
-                        eor_rwy[runway_number] = np.array([float(coord) for coord in strings[i+3:i+6]])
+                        if 'dcs_thr_x' in self.airport.runways[runway_number]:
 
-                        #thr_rwy[runway_number] = np.array(map(float, strings[i:i+3]))
-                        #eor_rwy[runway_number] = np.array(map(float, strings[i+3:i+6]))
+                            thr_rwy[runway_number] = np.array((self.airport.runways[runway_number]['dcs_thr_x'], self.airport.runways[runway_number]['dcs_thr_y'], self.airport.runways[runway_number]['dcs_thr_z']))
+                            eor_rwy[runway_number] = np.array((self.airport.runways[runway_number]['dcs_eor_x'], self.airport.runways[runway_number]['dcs_eor_y'], self.airport.runways[runway_number]['dcs_eor_z']))
+                            #thr_rwy[runway_number] = np.array([-355130.3, 12.0, 616436.1])
+                            #eor_rwy[runway_number] = np.array([-356537.8, 12.0, 618404.1])
+
+                            # This dirty solution must be applied as the accurace in the DCS coordinate conversion functions is too poor.
+
+                        else:
+
+                            thr_rwy[runway_number] = np.array([float(coord) for coord in strings[i:i+3]])
+                            eor_rwy[runway_number] = np.array([float(coord) for coord in strings[i+3:i+6]])
+
                         i += 6
 
                     aircrafts = {}
                     while i < len(strings):
                         #aircrafts[strings[i]] = np.array(map(float, strings[i+1:i+4])) #Every track starts with an identifier string named by the flight simulator, followed by three coordinates
+                        #print('aircraft_xyz:')
+                        #print(np.array([float(coord) for coord in strings[i+1:i+4]]))
                         aircrafts[strings[i]] = np.array([float(coord) for coord in strings[i+1:i+4]])
                         i += 4
+
+                    if len(aircrafts) == 1 and not self.demo_mode:
+                        # Show coordinates in status window, but only if there is only one aircraft in range (to avoid ambiguity)!!!
+                        self.new_flightsim_local_coord.emit(aircrafts[strings[i - 4]])
+                        
+                    
 
                     # x is north
                     # y is up
@@ -340,8 +367,8 @@ class MyModel(QtCore.QObject):
                     thr = thr_rwy[self.active_runway]
                     eor = eor_rwy[self.active_runway]
 
-                    print(thr)
-                    print(type(thr))
+                    #print(thr)
+                    #print(type(thr))
 
                     orthonormal_vectors = {}
 
@@ -351,7 +378,7 @@ class MyModel(QtCore.QObject):
                     # positive w-direction is directed up
                     
                     orthonormal_vectors['u'] = (eor - thr) / np.linalg.norm(eor - thr)
-                    orthonormal_vectors['w'] = np.array([0.0, 1.0, 0.0])
+                    orthonormal_vectors['w'] = np.array([0.0, 1.0, 0.0])                                        # Hmmmm, is this vector actually pointing straight upwards???????
                     orthonormal_vectors['v'] = np.cross(orthonormal_vectors['w'], orthonormal_vectors['u'])
 
                     td = thr + orthonormal_vectors['u'] * self.airport.runways[self.active_runway]['td']
@@ -363,12 +390,16 @@ class MyModel(QtCore.QObject):
                     y = np.dot(orthonormal_vectors['v'], thr_relative_to_td)
                     z = np.dot(orthonormal_vectors['w'], thr_relative_to_td)
                     thr_coordinate = np.array([x, y, z])
+                    #print('thr coordinate:')
+                    #print(thr_coordinate)
 
                     eor_relative_to_td = eor - td
                     x = np.dot(orthonormal_vectors['u'], eor_relative_to_td)
                     y = np.dot(orthonormal_vectors['v'], eor_relative_to_td)
                     z = np.dot(orthonormal_vectors['w'], eor_relative_to_td)
                     eor_coordinate = np.array([x, y, z])
+                    #print('eor coordinate:')
+                    #print(eor_coordinate)
 
                     # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
                     # It is placed some 100.0 meters from the centre of the airstrip.
@@ -385,7 +416,7 @@ class MyModel(QtCore.QObject):
 
                     plot_coordinates = {}
 
-                    mti_coordinate = gca_coordinate + np.array([-700.0, 0.0, 0.5])      # MTI 700m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
+                    mti_coordinate = gca_coordinate + np.array([-900.0, 0.0, 0.5])      # MTI 900m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
 
                     plot_coordinates['mti'] = self.scramble_coordinate(mti_coordinate)
 
@@ -394,7 +425,10 @@ class MyModel(QtCore.QObject):
                         x = np.dot(orthonormal_vectors['u'], plane_relative_to_td)
                         y = np.dot(orthonormal_vectors['v'], plane_relative_to_td)
                         z = np.dot(orthonormal_vectors['w'], plane_relative_to_td)
-                        plot_coordinates[aircraft_name] = self.scramble_coordinate(np.array([x, y, z]))
+                        aircraft_coordinate = np.array([x, y, z])
+                        #print('aircraft coordinate:')
+                        #print(aircraft_coordinate)
+                        plot_coordinates[aircraft_name] = self.scramble_coordinate(aircraft_coordinate)
 
 
                     plot_hits = {}
@@ -409,14 +443,14 @@ class MyModel(QtCore.QObject):
                     self.record_file = None
 
                 elif self.recording and self.record_file == None:
-                    self.record_file = open('./resources/recordings/default.txt', 'w')
+                    self.record_file = open('./resources/recordings/new_recording.txt', 'w')
 
-                    head, tail = os.path.split(self.record_file)
-
+                    head, tail = os.path.split(self.airport.filename)
                     self.record_file.write(tail + '\n')         # Save ONLY the actual filename, not the complete path!!!!!!!!!!!!!!
 
                 if self.recording:
-                    self.record_file.write(datagram + '\n')
+                    self.record_file.write(received_string + '\n')
+                    #self.record_file.write(datagram + '\n')
                     #print(datagram + '\n')
 
                 
@@ -426,8 +460,8 @@ class MyModel(QtCore.QObject):
 
     def scramble_coordinate(self, coordinate):
         
-        std_dev_theta = 0.0003     # Side angle
-        std_dev_fi = 0.0003        # Vertical angle
+        std_dev_theta = 0.00010     # Side angle
+        std_dev_fi = 0.00005        # Vertical angle
 
         delta_theta = np.random.normal(scale=std_dev_theta)
         delta_fi = np.random.normal(scale=std_dev_fi)
@@ -449,7 +483,7 @@ class MyModel(QtCore.QObject):
         
         elantazim = -self.elantazim
 
-        p_normal = 0.99
+        p_normal = 0.995
         
         if self.rain_mode:
             r_full_prb = 13.0
@@ -511,7 +545,7 @@ class MyModel(QtCore.QObject):
         elantazim = -self.elantazim
         azantelev = self.azantelev
 
-        p_normal = 0.99
+        p_normal = 0.995
         
         if self.rain_mode:
             r_full_prb = 12.0

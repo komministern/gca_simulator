@@ -13,7 +13,8 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from .scene import MyScene
 from .window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
 from .button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
-from .mygraphicstextitem import MyGraphicsTextItem
+#from .mygraphicstextitem import MyGraphicsTextItem
+from .mylineeditproxywidget import MyLineEditProxyWidget
 
 
 
@@ -38,6 +39,8 @@ class MyView(QtWidgets.QGraphicsView):
         self.colorlegend_window = self.createColorLegendWindow()
         
         self.decsnheight_entry_window = self.createDecsnHeightEntryWindow()
+
+        self.password_entry_window = self.createPasswordEntryWindow()
         
         self.decsnheight_window = self.createDecsnHeightWindow()
         self.elantazim_window = self.createSetElAntAzimWindow()
@@ -125,6 +128,57 @@ class MyView(QtWidgets.QGraphicsView):
 
 
 
+    def createPasswordEntryWindow(self):
+        self.password_entry_window_area = InputWindowArea()
+        self.scene.addItem(self.password_entry_window_area)
+
+        self.password_entry_window_area.newTextRowLeft('Enter Password')
+        self.password_entry_window_area.endRow()
+        self.password_entry_window_area.newTextRowLeft('ERROR')
+        self.password_entry_window_area.endRow()
+        
+        self.password_error_text_item = MyLineEditProxyWidget(editable=False)
+        self.password_entry_window_area.registerGraphicsTextItem(self.password_error_text_item)
+        self.password_entry_window_area.endRow()
+
+        self.password_entry_window_area.newTextRowLeft('INPUT')
+        self.password_entry_window_area.endRow()
+
+        #self.password_input_text_item = MyGraphicsTextItem(editable=True, hidden_input=True)
+        self.password_input_text_item = MyLineEditProxyWidget(editable=True, hidden_password_input=True)
+
+        #self.password_entry_window_area.registerGraphicsTextItem(self.password_input_text_item)
+        self.password_entry_window_area.registerGraphicsTextItem(self.password_input_text_item)
+
+        self.password_entry_window_area.endRow()
+
+        self.password_entry_window_area.newTextRowLeft('RESPONSE')
+        self.password_entry_window_area.endRow()
+
+        self.password_response_text_item = MyLineEditProxyWidget(editable=False)
+        self.password_entry_window_area.registerGraphicsTextItem(self.password_response_text_item)
+        self.password_entry_window_area.endRow()
+
+        self.password_entry_window_area.newFullButtonRow(4)
+        self.password_entry_window_area.skipNextButton()
+
+        self.button_password_accept = FlashingButton('Accept')
+        self.password_entry_window_area.registerNextButton(self.button_password_accept)
+        self.button_password_clear = FlashingButton('Clear')
+        self.password_entry_window_area.registerNextButton(self.button_password_clear)
+        self.button_password_cancel = FlashingButton('Cancel')
+        self.password_entry_window_area.registerNextButton(self.button_password_cancel)
+        self.password_entry_window_area.endRow()
+        
+        self.password_entry_window_area.fixWindow()
+        
+        self.password_entry_window_topborder = WindowTopBorder('Password Entry XX:XX:XX')
+        self.scene.addItem(self.password_entry_window_topborder)
+        self.scene.registerWindowTopBorder(self.password_entry_window_topborder)
+        self.password_entry_window_area.attachTo(self.password_entry_window_topborder)
+        return self.password_entry_window_topborder
+
+
 
     def createDecsnHeightEntryWindow(self):
         self.decsnheight_entry_window_area = InputWindowArea()
@@ -143,21 +197,21 @@ class MyView(QtWidgets.QGraphicsView):
         self.decsnheight_entry_window_area.newTextRowLeft('ERROR')
         self.decsnheight_entry_window_area.endRow()
         
-        self.decsnheight_error_text_item = MyGraphicsTextItem(editable=False)
+        self.decsnheight_error_text_item = MyLineEditProxyWidget(editable=False)
         self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_error_text_item)
         self.decsnheight_entry_window_area.endRow()
 
         self.decsnheight_entry_window_area.newTextRowLeft('INPUT')
         self.decsnheight_entry_window_area.endRow()
 
-        self.decsnheight_input_text_item = MyGraphicsTextItem(editable=True)
+        self.decsnheight_input_text_item = MyLineEditProxyWidget(editable=True, allowed_input_characters='0123456789', max_input_length=3)
         self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_input_text_item)
         self.decsnheight_entry_window_area.endRow()
 
         self.decsnheight_entry_window_area.newTextRowLeft('RESPONSE')
         self.decsnheight_entry_window_area.endRow()
 
-        self.decsnheight_response_text_item = MyGraphicsTextItem(editable=False)
+        self.decsnheight_response_text_item = MyLineEditProxyWidget(editable=False)
         self.decsnheight_entry_window_area.registerGraphicsTextItem(self.decsnheight_response_text_item)
         self.decsnheight_entry_window_area.endRow()
 
@@ -205,21 +259,21 @@ class MyView(QtWidgets.QGraphicsView):
         self.glideslope_entry_window_area.newTextRowLeft('ERROR')
         self.glideslope_entry_window_area.endRow()
         
-        self.glideslope_error_text_item = MyGraphicsTextItem(editable=False)
+        self.glideslope_error_text_item = MyLineEditProxyWidget(editable=False)
         self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_error_text_item)
         self.glideslope_entry_window_area.endRow()
 
         self.glideslope_entry_window_area.newTextRowLeft('INPUT')
         self.glideslope_entry_window_area.endRow()
 
-        self.glideslope_input_text_item = MyGraphicsTextItem(editable=True)
+        self.glideslope_input_text_item = MyLineEditProxyWidget(editable=True, allowed_input_characters='0123456789.')
         self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_input_text_item)
         self.glideslope_entry_window_area.endRow()
 
         self.glideslope_entry_window_area.newTextRowLeft('RESPONSE')
         self.glideslope_entry_window_area.endRow()
 
-        self.glideslope_response_text_item = MyGraphicsTextItem(editable=False)
+        self.glideslope_response_text_item = MyLineEditProxyWidget(editable=False)
         self.glideslope_entry_window_area.registerGraphicsTextItem(self.glideslope_response_text_item)
         self.glideslope_entry_window_area.endRow()
 
@@ -260,21 +314,22 @@ class MyView(QtWidgets.QGraphicsView):
         self.acid_entry_window_area.newTextRowLeft('ERROR')
         self.acid_entry_window_area.endRow()
         
-        self.acid_error_text_item = MyGraphicsTextItem(editable=False)
+        self.acid_error_text_item = MyLineEditProxyWidget(editable=False)
         self.acid_entry_window_area.registerGraphicsTextItem(self.acid_error_text_item)
         self.acid_entry_window_area.endRow()
 
         self.acid_entry_window_area.newTextRowLeft('INPUT')
         self.acid_entry_window_area.endRow()
 
-        self.acid_input_text_item = MyGraphicsTextItem(editable=True)
+        allowed_acid_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ0123456789'
+        self.acid_input_text_item = MyLineEditProxyWidget(editable=True, allowed_input_characters=allowed_acid_characters, convert_to_upper_case=True, first_char_must_be_letter=True, max_input_length=7)
         self.acid_entry_window_area.registerGraphicsTextItem(self.acid_input_text_item)
         self.acid_entry_window_area.endRow()
 
         self.acid_entry_window_area.newTextRowLeft('RESPONSE')
         self.acid_entry_window_area.endRow()
 
-        self.acid_response_text_item = MyGraphicsTextItem(editable=False)
+        self.acid_response_text_item = MyLineEditProxyWidget(editable=False)
         self.acid_entry_window_area.registerGraphicsTextItem(self.acid_response_text_item)
         self.acid_entry_window_area.endRow()
 
@@ -315,32 +370,38 @@ class MyView(QtWidgets.QGraphicsView):
             #counter = 1
             for runway_number in airport.runways:
                 
-                self.status_window_area.newTextRowLeft('RWY' + str(runway_number) + ': ' + airport.runways[runway_number]['name'])
+                self.status_window_area.newTextRowLeft('RWY' + str(runway_number) + ': ' + airport.runways[runway_number]['name'] +
+                                                        ' (' + str(airport.runways[runway_number]['true']) + '°)')
                 self.status_window_area.endRow()
                 
-                self.status_window_area.newTextRowLeft('THR Lon, Lat, El: ' + str(airport.runways[runway_number]['thr_lon']) + ', ' + str(airport.runways[runway_number]['thr_lat']) + ', ' + str(airport.runways[runway_number]['thr_el']) )
-                self.status_window_area.endRow()
-                self.status_window_area.newTextRowLeft('Dist to TD (m): ' + str(airport.runways[runway_number]['td']))
-                self.status_window_area.endRow()
-                
-                #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
+                #self.status_window_area.newTextRowLeft('THR Lon, Lat, El: ' + str(airport.runways[runway_number]['thr_lon']) + ', ' + str(airport.runways[runway_number]['thr_lat']) + ', ' + str(airport.runways[runway_number]['thr_el']) )
                 #self.status_window_area.endRow()
-                #self.status_window_area.newTextRowLeft('  TD: ' + str(counter) + ': ' + each['name'])
+                #self.status_window_area.newTextRowLeft('Dist to TD (m): ' + str(airport.runways[runway_number]['td']))
                 #self.status_window_area.endRow()
-                
-                
-                #counter += 1
         
-            self.status_window_area.newTextRowLeft('Plot Bias Z (ft): ' + '0.0')
-            self.status_window_area.endRow()
+            #self.status_window_area.newTextRowLeft('Plot Bias Z (ft): ' + '0.0')
+            #self.status_window_area.endRow()
         
         else:
             self.status_window_area.newTextRowLeft('ICAO/IATA: ')
             self.status_window_area.endRow()
 
+
+
+        self.status_window_area.newWhiteLineSeparator()
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('Flightsim local coordinate: ')
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('', dynamic=True, identifier='local_coord')
+        self.status_window_area.endRow()
+
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
         
+
+
         self.status_window_area.newFullButtonRow(3)
         self.button_load_new_airport = Button('Load\nAirport')
         self.status_window_area.registerNextButton(self.button_load_new_airport)
@@ -358,6 +419,10 @@ class MyView(QtWidgets.QGraphicsView):
         self.status_window_area.registerNextButton(self.button_record)  #
         self.button_status_fullscreen = InvertingButton('Fullscreen')                  #
         self.status_window_area.registerNextButton(self.button_status_fullscreen)  #
+        
+        self.button_status_about = Button('About')
+        self.status_window_area.registerNextButton(self.button_status_about)
+
         self.status_window_area.endRow()
 
         self.status_window_area.newWhiteLineSeparator()
@@ -367,12 +432,12 @@ class MyView(QtWidgets.QGraphicsView):
         self.status_window_area.endRow()
         self.status_window_area.newTextRowLeft('Message count:  ', dynamic=True, identifier='count')
         self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Latest delay:   ', dynamic=True, identifier='delay')
+        self.status_window_area.newTextRowLeft('Delay:', dynamic=True, identifier='delay')
         self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Mean delay:     ', dynamic=True, identifier='mean')
-        self.status_window_area.endRow()
-        self.status_window_area.newTextRowLeft('Std dev:        ', dynamic=True, identifier='std')
-        self.status_window_area.endRow()
+        #self.status_window_area.newTextRowLeft('Mean delay:     ', dynamic=True, identifier='mean')
+        #self.status_window_area.endRow()
+        #self.status_window_area.newTextRowLeft('Std dev:        ', dynamic=True, identifier='std')
+        #self.status_window_area.endRow()
         
         self.status_window_area.fixWindow()
         
@@ -1124,7 +1189,7 @@ class MyView(QtWidgets.QGraphicsView):
         self.main_window_area.newFullButtonRow(3)
         self.button_displaycontrol = ExpandingButton('Display\nControl', self.displaycontrol_window)
         self.main_window_area.registerNextButton(self.button_displaycontrol)
-        self.button_radarcontrol = ExpandingButton('Radar\nControl', self.radarcontrol_window)
+        self.button_radarcontrol = ExpandingButton('Radar\nControl', self.password_entry_window)
         self.main_window_area.registerNextButton(self.button_radarcontrol)
         self.button_status = ExpandingButton('Status', self.status_window)
         self.main_window_area.registerNextButton(self.button_status)
@@ -1132,7 +1197,7 @@ class MyView(QtWidgets.QGraphicsView):
         self.main_window_area.newFullButtonRow(3)
         self.main_window_area.skipNextButton()
         self.main_window_area.skipNextButton()
-        self.button_radar_mode = ExpandingButton('Radar\nMode', self.radarmode_window)
+        self.button_radar_mode = ExpandingButton('Radar\nMode', self.password_entry_window)
         self.main_window_area.registerNextButton(self.button_radar_mode)
         self.main_window_area.endRow()
         self.main_window_area.newFullButtonRow(3)
@@ -1140,7 +1205,10 @@ class MyView(QtWidgets.QGraphicsView):
         self.main_window_area.registerNextButton(self.button_clear_alerts)
         self.button_ppi_mode = FlashingButton('PPI\nMode')
         self.main_window_area.registerNextButton(self.button_ppi_mode)
-        self.button_runway_select = ExpandingButton('Runway\nSelect', self.runwayselect_window)
+        
+        #self.button_runway_select = ExpandingButton('Runway\nSelect', self.runwayselect_window)
+        self.button_runway_select = ExpandingButton('Runway\nSelect', self.password_entry_window)
+
         self.main_window_area.registerNextButton(self.button_runway_select)
         self.main_window_area.endRow()
         self.main_window_area.fixWindow()

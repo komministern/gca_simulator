@@ -143,7 +143,7 @@ end
 
 function LuaExportActivityNextEvent(t)
 
-	local tNext = t + 0.1
+	local tNext = t + 0.05
 
 	local data, msg_or_ip, port_or_nil
 

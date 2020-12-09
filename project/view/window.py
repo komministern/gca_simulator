@@ -42,6 +42,8 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         #self.shadow_effect.setOffset(1.0, 1.0)
         #self.shadow_effect.setColor(QtCore.Qt.black)
 
+        #self.activatingbutton = None    # This is only used for Expandingbutton when determining if a password input item alreade is visible.
+
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         
         self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
@@ -160,11 +162,6 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
     
     def showWindow(self, button=None):
         self.activatingbutton = button
-        self.setFocused()
-        self.setEnabled(True)
-        self.setOpacity(1.0) 
-        self.setFocused()
-        self.window_gets_shown.emit()
 
         # This is most special!!! If the window area is InputWindowArea, the text in the top border always contains
         # the UTC time of the time of this methods execution. The last 8 chars is removed and replaced with correct time.
@@ -173,6 +170,14 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
             time_text = time.strftime('%H:%M:%S', time.gmtime())
             new_text = temp_text[0:-8] + time_text
             self.updateTopBorderText(new_text)
+
+        self.setFocused()
+        self.setEnabled(True)
+        self.setOpacity(1.0) 
+        self.setFocused()
+        self.window_gets_shown.emit()
+
+        
 
 
 #    def setInitialFocusItem(self, item):
@@ -481,7 +486,7 @@ class InputWindowArea(StatusWindowArea):
         self.presentbuttonheight = self.textrowheight +  self.distance
         #rectangleitem = QtGui.QGraphicsRectItem()
                 
-        textitem.setTextWidth(self.windowwidth - self.windowframethickness*3 - self.distance*3) # Why 3? It looks better, but why?
+        textitem.setWidth(self.windowwidth - self.windowframethickness*3 - self.distance*3) # Why 3? It looks better, but why?
         font = QtGui.QFont("Helvetica", 10)
         
         textitem.setFont(font)
@@ -489,8 +494,8 @@ class InputWindowArea(StatusWindowArea):
         wtext = textitem.boundingRect().width()
         htext = textitem.boundingRect().height()
         
-        rectangleitem = QtWidgets.QGraphicsRectItem(self.xcursor + self.windowframethickness, self.ycursor + self.distance, wtext, htext, parent=self)
-        rectangleitem.setBrush(QtGui.QBrush(QtCore.Qt.white))
+        #rectangleitem = QtWidgets.QGraphicsRectItem(self.xcursor + self.windowframethickness, self.ycursor + self.distance, wtext, htext, parent=self)
+        #rectangleitem.setBrush(QtGui.QBrush(QtCore.Qt.white))
         
         textitem.setParentItem(self)
         

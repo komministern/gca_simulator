@@ -103,6 +103,14 @@ class MyPresenter(QtCore.QObject):
         self.view.decsnheight_entry_window.window_gets_focus.connect(self.decsnheight_window_focused)
         self.view.decsnheight_entry_window.window_gets_shown.connect(self.decsnheight_window_shown)
 
+        # Password entry buttons
+        self.view.button_password_accept.pressed.connect(self.password_accept)
+        self.view.button_password_clear.pressed.connect(self.password_clear)
+        self.view.button_password_cancel.pressed.connect(self.password_cancel)
+        self.view.password_input_text_item.return_pressed.connect(self.password_return_pressed)
+        self.view.password_entry_window.window_gets_focus.connect(self.password_window_focused)
+        self.view.password_entry_window.window_gets_shown.connect(self.password_window_shown)
+
 
         self.connectACSizeButtons()
         self.connectNHistButtons()
@@ -127,6 +135,8 @@ class MyPresenter(QtCore.QObject):
         self.model.new_airport.connect(self.newAirport)
 
         self.model.new_communication_data.connect(self.updateStatusWindow)
+
+        self.model.new_flightsim_local_coord.connect(self.updateFlightsimLocalCoordinate)
         
         self.model.new_connected_state.connect(self.updateConnectedState)
         
@@ -194,6 +204,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_demo.pressed.connect(self.toggleDemoMode)
         
         self.view.button_status_fullscreen.pressed.connect(self.fullScreen)
+
+        self.view.button_status_about.pressed.connect(self.about)
         
 
     def connectAzAntElevButtons(self):
@@ -296,6 +308,20 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_azscale_32000.pressed.connect(self.newAzimuthScaleChosen)
 
 
+    def about(self):
+
+        self.mywindow = QtWidgets.QWidget() 
+  
+        # resize window to 550 * 400 
+        #self.mywindow.resize(400, 400) 
+        
+        # set title to the window frame 
+        self.mywindow.setWindowTitle('About GCA Simulator') 
+        
+        # invoke show function
+        self.mywindow.show()
+
+
     def connectToXPlane(self):
         if self.view.scene.active_airport != None and not self.demo_mode:
             self.model.probeXPlanePlugin()
@@ -351,24 +377,36 @@ class MyPresenter(QtCore.QObject):
     # ACID entry
     
     def acid_accept(self, button):
-        str = self.view.acid_input_text_item.toPlainText().upper()
-        if str[0].isalpha() and str[1:].isalnum() and len(str) <= 7:
+        input_str = self.view.acid_input_text_item.text()   #.upper()
+        
+        if input_str == '':
+            self.view.acid_error_text_item.setText('')
+            self.view.acid_response_text_item.setText('')
+
+        elif input_str[0].isalpha() and len(input_str) <= 7:
 
             if len(self.view.scene.designated_tracks) > 0:
-                self.view.scene.designated_tracks[0].callsign_string = str
+                self.view.scene.designated_tracks[0].callsign_string = input_str
                 self.view.scene.drawAllTracks()
+                self.view.acid_response_text_item.setText(input_str)
+                self.view.acid_error_text_item.setText('')
 
-            self.view.acid_response_text_item.setPlainText(str)
-            self.view.acid_error_text_item.setPlainText('')
+                self.view.acid_entry_window.hideWindow()
+            else:
+                self.view.acid_error_text_item.setText('No target selected')
+                self.view.acid_response_text_item.setText('')
+
+            
+
         else:
-            self.view.acid_error_text_item.setPlainText('ERROR')
-            self.view.acid_response_text_item.setPlainText('')
+            self.view.acid_error_text_item.setText('ERROR')
+            self.view.acid_response_text_item.setText('')
         self.view.acid_input_text_item.setFocus()
     
     def acid_clear(self, button):
-        self.view.acid_input_text_item.setPlainText('')
-        self.view.acid_error_text_item.setPlainText('')
-        self.view.acid_response_text_item.setPlainText('')
+        self.view.acid_input_text_item.setText('')
+        self.view.acid_error_text_item.setText('')
+        self.view.acid_response_text_item.setText('')
         self.view.acid_input_text_item.setFocus()
     
     def acid_cancel(self, button):
@@ -400,16 +438,16 @@ class MyPresenter(QtCore.QObject):
     # GlideSlope entry
     
     def glideslope_accept(self, button):
-        str = self.view.glideslope_input_text_item.toPlainText()
+        input_string = self.view.glideslope_input_text_item.text()
         
         try:
-            angle = float(str)
+            angle = float(input_string)
             
             if angle >= 1.0 and angle <= 15.0:
                 angle = round(angle, 1)
                 # New glideslope value
-                self.view.glideslope_response_text_item.setPlainText(str(angle))
-                self.view.glideslope_error_text_item.setPlainText('')
+                self.view.glideslope_response_text_item.setText(str(angle))
+                self.view.glideslope_error_text_item.setText('')
                 
                 # Fix buttons
                 if angle >= 2.1 and angle <= 4.0:
@@ -433,22 +471,23 @@ class MyPresenter(QtCore.QObject):
                     self.view.scene.drawGlideSlope()
                     self.view.scene.drawDecisionHeight()
                     self.view.scene.drawAllElevationTracks()
+
+                self.view.button_select_glideslope_Kbd.mousePressEvent(None)
                     
             else:
-                self.view.glideslope_error_text_item.setPlainText('ERROR')
-                self.view.glideslope_response_text_item.setPlainText('')
-                
-            
+                self.view.glideslope_error_text_item.setText('')
+                self.view.glideslope_response_text_item.setText('')
+
         except ValueError:
-            self.view.glideslope_error_text_item.setPlainText('VALUE ERROR')
-            self.view.glideslope_response_text_item.setPlainText('')
+            self.view.glideslope_error_text_item.setText('')
+            self.view.glideslope_response_text_item.setText('')
 
         self.view.glideslope_input_text_item.setFocus()
     
     def glideslope_clear(self, button):
-        self.view.glideslope_input_text_item.setPlainText('')
-        self.view.glideslope_error_text_item.setPlainText('')
-        self.view.glideslope_response_text_item.setPlainText('')
+        self.view.glideslope_input_text_item.setText('')
+        self.view.glideslope_error_text_item.setText('')
+        self.view.glideslope_response_text_item.setText('')
         self.view.glideslope_input_text_item.setFocus()
     
     def glideslope_cancel(self, button):
@@ -474,15 +513,17 @@ class MyPresenter(QtCore.QObject):
     # DecsnHeight entry
     
     def decsnheight_accept(self, button):
-        input_string = self.view.decsnheight_input_text_item.toPlainText()
+        input_string = self.view.decsnheight_input_text_item.text()
         
-        try:
+        #try:
+        if input_string:
+
             height = int(input_string)
             
             if height >= 0 and height <= 999:
                 
-                self.view.decsnheight_response_text_item.setPlainText(str(height))
-                self.view.decsnheight_error_text_item.setPlainText('')
+                self.view.decsnheight_response_text_item.setText(str(height))
+                self.view.decsnheight_error_text_item.setText('')
                 
                 # Fix buttons
                 if height in [100, 150, 200, 250, 300, 350, 400, 450]:
@@ -500,23 +541,23 @@ class MyPresenter(QtCore.QObject):
                     self.view.scene.drawDecisionHeight()
                     #self.view.scene.drawAllElevationTracks()
                     
-                    #print height
+                self.view.button_select_decsnheight_Kbd.mousePressEvent(None)
                     
             else:
-                self.view.decsnheight_error_text_item.setPlainText('ERROR')
-                self.view.decsnheight_response_text_item.setPlainText('')
+                self.view.decsnheight_error_text_item.setText('ERROR')
+                self.view.decsnheight_response_text_item.setText('')
                 
-            
-        except ValueError:
-            self.view.decsnheight_error_text_item.setPlainText('VALUE ERROR')
-            self.view.decsnheight_response_text_item.setPlainText('')
+        else:
+        #except ValueError:
+            self.view.decsnheight_error_text_item.setText('')
+            self.view.decsnheight_response_text_item.setText('')
 
         self.view.decsnheight_input_text_item.setFocus()
     
     def decsnheight_clear(self, button):
-        self.view.decsnheight_input_text_item.setPlainText('')
-        self.view.decsnheight_error_text_item.setPlainText('')
-        self.view.decsnheight_response_text_item.setPlainText('')
+        self.view.decsnheight_input_text_item.setText('')
+        self.view.decsnheight_error_text_item.setText('')
+        self.view.decsnheight_response_text_item.setText('')
         self.view.decsnheight_input_text_item.setFocus()
     
     def decsnheight_cancel(self, button):
@@ -535,6 +576,70 @@ class MyPresenter(QtCore.QObject):
         
     def decsnheight_window_focused(self):
         self.view.decsnheight_input_text_item.setFocus()
+
+
+
+
+
+
+    # Password entry
+
+    def password_accept(self, button):
+        entered_password = self.view.password_input_text_item.text()
+
+        if self.view.password_entry_window.activatingbutton == self.view.button_runway_select:
+            correct_password = self.model.runway_password
+            window_to_be_opened = self.view.runwayselect_window
+
+        elif self.view.password_entry_window.activatingbutton == self.view.button_radar_mode:
+            correct_password = self.model.radar_mode_password
+            window_to_be_opened = self.view.radarmode_window
+
+        elif self.view.password_entry_window.activatingbutton == self.view.button_radarcontrol:
+            correct_password = self.model.radar_control_password
+            window_to_be_opened = self.view.radarcontrol_window
+
+        if entered_password == correct_password:
+            self.view.password_entry_window.hideWindow()
+            self.view.password_entry_window.activatingbutton.temporary_window = window_to_be_opened
+            window_to_be_opened.showWindow(self.view.password_entry_window.activatingbutton)
+        else:
+            self.view.password_error_text_item.setText('INVALID PASSWORD')
+            self.view.password_input_text_item.setFocus()
+    
+    def password_clear(self, button):
+        #self.view.password_input_text_item.setPlainText('')
+        #self.view.password_error_text_item.setPlainText('')
+        #self.view.password_response_text_item.setPlainText('')
+        #self.view.password_input_text_item.setFocus()
+        self.view.password_input_text_item.setText('')
+        self.view.password_error_text_item.setText('')
+        self.view.password_response_text_item.setText('')
+        self.view.password_input_text_item.setFocus()
+    
+    def password_cancel(self, button):
+        if self.view.password_entry_window.activatingbutton:
+            self.view.password_entry_window.activatingbutton.toggleExpanded()
+            self.view.password_entry_window.activatingbutton = None
+        self.view.password_entry_window.hideWindow()
+        button.hoverLeaveEvent(None)    # Just to get rid of some non esthetic things
+
+    def password_return_pressed(self):
+        self.view.button_password_accept.mousePressEvent(None)
+        
+    def password_window_shown(self):
+        #print('SHOWN')
+        self.password_clear(None)
+        self.view.password_input_text_item.setFocus()
+        
+    def password_window_focused(self):
+        pass
+        self.view.password_input_text_item.setFocus()
+
+
+
+
+
 
 
 
@@ -633,10 +738,12 @@ class MyPresenter(QtCore.QObject):
         self.view.runwayselect_window = self.view.createRunwaySelectWindow(rwy_names)
         # Let the garbage collector deal with the old window.
         
-        self.view.button_runway_select.window = self.view.runwayselect_window      # Important. Feed the ExpandingButton its needed parameter.
+        #self.view.button_runway_select.window = self.view.runwayselect_window      # Important. Feed the ExpandingButton its needed parameter. --- NOOOOO!!!!
+        
         self.connectRunwaySelectButtons()
         self.view.runwayselect_window.setPos(position_when_destroyed)
         if show_window_after_creation:
+            self.view.button_runway_select.temporary_window = self.view.runwayselect_window
             self.view.runwayselect_window.showWindow(self.view.button_runway_select)
         self.view.button_select_runway_1.mousePressEvent(None)     # Set runway 1 as active
 
@@ -655,12 +762,17 @@ class MyPresenter(QtCore.QObject):
 
 
     def updateStatusWindow(self, count, latest_delay, mean_delay, std_delay):
-        self.view.status_window_area.updateDynamicTextItem('ip','IP address:\t\t' + self.model.UDP_IP )
-        self.view.status_window_area.updateDynamicTextItem('count', 'Message count:\t' + str(count) )
-        self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:\t\t{0:.3f}'.format(latest_delay) )
-        self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:\t\t{0:.3f}'.format(mean_delay) )
-        self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:\t\t{0:.3f}'.format(std_delay) )
+        self.view.status_window_area.updateDynamicTextItem('ip','IP addr:\t' + self.model.UDP_IP )
+        self.view.status_window_area.updateDynamicTextItem('count', 'Msg count:\t' + str(count) )
+        #self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:\t\t{0:.3f}'.format(latest_delay) )
+        #self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:\t\t{0:.3f}'.format(mean_delay) )
+        #self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:\t\t{0:.3f}'.format(std_delay) )
 
+        self.view.status_window_area.updateDynamicTextItem('delay', 'Delay:\tx={0:.3f}, x̄={1:.3f}, σᵪ={2:.3f}'.format(latest_delay, mean_delay, std_delay) )
+
+    def updateFlightsimLocalCoordinate(self, coord):
+        x, y, z = coord
+        self.view.status_window_area.updateDynamicTextItem('local_coord', 'x={0:.1f}, y={1:.1f}, z={2:.1f}'.format(x, y, z) )
 
     def updateConnectedState(self, new_connected_state):
 
@@ -694,11 +806,11 @@ class MyPresenter(QtCore.QObject):
             self.view.scene.connected = True                                            # ????????????????????
         
         elif not self.connected:
-            self.view.status_window_area.updateDynamicTextItem('ip','IP address:')
-            self.view.status_window_area.updateDynamicTextItem('count', 'Message count:')
-            self.view.status_window_area.updateDynamicTextItem('delay', 'Latest delay:')
-            self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:')
-            self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:')
+            self.view.status_window_area.updateDynamicTextItem('ip','IP addr:')
+            self.view.status_window_area.updateDynamicTextItem('count', 'Msg count:')
+            self.view.status_window_area.updateDynamicTextItem('delay', 'Delay:')
+            #self.view.status_window_area.updateDynamicTextItem('mean', 'Mean delay:')
+            #self.view.status_window_area.updateDynamicTextItem('std', 'Std dev:')
             
             if self.radiating:
                 self.view.button_radiate.mousePressEvent(None)

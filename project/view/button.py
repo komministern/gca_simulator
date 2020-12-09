@@ -215,16 +215,39 @@ class ExpandingButton(Button):
     
     def __init__(self, text, window):
         super(ExpandingButton, self).__init__(text)
+        
         self.window = window
-    
+
+        self.temporary_window = None
+
     def mousePressEvent(self, event):
+        
         self.toggleExpanded()
+        
         if self.expanded: 
             
+            if not self.window.isHidden():
+                
+                # We can only end up here if the window that is supposed to be opened, already is open.
+                # This should only be possible with the view.password_entry_window. We shall assume that
+                # this is the case, and proceed with destroying this window before showing it anew.
+
+                self.window.activatingbutton.toggleExpanded()
+                self.window.activatingbutton = None
+                self.window.hideWindow()
+                #button.hoverLeaveEvent(None)    # Just to get rid of some non esthetic things
+
             self.window.showWindow(self)
 
         else:
-            self.window.hideWindow()
+
+            if self.temporary_window:
+
+                self.temporary_window.hideWindow()
+                self.temporary_window = None
+            else:
+
+                self.window.hideWindow()
             
         Button.mousePressEvent(self, event)
         

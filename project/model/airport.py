@@ -16,12 +16,16 @@ class Airport(object):
             s = f.read()
         f.close()
 
+        self.filename = filename
+
         self.words = s.split()
  
         self.runway_number = None
         self.runways = {}
 
         counter = 0
+
+
 
         while counter < len(self.words):
 
@@ -63,6 +67,26 @@ class Airport(object):
                 
             elif self.words[counter] == 'TRUE':
                 self.runways[runway_number]['true'] = float(self.words[counter + 1])
+
+            elif self.words[counter] == 'DCS_THR_X':
+                self.runways[runway_number]['dcs_thr_x'] = float(self.words[counter + 1])
+                #print('FITA ' + self.words[counter + 1])
+            
+            elif self.words[counter] == 'DCS_THR_Y':
+                self.runways[runway_number]['dcs_thr_y'] = float(self.words[counter + 1])
+                #print('KUK')
+            
+            elif self.words[counter] == 'DCS_THR_Z':
+                self.runways[runway_number]['dcs_thr_z'] = float(self.words[counter + 1])
+            
+            elif self.words[counter] == 'DCS_EOR_X':
+                self.runways[runway_number]['dcs_eor_x'] = float(self.words[counter + 1])
+            
+            elif self.words[counter] == 'DCS_EOR_Y':
+                self.runways[runway_number]['dcs_eor_y'] = float(self.words[counter + 1])
+            
+            elif self.words[counter] == 'DCS_EOR_Z':
+                self.runways[runway_number]['dcs_eor_z'] = float(self.words[counter + 1])
 
             else:
                 raise Exception('Error in airport file ' + filename)
