@@ -8,18 +8,322 @@
 from PySide2 import QtCore, QtWidgets, QtGui
 
 import time
+import math
 from .scene import MyScene
 
 
-class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
+
+
+
+
+
+
+
+
+class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
     windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
     windowwidth = MyScene.buttonwindowareawidth
 
-    windowframethickness = 3
+    #windowframethickness = 3
+    windowframethickness = 1
+
+    windowcornerradius = 4
+
     windowusablewidth = windowwidth - 2*windowframethickness
     
-    #borderthickness = 26
+    borderthickness = 22
+    
+    closerectside = 18
+    crossthickness = 2
+    
+    window_gets_shown = QtCore.Signal()
+    window_gets_hidden = QtCore.Signal()
+    window_gets_focus = QtCore.Signal()
+    window_loses_focus = QtCore.Signal()
+
+    
+    def __init__(self, text):   #, update_when_made_visible=False):
+        
+        
+        #super(WindowTopBorder, self).__init__()
+        QtCore.QObject.__init__(self)
+        QtWidgets.QGraphicsPathItem.__init__(self)
+
+        self.window_top_border_focused_edge_color = QtGui.QColor(54, 78, 99, 255)
+        self.window_top_border_focused_lower_color = QtGui.QColor(96, 138, 175, 255)
+        self.window_top_border_focused_middle_color = QtGui.QColor(104, 148, 189, 255)
+        self.window_top_border_focused_top_color = QtGui.QColor(118, 168, 214, 255)
+
+        self.window_top_border_unfocused_edge_color = QtGui.QColor(152, 147, 143, 255)
+        self.window_top_border_unfocused_lower_color = QtGui.QColor(235, 231, 227, 255)
+        self.window_top_border_unfocused_middle_color = QtGui.QColor(248, 246, 244, 255)
+        self.window_top_border_unfocused_top_color = QtGui.QColor(255, 255, 255, 255)
+
+        self.window_top_border_unfocused_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
+
+
+
+        self.path = QtGui.QPainterPath()
+        self.path.moveTo(self.windowleftxcoordinate, self.windowframethickness)
+        self.path.lineTo(self.windowleftxcoordinate + self.windowwidth, self.windowframethickness)
+        self.path.lineTo(self.windowleftxcoordinate + self.windowwidth, self.windowcornerradius)
+        self.path.arcTo(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius,
+                        0.0, 2*self.windowcornerradius, 2*self.windowcornerradius, 0.0, math.pi/2)
+        self.path.lineTo(self.windowleftxcoordinate, 0)
+        self.path.closeSubpath()
+
+        print(self.boundingRect())
+
+        self.setPath(self.path)
+
+
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        
+        #self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
+        #            self.windowframethickness, self.windowusablewidth, self.borderthickness)
+        
+        self.window_top_border_unfocused_color = QtGui.QColor(239, 235, 231, 255)
+        self.window_top_border_focused_color = QtGui.QColor(107, 153, 194, 255)
+
+        self.window_top_border_font = QtGui.QFont("Helvetica", 11)
+        self.window_top_border_font.setStretch(QtGui.QFont.Expanded)
+        self.window_top_border_font.setBold(True)
+
+        pen = QtGui.QPen()
+        pen.setWidth(self.windowframethickness)
+        #pen.setWidth(self.top_border_edge_thickness)
+        pen.setColor(self.window_top_border_unfocused_color)
+        #pen.setColor(self.unfocused_edge_color)
+        
+        brush = QtGui.QBrush(self.window_top_border_unfocused_color)
+        self.setBrush(brush)
+        
+        #self.setPen(pen)
+        self.setPen(self.window_top_border_unfocused_pen)
+
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+
+        self.setAcceptHoverEvents(True)
+        
+        #self.update_when_made_visible = update_when_made_visible
+
+
+        # The following section should be solved differently (see the updateTopBorderText method further down)
+
+        #font = QtGui.QFont("Helvetica", 10)
+        #ont.setStretch(QtGui.QFont.Expanded)
+        #font.setBold(True)
+        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
+            
+        self.textitem.setFont(self.window_top_border_font)
+        self.textitem.setBrush(QtCore.Qt.black)
+            
+        textwidth = int(self.textitem.boundingRect().width())
+        textheight = int(self.textitem.boundingRect().height())
+        
+        topborderrect = self.boundingRect()
+        winx = topborderrect.x()
+        winy = topborderrect.y()
+        winwidth = topborderrect.width()
+        winheight = topborderrect.height()
+        
+        self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
+
+        #self.textitem.setGraphicsEffect(self.shadow_effect)
+
+        # ................
+
+        #self.textitem = None
+        #self.updateTopBorderText(text)
+        
+        d = (winheight-self.closerectside)/2
+        self.closeRect = QtWidgets.QGraphicsRectItem(winx+winwidth-self.closerectside-d, winy+d, self.closerectside, self.closerectside, parent=self)
+        closerectcolor = QtGui.QColor(54, 78, 99, 255)
+        self.closeRect.setPen(QtGui.QPen(closerectcolor))
+
+        crosscenter = self.closeRect.rect().center()
+        xcenter = crosscenter.x()
+        ycenter = crosscenter.y()
+        
+        c = self.closerectside/4
+        
+        self.crossline1 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter-c, xcenter+c, ycenter+c, parent=self)
+        self.crossline2 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter+c, xcenter+c, ycenter-c, parent=self)
+        pen = QtGui.QPen(QtCore.Qt.black)
+        pen.setWidth(self.crossthickness)
+        self.crossline1.setPen(pen)
+        self.crossline2.setPen(pen)
+
+        self.hideWindow()
+        
+#        self.initial_focus_item = None
+
+
+    def updateTopBorderText(self, text):
+        
+        if self.textitem != None:
+            temp_brush = self.textitem.brush()
+            self.textitem.setParentItem(None)   # This line is important, as....
+            del self.textitem           # this one does not alone remove the item from the scene??? (And/or the parent)
+        
+        #font = QtGui.QFont("Helvetica", 10)     # This font should be taken directly from the scene instead!!!
+        #font.setBold(True)
+        
+        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
+            
+        self.textitem.setFont(self.window_top_border_font)
+        self.textitem.setBrush(temp_brush)
+            
+        textwidth = int(self.textitem.boundingRect().width())
+        textheight = int(self.textitem.boundingRect().height())
+        
+        topborderrect = self.rect()
+        winx = topborderrect.x()
+        winy = topborderrect.y()
+        winwidth = topborderrect.width()
+        winheight = topborderrect.height()
+        
+        self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
+
+
+    def isHidden(self):
+        return not self.isEnabled()     # Hidden and (not enabled) goes together in this application
+
+
+    def hideWindow(self):
+        self.setUnFocused()
+        self.setEnabled(False)
+        self.setOpacity(0.0)
+        self.setZValue(0.0)
+        self.window_gets_hidden.emit()
+    
+    def showWindow(self, button=None):
+        self.activatingbutton = button
+
+        # This is most special!!! If the window area is InputWindowArea, the text in the top border always contains
+        # the UTC time of the time of this methods execution. The last 8 chars is removed and replaced with correct time.
+        if type(self.childItems()[0]) is InputWindowArea:
+            temp_text = self.textitem.text()
+            time_text = time.strftime('%H:%M:%S', time.gmtime())
+            new_text = temp_text[0:-8] + time_text
+            self.updateTopBorderText(new_text)
+
+        self.setFocused()
+        self.setEnabled(True)
+        self.setOpacity(1.0) 
+        self.setFocused()
+        self.window_gets_shown.emit()
+
+        
+
+
+#    def setInitialFocusItem(self, item):
+#        self.initial_focus_item = item
+
+
+    def setFocused(self):
+        self.scene().unFocusAllWindowTopBorders()
+        
+        self.setZValue(self.scene().getNewZVal())
+        self.setBrush(self.window_top_border_focused_color)
+        
+        pen = QtGui.QPen()
+        pen.setWidth(self.windowframethickness)
+        pen.setColor(self.window_top_border_focused_color)
+        self.setPen(pen)
+        
+        self.textitem.setBrush(QtCore.Qt.white)
+        
+        pen = QtGui.QPen()
+        pen.setWidth(self.crossthickness)
+        pen.setColor(QtCore.Qt.white)
+        self.crossline1.setPen(pen)
+        self.crossline2.setPen(pen)
+        
+#        if self.initial_focus_item != None:
+#            self.initial_focus_item.setFocus()
+
+        self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
+        self.shadow_effect.setOffset(1.0, 1.0)
+        self.shadow_effect.setColor(QtCore.Qt.black)
+
+        self.textitem.setGraphicsEffect(self.shadow_effect)
+
+        self.window_gets_focus.emit()
+        
+
+        
+    def setUnFocused(self):
+        
+        self.setBrush(self.window_top_border_unfocused_color)
+        pen = QtGui.QPen()
+        pen.setWidth(self.windowframethickness)
+        #pen.setWidth(self.top_border_edge_thickness)
+        pen.setColor(self.window_top_border_unfocused_color)
+        #pen.setColor(self.unfocused_edge_color)
+        #self.setPen(pen)
+        self.setPen(self.window_top_border_unfocused_pen)
+        
+        self.textitem.setBrush(QtCore.Qt.black)
+
+        pen = QtGui.QPen()
+        pen.setWidth(self.crossthickness)
+        pen.setColor(QtCore.Qt.black)
+        self.crossline1.setPen(pen)
+        self.crossline2.setPen(pen)
+
+        self.textitem.setGraphicsEffect(None)
+        
+        self.window_loses_focus.emit()
+
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            value.setX(0.0)
+            if value.y() < 0:
+                value.setY(0.0)
+            # The value 761.0 is taken directly (quite ugly) from the mainwindowarea after it beeing created and moved
+            # to the bottom of the screen. Horrific.
+            
+            c = 695.0
+
+            #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
+            #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
+            if value.y() > c  - self.childrenBoundingRect().height() - 2*self.windowframethickness:
+                value.setY(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)
+
+        return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
+
+    def mousePressEvent(self, event):
+        
+        if self.closeRect.rect().contains(event.pos()):
+            
+            if self.activatingbutton:
+                self.activatingbutton.toggleExpanded()
+                self.activatingbutton = None
+            self.hideWindow()
+        else:
+        
+            self.setFocused()
+        
+
+
+
+
+
+
+
+class WindowTopBorder_(QtCore.QObject, QtWidgets.QGraphicsRectItem):
+
+    windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
+    windowwidth = MyScene.buttonwindowareawidth
+
+    #windowframethickness = 3
+    windowframethickness = 1
+
+    windowusablewidth = windowwidth - 2*windowframethickness
+    
     borderthickness = 22
     
     closerectside = 18
@@ -37,32 +341,44 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         #super(WindowTopBorder, self).__init__()
         QtCore.QObject.__init__(self)
         QtWidgets.QGraphicsRectItem.__init__(self)
-        
-        #self.shadow_effect = QtGui.QGraphicsDropShadowEffect()
-        #self.shadow_effect.setOffset(1.0, 1.0)
-        #self.shadow_effect.setColor(QtCore.Qt.black)
 
-        #self.activatingbutton = None    # This is only used for Expandingbutton when determining if a password input item alreade is visible.
+        self.window_top_border_focused_edge_color = QtGui.QColor(54, 78, 99, 255)
+        self.window_top_border_focused_lower_color = QtGui.QColor(96, 138, 175, 255)
+        self.window_top_border_focused_middle_color = QtGui.QColor(104, 148, 189, 255)
+        self.window_top_border_focused_top_color = QtGui.QColor(118, 168, 214, 255)
+
+        self.window_top_border_unfocused_edge_color = QtGui.QColor(152, 147, 143, 255)
+        self.window_top_border_unfocused_lower_color = QtGui.QColor(235, 231, 227, 255)
+        self.window_top_border_unfocused_middle_color = QtGui.QColor(248, 246, 244, 255)
+        self.window_top_border_unfocused_top_color = QtGui.QColor(255, 255, 255, 255)
+
+        self.window_top_border_unfocused_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
+
+
 
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         
         self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
-        self.windowframethickness, self.windowusablewidth, self.borderthickness)
+                    self.windowframethickness, self.windowusablewidth, self.borderthickness)
         
         self.window_top_border_unfocused_color = QtGui.QColor(239, 235, 231, 255)
         self.window_top_border_focused_color = QtGui.QColor(107, 153, 194, 255)
 
-        self.window_top_border_font = QtGui.QFont("Helvetica", 10)
+        self.window_top_border_font = QtGui.QFont("Helvetica", 11)
         self.window_top_border_font.setStretch(QtGui.QFont.Expanded)
         self.window_top_border_font.setBold(True)
 
         pen = QtGui.QPen()
         pen.setWidth(self.windowframethickness)
+        #pen.setWidth(self.top_border_edge_thickness)
         pen.setColor(self.window_top_border_unfocused_color)
+        #pen.setColor(self.unfocused_edge_color)
         
         brush = QtGui.QBrush(self.window_top_border_unfocused_color)
         self.setBrush(brush)
-        self.setPen(pen)
+        
+        #self.setPen(pen)
+        self.setPen(self.window_top_border_unfocused_pen)
 
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
 
@@ -221,8 +537,11 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         self.setBrush(self.window_top_border_unfocused_color)
         pen = QtGui.QPen()
         pen.setWidth(self.windowframethickness)
+        #pen.setWidth(self.top_border_edge_thickness)
         pen.setColor(self.window_top_border_unfocused_color)
-        self.setPen(pen)
+        #pen.setColor(self.unfocused_edge_color)
+        #self.setPen(pen)
+        self.setPen(self.window_top_border_unfocused_pen)
         
         self.textitem.setBrush(QtCore.Qt.black)
 
@@ -312,8 +631,8 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         self.setBrush(brush)
 
 
-        self.text_row_narrow_font = QtGui.QFont("Helvetica", 10)
-        self.text_row_wide_font = QtGui.QFont("Helvetica", 10)
+        self.text_row_narrow_font = QtGui.QFont("Helvetica", 11)
+        self.text_row_wide_font = QtGui.QFont("Helvetica", 11)
         self.text_row_wide_font.setStretch(QtGui.QFont.Expanded)
 
 
