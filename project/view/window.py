@@ -28,11 +28,11 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
     #windowframethickness = 3
     windowframethickness = 1
 
-    windowcornerradius = 4
+    windowcornerradius = 6
 
     windowusablewidth = windowwidth - 2*windowframethickness
     
-    borderthickness = 22
+    borderthickness = 24
     
     closerectside = 18
     crossthickness = 2
@@ -61,24 +61,60 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
         self.window_top_border_unfocused_top_color = QtGui.QColor(255, 255, 255, 255)
 
         self.window_top_border_unfocused_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
+        self.window_top_border_unfocused_pen.setWidth(self.windowframethickness)
 
-
-
-        self.path = QtGui.QPainterPath()
-        self.path.moveTo(self.windowleftxcoordinate, self.windowframethickness)
-        self.path.lineTo(self.windowleftxcoordinate + self.windowwidth, self.windowframethickness)
-        self.path.lineTo(self.windowleftxcoordinate + self.windowwidth, self.windowcornerradius)
-        self.path.arcTo(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius,
-                        0.0, 2*self.windowcornerradius, 2*self.windowcornerradius, 0.0, math.pi/2)
-        self.path.lineTo(self.windowleftxcoordinate, 0)
-        self.path.closeSubpath()
-
-        print(self.boundingRect())
-
-        self.setPath(self.path)
-
+        self.window_top_border_unfocused_mid_line_pen = QtGui.QPen(self.window_top_border_unfocused_middle_color)
+        self.window_top_border_unfocused_mid_line_pen.setWidth(self.windowframethickness)
+        
+        self.window_top_border_unfocused_upper_brush = QtGui.QBrush(self.window_top_border_unfocused_middle_color)
+        self.window_top_border_unfocused_lower_brush = QtGui.QBrush(self.window_top_border_unfocused_lower_color)
 
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+
+
+        path = QtGui.QPainterPath()
+        path.addRoundedRect(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness, self.windowusablewidth, self.borderthickness, self.windowcornerradius, self.windowcornerradius)
+        self.setPath(path)
+        self.setPen(self.window_top_border_unfocused_pen)
+        self.setBrush(self.window_top_border_unfocused_upper_brush)
+
+        lower_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowframethickness, self.borderthickness/2 + self.windowframethickness, self.windowusablewidth, self.borderthickness/2)
+        self.lower_rect = QtWidgets.QGraphicsRectItem(lower_rect, parent=self)
+        self.lower_rect.setPen(self.window_top_border_unfocused_pen)
+        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_brush)
+
+        middle_line = QtCore.QLineF(self.windowleftxcoordinate + 2*self.windowframethickness, self.borderthickness/2 + self.windowframethickness, 
+                                    self.windowleftxcoordinate + self.windowusablewidth, self.borderthickness/2 + self.windowframethickness)
+        self.middle_line = QtWidgets.QGraphicsLineItem(middle_line, parent=self)
+        self.middle_line.setPen(self.window_top_border_unfocused_mid_line_pen)
+
+        close_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowusablewidth - self.closerectside - self.windowcornerradius, self.windowframethickness + (self.borderthickness - self.closerectside)/2, self.closerectside, self.closerectside)
+        path = QtGui.QPainterPath()
+        path.addRoundedRect(close_rect, 3, 3)
+        self.close_rect_path = QtWidgets.QGraphicsPathItem(path, parent=self)
+        self.close_rect_path.setPen(self.window_top_border_unfocused_pen)
+
+        #self.path.moveTo(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness)
+        #self.path.lineTo(self.windowleftxcoordinate + self.windowframethickness, self.borderthickness - self.windowframethickness)  # v
+        #self.path.lineTo(self.windowleftxcoordinate + self.windowwidth - self.windowframethickness, self.borderthickness - self.windowframethickness)   # >
+        #self.path.arcTo(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius,
+        #                0.0, 2*self.windowcornerradius, 2*self.windowcornerradius, 0.0, math.pi/2)
+
+        #rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius - self.windowframethickness/2, self.windowframethickness/2, self.windowcornerradius*2 , self.windowcornerradius*2)
+        #print(rect)
+
+        #self.path.lineTo(self.windowleftxcoordinate + self.windowwidth - self.windowframethickness, self.windowcornerradius + self.windowframethickness)  # ^
+        #self.path.arcTo(rect, 0.0, 90)
+        #self.path.lineTo(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness)
+        #self.path.closeSubpath()
+
+        #print(self.boundingRect())
+
+        
+
+        #self.path.addRect(rect)
+
+        
         
         #self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
         #            self.windowframethickness, self.windowusablewidth, self.borderthickness)
@@ -255,15 +291,15 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
         
     def setUnFocused(self):
-        
-        self.setBrush(self.window_top_border_unfocused_color)
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        #pen.setWidth(self.top_border_edge_thickness)
-        pen.setColor(self.window_top_border_unfocused_color)
-        #pen.setColor(self.unfocused_edge_color)
-        #self.setPen(pen)
+
         self.setPen(self.window_top_border_unfocused_pen)
+        self.setBrush(self.window_top_border_unfocused_upper_brush)
+
+        self.lower_rect.setPen(self.window_top_border_unfocused_pen)
+        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_brush)
+
+
+
         
         self.textitem.setBrush(QtCore.Qt.black)
 
@@ -652,7 +688,7 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
 
 
     def attachTo(self, top):
-        self.setPos(self.x(), top.y()+top.boundingRect().height()-self.windowframethickness)
+        self.setPos(self.x(), top.y()+top.boundingRect().height()-2*self.windowframethickness)
         self.setParentItem(top)
         self.setFlags(QtWidgets.QGraphicsItem.ItemStacksBehindParent)
 
