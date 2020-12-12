@@ -132,27 +132,32 @@ class MyView(QtWidgets.QGraphicsView):
         self.password_entry_window_area = InputWindowArea()
         self.scene.addItem(self.password_entry_window_area)
 
-        self.password_entry_window_area.newTextRowLeft('Enter Password')
+        self.password_entry_window_area.newTextRowLeft('Enter Password', size='narrow')
         self.password_entry_window_area.endRow()
-        self.password_entry_window_area.newTextRowLeft('ERROR')
+        self.password_entry_window_area.newTextRowLeft('ERROR', size='narrow')
         self.password_entry_window_area.endRow()
+
+        #self.password_entry_window_area.newTextRowLeft('Enter Password')
+        #self.password_entry_window_area.endRow()
+        #self.password_entry_window_area.newTextRowLeft('ERROR')
+        #self.password_entry_window_area.endRow()
         
         self.password_error_text_item = MyLineEditProxyWidget(editable=False)
         self.password_entry_window_area.registerGraphicsTextItem(self.password_error_text_item)
         self.password_entry_window_area.endRow()
 
-        self.password_entry_window_area.newTextRowLeft('INPUT')
+        self.password_entry_window_area.newTextRowLeft('INPUT', size='narrow')
         self.password_entry_window_area.endRow()
 
         #self.password_input_text_item = MyGraphicsTextItem(editable=True, hidden_input=True)
-        self.password_input_text_item = MyLineEditProxyWidget(editable=True, hidden_password_input=True)
+        self.password_input_text_item = MyLineEditProxyWidget(editable=True, hidden_password_input=True, parent=self.password_entry_window_area)
 
         #self.password_entry_window_area.registerGraphicsTextItem(self.password_input_text_item)
         self.password_entry_window_area.registerGraphicsTextItem(self.password_input_text_item)
 
         self.password_entry_window_area.endRow()
 
-        self.password_entry_window_area.newTextRowLeft('RESPONSE')
+        self.password_entry_window_area.newTextRowLeft('RESPONSE', size='narrow')
         self.password_entry_window_area.endRow()
 
         self.password_response_text_item = MyLineEditProxyWidget(editable=False)
@@ -1211,7 +1216,7 @@ class MyView(QtWidgets.QGraphicsView):
 
         self.main_window_area.registerNextButton(self.button_runway_select)
         self.main_window_area.endRow()
-        self.main_window_area.fixWindow()
+        self.main_window_area.fixStaticWindow()
         self.main_window_area.putWindowAtBottom()
         return self.main_window_area
 

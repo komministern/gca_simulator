@@ -110,6 +110,9 @@ class MyPresenter(QtCore.QObject):
         self.view.password_input_text_item.return_pressed.connect(self.password_return_pressed)
         self.view.password_entry_window.window_gets_focus.connect(self.password_window_focused)
         self.view.password_entry_window.window_gets_shown.connect(self.password_window_shown)
+        #self.view.password_input_text_item.clicked_on.connect(self.password_window_focused)
+        #self.view.password_error_text_item.clicked_on.connect(self.kuk)
+        #self.view.password_response_text_item.clicked_on.connect(self.password_window_focused)
 
 
         self.connectACSizeButtons()
@@ -147,6 +150,8 @@ class MyPresenter(QtCore.QObject):
         self.model.demo_loop.connect(self.flickerRadiate)
         self.model.demo_init.connect(self.initializeDemoMode)
 
+    def kuk(self):
+        print('fita')
 
 
     def connectLeadDirButtons(self):

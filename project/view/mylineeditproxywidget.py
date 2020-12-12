@@ -6,9 +6,11 @@ from PySide2 import QtCore, QtWidgets, QtGui
 class MyLineEditProxyWidget(QtWidgets.QGraphicsProxyWidget):
 
     return_pressed = QtCore.Signal()
+    clicked_on = QtCore.Signal()
     
-    def __init__(self, editable=False, hidden_password_input=False, allowed_input_characters='', convert_to_upper_case=False, first_char_must_be_letter=False, max_input_length=0):
-        super(MyLineEditProxyWidget, self).__init__()
+    def __init__(self, editable=False, hidden_password_input=False, allowed_input_characters='', convert_to_upper_case=False, first_char_must_be_letter=False, max_input_length=0, parent=None):
+        super(MyLineEditProxyWidget, self).__init__(parent=parent)
+        #self.parent = parent
         self.myLineEditWidget = QtWidgets.QLineEdit()
         self.setWidget(self.myLineEditWidget)
 
@@ -38,6 +40,11 @@ class MyLineEditProxyWidget(QtWidgets.QGraphicsProxyWidget):
 
     def text(self):
         return self.myLineEditWidget.text()
+    
+    def mousePressEvent(self, event):
+        if self.parentItem():
+            self.parentItem().parentItem().setFocused()
+        super(MyLineEditProxyWidget, self).mousePressEvent(event)
 
 
 

@@ -5,6 +5,17 @@ from PySide2 import QtCore, QtWidgets, QtGui
 
 import numpy as np
 
+
+
+class AntiAliasedLineItem(QtWidgets.QGraphicsLineItem):
+
+    def __init__(self, line):
+        super(AntiAliasedLineItem, self).__init__(line)
+
+    def paint(self, painter, option, widget):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        super(AntiAliasedLineItem, self).paint(painter, option, widget)
+
 #class GlideSlope(QtWidgets.QGraphicsItemGroup):
 class GlideSlope(QtCore.QObject):
     
@@ -73,7 +84,8 @@ class GlideSlope(QtCore.QObject):
                 glideslope_end_point = QtCore.QPointF(new_x, glideslope_start_point.y() - glideslope_slope*delta_x)
 
             line = QtCore.QLineF(glideslope_start_point, glideslope_end_point)
-            self.glideslope_item = QtWidgets.QGraphicsLineItem(line)
+            #self.glideslope_item = QtWidgets.QGraphicsLineItem(line)
+            self.glideslope_item = AntiAliasedLineItem(line)
             self.glideslope_item.setPen(self.scene.glideslope_pen)
             
             #self.addToGroup(self.glideslope_item)

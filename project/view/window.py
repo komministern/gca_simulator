@@ -23,19 +23,24 @@ from .scene import MyScene
 class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
     windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
+    print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
     windowwidth = MyScene.buttonwindowareawidth
+    print('windowwidth: ' + str(windowwidth))
 
     #windowframethickness = 3
-    windowframethickness = 1
+    windowframethickness = 1.0
 
-    windowcornerradius = 6
+    windowcornerradius = 7.0
 
-    windowusablewidth = windowwidth - 2*windowframethickness
+    windowusablewidth = windowwidth - windowframethickness
+    print('windowusablewidth: ' + str(windowusablewidth))
     
-    borderthickness = 24
+    borderthickness = 23.0
     
-    closerectside = 18
-    crossthickness = 2
+    closerectside = 17.0
+    closerectcornerradius = 2.5
+
+    crossthickness = 2.0
     
     window_gets_shown = QtCore.Signal()
     window_gets_hidden = QtCore.Signal()
@@ -44,8 +49,7 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
     
     def __init__(self, text):   #, update_when_made_visible=False):
-        
-        
+
         #super(WindowTopBorder, self).__init__()
         QtCore.QObject.__init__(self)
         QtWidgets.QGraphicsPathItem.__init__(self)
@@ -60,140 +64,105 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
         self.window_top_border_unfocused_middle_color = QtGui.QColor(248, 246, 244, 255)
         self.window_top_border_unfocused_top_color = QtGui.QColor(255, 255, 255, 255)
 
-        self.window_top_border_unfocused_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
-        self.window_top_border_unfocused_pen.setWidth(self.windowframethickness)
+        self.window_top_border_focused_close_rect_color = QtGui.QColor(54, 78, 99)
+        self.window_top_border_focused_close_rect_shadoweffect_color = QtGui.QColor(134, 166, 195)
+        self.window_top_border_unfocused_close_rect_color = self.window_top_border_unfocused_edge_color
+        #self.window_top_border_unfocused_close_rect_shadow_color = QtGui.QColor(134, 166, 195)
 
+        self.window_top_border_focused_edge_pen = QtGui.QPen(self.window_top_border_focused_edge_color)
+        self.window_top_border_focused_edge_pen.setWidth(self.windowframethickness)
+        self.window_top_border_unfocused_edge_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
+        self.window_top_border_unfocused_edge_pen.setWidth(self.windowframethickness)
+
+        self.window_top_border_focused_mid_line_pen = QtGui.QPen(self.window_top_border_focused_middle_color)
+        self.window_top_border_focused_mid_line_pen.setWidth(self.windowframethickness)
         self.window_top_border_unfocused_mid_line_pen = QtGui.QPen(self.window_top_border_unfocused_middle_color)
         self.window_top_border_unfocused_mid_line_pen.setWidth(self.windowframethickness)
         
-        self.window_top_border_unfocused_upper_brush = QtGui.QBrush(self.window_top_border_unfocused_middle_color)
-        self.window_top_border_unfocused_lower_brush = QtGui.QBrush(self.window_top_border_unfocused_lower_color)
+        self.window_top_border_focused_close_rect_pen = QtGui.QPen(self.window_top_border_focused_close_rect_color)
+        self.window_top_border_focused_close_rect_pen.setWidth(self.windowframethickness)
+        self.window_top_border_focused_close_rect_shadoweffect_pen = QtGui.QPen(self.window_top_border_focused_close_rect_shadoweffect_color)
+        self.window_top_border_focused_close_rect_pen.setWidth(self.windowframethickness)
 
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.window_top_border_unfocused_close_rect_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
+        self.window_top_border_unfocused_close_rect_pen.setWidth(self.windowframethickness)
 
+        self.window_top_border_focused_cross_pen = QtGui.QPen(QtCore.Qt.white)
+        self.window_top_border_focused_cross_pen.setWidth(self.crossthickness)
+        self.window_top_border_unfocused_cross_pen = QtGui.QPen(QtCore.Qt.black)
+        self.window_top_border_unfocused_cross_pen.setWidth(self.crossthickness)
 
-        path = QtGui.QPainterPath()
-        path.addRoundedRect(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness, self.windowusablewidth, self.borderthickness, self.windowcornerradius, self.windowcornerradius)
-        self.setPath(path)
-        self.setPen(self.window_top_border_unfocused_pen)
-        self.setBrush(self.window_top_border_unfocused_upper_brush)
+        self.window_top_border_focused_upper_area_brush = QtGui.QBrush(self.window_top_border_focused_middle_color)
+        self.window_top_border_focused_lower_area_brush = QtGui.QBrush(self.window_top_border_focused_lower_color)
+        self.window_top_border_unfocused_upper_area_brush = QtGui.QBrush(self.window_top_border_unfocused_middle_color)
+        self.window_top_border_unfocused_lower_area_brush = QtGui.QBrush(self.window_top_border_unfocused_lower_color)
 
-        lower_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowframethickness, self.borderthickness/2 + self.windowframethickness, self.windowusablewidth, self.borderthickness/2)
-        self.lower_rect = QtWidgets.QGraphicsRectItem(lower_rect, parent=self)
-        self.lower_rect.setPen(self.window_top_border_unfocused_pen)
-        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_brush)
-
-        middle_line = QtCore.QLineF(self.windowleftxcoordinate + 2*self.windowframethickness, self.borderthickness/2 + self.windowframethickness, 
-                                    self.windowleftxcoordinate + self.windowusablewidth, self.borderthickness/2 + self.windowframethickness)
-        self.middle_line = QtWidgets.QGraphicsLineItem(middle_line, parent=self)
-        self.middle_line.setPen(self.window_top_border_unfocused_mid_line_pen)
-
-        close_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowusablewidth - self.closerectside - self.windowcornerradius, self.windowframethickness + (self.borderthickness - self.closerectside)/2, self.closerectside, self.closerectside)
-        path = QtGui.QPainterPath()
-        path.addRoundedRect(close_rect, 3, 3)
-        self.close_rect_path = QtWidgets.QGraphicsPathItem(path, parent=self)
-        self.close_rect_path.setPen(self.window_top_border_unfocused_pen)
-
-        #self.path.moveTo(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness)
-        #self.path.lineTo(self.windowleftxcoordinate + self.windowframethickness, self.borderthickness - self.windowframethickness)  # v
-        #self.path.lineTo(self.windowleftxcoordinate + self.windowwidth - self.windowframethickness, self.borderthickness - self.windowframethickness)   # >
-        #self.path.arcTo(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius,
-        #                0.0, 2*self.windowcornerradius, 2*self.windowcornerradius, 0.0, math.pi/2)
-
-        #rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowwidth - 2*self.windowcornerradius - self.windowframethickness/2, self.windowframethickness/2, self.windowcornerradius*2 , self.windowcornerradius*2)
-        #print(rect)
-
-        #self.path.lineTo(self.windowleftxcoordinate + self.windowwidth - self.windowframethickness, self.windowcornerradius + self.windowframethickness)  # ^
-        #self.path.arcTo(rect, 0.0, 90)
-        #self.path.lineTo(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness)
-        #self.path.closeSubpath()
-
-        #print(self.boundingRect())
-
-        
-
-        #self.path.addRect(rect)
-
-        
-        
-        #self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
-        #            self.windowframethickness, self.windowusablewidth, self.borderthickness)
-        
-        self.window_top_border_unfocused_color = QtGui.QColor(239, 235, 231, 255)
-        self.window_top_border_focused_color = QtGui.QColor(107, 153, 194, 255)
+        self.window_top_border_unfocused_text_brush = QtGui.QBrush(QtCore.Qt.black)
+        self.window_top_border_focused_text_brush = QtGui.QBrush(QtCore.Qt.white)
 
         self.window_top_border_font = QtGui.QFont("Helvetica", 11)
         self.window_top_border_font.setStretch(QtGui.QFont.Expanded)
         self.window_top_border_font.setBold(True)
 
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        #pen.setWidth(self.top_border_edge_thickness)
-        pen.setColor(self.window_top_border_unfocused_color)
-        #pen.setColor(self.unfocused_edge_color)
-        
-        brush = QtGui.QBrush(self.window_top_border_unfocused_color)
-        self.setBrush(brush)
-        
-        #self.setPen(pen)
-        self.setPen(self.window_top_border_unfocused_pen)
-
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-
         self.setAcceptHoverEvents(True)
+
         
-        #self.update_when_made_visible = update_when_made_visible
 
+        path = QtGui.QPainterPath()
+        self.setPen(self.window_top_border_unfocused_edge_pen)
+        self.setBrush(self.window_top_border_unfocused_upper_area_brush)
+        path.addRoundedRect(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness/2, self.windowusablewidth - self.windowframethickness/2, self.borderthickness - self.windowframethickness, self.windowcornerradius, self.windowcornerradius)
+        self.setPath(path)
+        #self.setPen(self.window_top_border_unfocused_edge_pen)
+        #self.setBrush(self.window_top_border_unfocused_upper_area_brush)
 
-        # The following section should be solved differently (see the updateTopBorderText method further down)
+        lower_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowframethickness, self.borderthickness/2 + self.windowframethickness/2, self.windowusablewidth - self.windowframethickness/2, self.borderthickness/2)
+        self.lower_rect = QtWidgets.QGraphicsRectItem(lower_rect, parent=self)
+        self.lower_rect.setPen(self.window_top_border_unfocused_edge_pen)
+        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_area_brush)
 
-        #font = QtGui.QFont("Helvetica", 10)
-        #ont.setStretch(QtGui.QFont.Expanded)
-        #font.setBold(True)
-        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
-            
+        middle_line = QtCore.QLineF(self.windowleftxcoordinate + self.windowframethickness*2, self.borderthickness/2 + self.windowframethickness, 
+                                    self.windowleftxcoordinate + self.windowusablewidth - self.windowframethickness, self.borderthickness/2 + self.windowframethickness)
+        self.middle_line = QtWidgets.QGraphicsLineItem(middle_line, parent=self)
+        self.middle_line.setPen(self.window_top_border_unfocused_mid_line_pen)
+
+        close_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowusablewidth - self.closerectside - self.windowcornerradius - self.windowframethickness/2, self.windowframethickness/2 + (self.borderthickness - self.closerectside)/2, self.closerectside, self.closerectside)
+        cross_rect = QtCore.QRectF(self.windowleftxcoordinate + self.windowusablewidth - self.closerectside - self.windowcornerradius - self.windowframethickness/2, self.windowframethickness/2 + (self.borderthickness - self.closerectside)/2, self.closerectside + 0, self.closerectside + 0)
+
+        path = QtGui.QPainterPath()
+        path.addRoundedRect(close_rect, self.closerectcornerradius, self.closerectcornerradius)
+        self.close_rect_path = QtWidgets.QGraphicsPathItem(path, parent=self)
+        self.close_rect_path.setPen(self.window_top_border_unfocused_close_rect_pen)
+
+        crosscenter = cross_rect.center()
+        xcenter = crosscenter.x()
+        ycenter = crosscenter.y()
+        c = self.closerectside/5
+        self.crossline1 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter-c, xcenter+c, ycenter+c, parent=self)
+        self.crossline2 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter+c, xcenter+c, ycenter-c, parent=self)
+        self.crossline1.setPen(self.window_top_border_unfocused_close_rect_pen)
+        self.crossline2.setPen(self.window_top_border_unfocused_close_rect_pen)
+
+        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)    
         self.textitem.setFont(self.window_top_border_font)
-        self.textitem.setBrush(QtCore.Qt.black)
-            
+        self.textitem.setBrush(self.window_top_border_unfocused_text_brush)
+        
         textwidth = int(self.textitem.boundingRect().width())
         textheight = int(self.textitem.boundingRect().height())
-        
+
         topborderrect = self.boundingRect()
         winx = topborderrect.x()
         winy = topborderrect.y()
         winwidth = topborderrect.width()
         winheight = topborderrect.height()
-        
+
         self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
-
-        #self.textitem.setGraphicsEffect(self.shadow_effect)
-
-        # ................
-
-        #self.textitem = None
-        #self.updateTopBorderText(text)
-        
-        d = (winheight-self.closerectside)/2
-        self.closeRect = QtWidgets.QGraphicsRectItem(winx+winwidth-self.closerectside-d, winy+d, self.closerectside, self.closerectside, parent=self)
-        closerectcolor = QtGui.QColor(54, 78, 99, 255)
-        self.closeRect.setPen(QtGui.QPen(closerectcolor))
-
-        crosscenter = self.closeRect.rect().center()
-        xcenter = crosscenter.x()
-        ycenter = crosscenter.y()
-        
-        c = self.closerectside/4
-        
-        self.crossline1 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter-c, xcenter+c, ycenter+c, parent=self)
-        self.crossline2 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter+c, xcenter+c, ycenter-c, parent=self)
-        pen = QtGui.QPen(QtCore.Qt.black)
-        pen.setWidth(self.crossthickness)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
 
         self.hideWindow()
         
-#        self.initial_focus_item = None
+
 
 
     def updateTopBorderText(self, text):
@@ -214,7 +183,7 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
         textwidth = int(self.textitem.boundingRect().width())
         textheight = int(self.textitem.boundingRect().height())
         
-        topborderrect = self.rect()
+        topborderrect = self.boundingRect()             # ---------------------------------------------------------------------
         winx = topborderrect.x()
         winy = topborderrect.y()
         winwidth = topborderrect.width()
@@ -262,29 +231,31 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
         self.scene().unFocusAllWindowTopBorders()
         
         self.setZValue(self.scene().getNewZVal())
-        self.setBrush(self.window_top_border_focused_color)
+        #self.setBrush(self.window_top_border_focused_color)
         
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        pen.setColor(self.window_top_border_focused_color)
-        self.setPen(pen)
-        
-        self.textitem.setBrush(QtCore.Qt.white)
-        
-        pen = QtGui.QPen()
-        pen.setWidth(self.crossthickness)
-        pen.setColor(QtCore.Qt.white)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
-        
-#        if self.initial_focus_item != None:
-#            self.initial_focus_item.setFocus()
 
-        self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
-        self.shadow_effect.setOffset(1.0, 1.0)
-        self.shadow_effect.setColor(QtCore.Qt.black)
+        self.setPen(self.window_top_border_focused_edge_pen)
+        self.setBrush(self.window_top_border_focused_upper_area_brush)
 
-        self.textitem.setGraphicsEffect(self.shadow_effect)
+        self.lower_rect.setPen(self.window_top_border_focused_edge_pen)
+        self.lower_rect.setBrush(self.window_top_border_focused_lower_area_brush)
+        
+        self.middle_line.setPen(self.window_top_border_focused_mid_line_pen)
+
+        self.close_rect_path.setPen(self.window_top_border_focused_close_rect_color)
+        shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
+        shadow_effect.setOffset(1.0, 1.0)
+        shadow_effect.setColor(self.window_top_border_focused_close_rect_shadoweffect_color)
+        self.close_rect_path.setGraphicsEffect(shadow_effect)
+
+        self.crossline1.setPen(self.window_top_border_focused_cross_pen)
+        self.crossline2.setPen(self.window_top_border_focused_cross_pen)
+
+        self.textitem.setBrush(self.window_top_border_focused_text_brush)
+        shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
+        shadow_effect.setOffset(1.0, 1.0)
+        shadow_effect.setColor(QtCore.Qt.black)
+        self.textitem.setGraphicsEffect(shadow_effect)
 
         self.window_gets_focus.emit()
         
@@ -292,23 +263,21 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
         
     def setUnFocused(self):
 
-        self.setPen(self.window_top_border_unfocused_pen)
-        self.setBrush(self.window_top_border_unfocused_upper_brush)
+        self.setPen(self.window_top_border_unfocused_edge_pen)
+        self.setBrush(self.window_top_border_unfocused_upper_area_brush)
 
-        self.lower_rect.setPen(self.window_top_border_unfocused_pen)
-        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_brush)
-
-
-
+        self.lower_rect.setPen(self.window_top_border_unfocused_edge_pen)
+        self.lower_rect.setBrush(self.window_top_border_unfocused_lower_area_brush)
         
-        self.textitem.setBrush(QtCore.Qt.black)
+        self.middle_line.setPen(self.window_top_border_unfocused_mid_line_pen)
 
-        pen = QtGui.QPen()
-        pen.setWidth(self.crossthickness)
-        pen.setColor(QtCore.Qt.black)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
+        self.close_rect_path.setPen(self.window_top_border_unfocused_close_rect_color)
+        self.close_rect_path.setGraphicsEffect(None)
 
+        self.crossline1.setPen(self.window_top_border_unfocused_cross_pen)
+        self.crossline2.setPen(self.window_top_border_unfocused_cross_pen)
+
+        self.textitem.setBrush(self.window_top_border_unfocused_text_brush)
         self.textitem.setGraphicsEffect(None)
         
         self.window_loses_focus.emit()
@@ -316,24 +285,28 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            
             value.setX(0.0)
             if value.y() < 0:
                 value.setY(0.0)
             # The value 761.0 is taken directly (quite ugly) from the mainwindowarea after it beeing created and moved
             # to the bottom of the screen. Horrific.
             
-            c = 695.0
+            c = 694.0
 
             #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
             #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
             if value.y() > c  - self.childrenBoundingRect().height() - 2*self.windowframethickness:
-                value.setY(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)
+                print('Before:' + str(value.y()))
+                value.setY( round(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness))
+                print('After: ' + str(round(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)))
+                #self.update()
 
         return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
 
     def mousePressEvent(self, event):
         
-        if self.closeRect.rect().contains(event.pos()):
+        if self.close_rect_path.boundingRect().contains(event.pos()):
             
             if self.activatingbutton:
                 self.activatingbutton.toggleExpanded()
@@ -344,282 +317,6 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
             self.setFocused()
         
 
-
-
-
-
-
-
-class WindowTopBorder_(QtCore.QObject, QtWidgets.QGraphicsRectItem):
-
-    windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
-    windowwidth = MyScene.buttonwindowareawidth
-
-    #windowframethickness = 3
-    windowframethickness = 1
-
-    windowusablewidth = windowwidth - 2*windowframethickness
-    
-    borderthickness = 22
-    
-    closerectside = 18
-    crossthickness = 2
-    
-    window_gets_shown = QtCore.Signal()
-    window_gets_hidden = QtCore.Signal()
-    window_gets_focus = QtCore.Signal()
-    window_loses_focus = QtCore.Signal()
-
-    
-    def __init__(self, text):   #, update_when_made_visible=False):
-        
-        
-        #super(WindowTopBorder, self).__init__()
-        QtCore.QObject.__init__(self)
-        QtWidgets.QGraphicsRectItem.__init__(self)
-
-        self.window_top_border_focused_edge_color = QtGui.QColor(54, 78, 99, 255)
-        self.window_top_border_focused_lower_color = QtGui.QColor(96, 138, 175, 255)
-        self.window_top_border_focused_middle_color = QtGui.QColor(104, 148, 189, 255)
-        self.window_top_border_focused_top_color = QtGui.QColor(118, 168, 214, 255)
-
-        self.window_top_border_unfocused_edge_color = QtGui.QColor(152, 147, 143, 255)
-        self.window_top_border_unfocused_lower_color = QtGui.QColor(235, 231, 227, 255)
-        self.window_top_border_unfocused_middle_color = QtGui.QColor(248, 246, 244, 255)
-        self.window_top_border_unfocused_top_color = QtGui.QColor(255, 255, 255, 255)
-
-        self.window_top_border_unfocused_pen = QtGui.QPen(self.window_top_border_unfocused_edge_color)
-
-
-
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
-        
-        self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
-                    self.windowframethickness, self.windowusablewidth, self.borderthickness)
-        
-        self.window_top_border_unfocused_color = QtGui.QColor(239, 235, 231, 255)
-        self.window_top_border_focused_color = QtGui.QColor(107, 153, 194, 255)
-
-        self.window_top_border_font = QtGui.QFont("Helvetica", 11)
-        self.window_top_border_font.setStretch(QtGui.QFont.Expanded)
-        self.window_top_border_font.setBold(True)
-
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        #pen.setWidth(self.top_border_edge_thickness)
-        pen.setColor(self.window_top_border_unfocused_color)
-        #pen.setColor(self.unfocused_edge_color)
-        
-        brush = QtGui.QBrush(self.window_top_border_unfocused_color)
-        self.setBrush(brush)
-        
-        #self.setPen(pen)
-        self.setPen(self.window_top_border_unfocused_pen)
-
-        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-
-        self.setAcceptHoverEvents(True)
-        
-        #self.update_when_made_visible = update_when_made_visible
-
-
-        # The following section should be solved differently (see the updateTopBorderText method further down)
-
-        #font = QtGui.QFont("Helvetica", 10)
-        #ont.setStretch(QtGui.QFont.Expanded)
-        #font.setBold(True)
-        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
-            
-        self.textitem.setFont(self.window_top_border_font)
-        self.textitem.setBrush(QtCore.Qt.black)
-            
-        textwidth = int(self.textitem.boundingRect().width())
-        textheight = int(self.textitem.boundingRect().height())
-        
-        topborderrect = self.rect()
-        winx = topborderrect.x()
-        winy = topborderrect.y()
-        winwidth = topborderrect.width()
-        winheight = topborderrect.height()
-        
-        self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
-
-        #self.textitem.setGraphicsEffect(self.shadow_effect)
-
-        # ................
-
-        #self.textitem = None
-        #self.updateTopBorderText(text)
-        
-        d = (winheight-self.closerectside)/2
-        self.closeRect = QtWidgets.QGraphicsRectItem(winx+winwidth-self.closerectside-d, winy+d, self.closerectside, self.closerectside, parent=self)
-        closerectcolor = QtGui.QColor(54, 78, 99, 255)
-        self.closeRect.setPen(QtGui.QPen(closerectcolor))
-
-        crosscenter = self.closeRect.rect().center()
-        xcenter = crosscenter.x()
-        ycenter = crosscenter.y()
-        
-        c = self.closerectside/4
-        
-        self.crossline1 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter-c, xcenter+c, ycenter+c, parent=self)
-        self.crossline2 = QtWidgets.QGraphicsLineItem(xcenter-c, ycenter+c, xcenter+c, ycenter-c, parent=self)
-        pen = QtGui.QPen(QtCore.Qt.black)
-        pen.setWidth(self.crossthickness)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
-
-        self.hideWindow()
-        
-#        self.initial_focus_item = None
-
-
-    def updateTopBorderText(self, text):
-        
-        if self.textitem != None:
-            temp_brush = self.textitem.brush()
-            self.textitem.setParentItem(None)   # This line is important, as....
-            del self.textitem           # this one does not alone remove the item from the scene??? (And/or the parent)
-        
-        #font = QtGui.QFont("Helvetica", 10)     # This font should be taken directly from the scene instead!!!
-        #font.setBold(True)
-        
-        self.textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
-            
-        self.textitem.setFont(self.window_top_border_font)
-        self.textitem.setBrush(temp_brush)
-            
-        textwidth = int(self.textitem.boundingRect().width())
-        textheight = int(self.textitem.boundingRect().height())
-        
-        topborderrect = self.rect()
-        winx = topborderrect.x()
-        winy = topborderrect.y()
-        winwidth = topborderrect.width()
-        winheight = topborderrect.height()
-        
-        self.textitem.setPos(winx+(winwidth-textwidth)/2, winy+(winheight-textheight)/2)
-
-
-    def isHidden(self):
-        return not self.isEnabled()     # Hidden and (not enabled) goes together in this application
-
-
-    def hideWindow(self):
-        self.setUnFocused()
-        self.setEnabled(False)
-        self.setOpacity(0.0)
-        self.setZValue(0.0)
-        self.window_gets_hidden.emit()
-    
-    def showWindow(self, button=None):
-        self.activatingbutton = button
-
-        # This is most special!!! If the window area is InputWindowArea, the text in the top border always contains
-        # the UTC time of the time of this methods execution. The last 8 chars is removed and replaced with correct time.
-        if type(self.childItems()[0]) is InputWindowArea:
-            temp_text = self.textitem.text()
-            time_text = time.strftime('%H:%M:%S', time.gmtime())
-            new_text = temp_text[0:-8] + time_text
-            self.updateTopBorderText(new_text)
-
-        self.setFocused()
-        self.setEnabled(True)
-        self.setOpacity(1.0) 
-        self.setFocused()
-        self.window_gets_shown.emit()
-
-        
-
-
-#    def setInitialFocusItem(self, item):
-#        self.initial_focus_item = item
-
-
-    def setFocused(self):
-        self.scene().unFocusAllWindowTopBorders()
-        
-        self.setZValue(self.scene().getNewZVal())
-        self.setBrush(self.window_top_border_focused_color)
-        
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        pen.setColor(self.window_top_border_focused_color)
-        self.setPen(pen)
-        
-        self.textitem.setBrush(QtCore.Qt.white)
-        
-        pen = QtGui.QPen()
-        pen.setWidth(self.crossthickness)
-        pen.setColor(QtCore.Qt.white)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
-        
-#        if self.initial_focus_item != None:
-#            self.initial_focus_item.setFocus()
-
-        self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
-        self.shadow_effect.setOffset(1.0, 1.0)
-        self.shadow_effect.setColor(QtCore.Qt.black)
-
-        self.textitem.setGraphicsEffect(self.shadow_effect)
-
-        self.window_gets_focus.emit()
-        
-
-        
-    def setUnFocused(self):
-        
-        self.setBrush(self.window_top_border_unfocused_color)
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        #pen.setWidth(self.top_border_edge_thickness)
-        pen.setColor(self.window_top_border_unfocused_color)
-        #pen.setColor(self.unfocused_edge_color)
-        #self.setPen(pen)
-        self.setPen(self.window_top_border_unfocused_pen)
-        
-        self.textitem.setBrush(QtCore.Qt.black)
-
-        pen = QtGui.QPen()
-        pen.setWidth(self.crossthickness)
-        pen.setColor(QtCore.Qt.black)
-        self.crossline1.setPen(pen)
-        self.crossline2.setPen(pen)
-
-        self.textitem.setGraphicsEffect(None)
-        
-        self.window_loses_focus.emit()
-
-
-    def itemChange(self, change, value):
-        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            value.setX(0.0)
-            if value.y() < 0:
-                value.setY(0.0)
-            # The value 761.0 is taken directly (quite ugly) from the mainwindowarea after it beeing created and moved
-            # to the bottom of the screen. Horrific.
-            
-            c = 695.0
-
-            #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
-            #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
-            if value.y() > c  - self.childrenBoundingRect().height() - 2*self.windowframethickness:
-                value.setY(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)
-
-        return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
-
-    def mousePressEvent(self, event):
-        
-        if self.closeRect.rect().contains(event.pos()):
-            
-            if self.activatingbutton:
-                self.activatingbutton.toggleExpanded()
-                self.activatingbutton = None
-            self.hideWindow()
-        else:
-        
-            self.setFocused()
         
 
 
@@ -629,9 +326,9 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
     windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
     windowwidth = MyScene.buttonwindowareawidth
 
-    distance = 5    # ...between buttons
+    distance = 7.0    # ...between buttons
     
-    windowframethickness = 3
+    windowframethickness = 4.0
     windowusablewidth = windowwidth - 2*windowframethickness
     
     buttontwowidth = (windowusablewidth - 3*distance) / 2
@@ -644,11 +341,14 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
     #buttonhalfheight = buttonfivewidth / 2
     #buttonfullheight = buttonfivewidth
 
-    textrowheight = 24
+    textrowheight = 24.0
 
-    lineseparatorthickness = 2
+    lineseparatorthickness = 2.0
     lineseparatorheight = distance
 
+    print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
+    print('windowwidth: ' + str(windowwidth))
+    print('windowusablewidth: ' + str(windowusablewidth))
 
     def __init__(self):
         
@@ -659,12 +359,17 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
                      self.windowframethickness, self.windowusablewidth, 800)
 
-        pen = QtGui.QPen()
-        pen.setWidth(self.windowframethickness)
-        pen.setColor(QtGui.QColor(239, 235, 231, 255))
-        self.setPen(pen)
-        brush = QtGui.QBrush(QtGui.QColor(0, 0, 127, 255))
-        self.setBrush(brush)
+        self.setPen(QtCore.Qt.NoPen)
+
+        #path.addRoundedRect(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness, self.windowusablewidth, self.borderthickness - self.windowframethickness, self.windowcornerradius, self.windowcornerradius)
+
+
+        #pen = QtGui.QPen()
+        #pen.setWidth(self.windowframethickness)
+        #pen.setColor(QtGui.QColor(239, 235, 231, 255))
+        #self.setPen(pen)
+        #brush = QtGui.QBrush(QtGui.QColor(0, 0, 127, 255))
+        #self.setBrush(brush)
 
 
         self.text_row_narrow_font = QtGui.QFont("Helvetica", 11)
@@ -672,7 +377,7 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         self.text_row_wide_font.setStretch(QtGui.QFont.Expanded)
 
 
-        self.ycursor = self.windowframethickness
+        self.ycursor = self.windowframethickness + 4
         self.xcursor = self.windowleftxcoordinate + self.windowframethickness + self.distance
 
         self.setAcceptHoverEvents(True)
@@ -704,7 +409,7 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         elif size == 'narrow':
             textitem.setFont(self.text_row_narrow_font)
         else:
-            raise ValueError('Size in Windowarea.newTextRow must be either widw or narrow.')
+            raise ValueError('Size in Windowarea.newTextRow must be either wide or narrow.')
         
         textitem.setBrush(QtCore.Qt.yellow)
         wtext = int(textitem.boundingRect().width())
@@ -717,7 +422,7 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         pen.setWidth(self.lineseparatorthickness)
         pen.setColor(QtCore.Qt.white)
         
-        line = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate+2*self.lineseparatorthickness, self.ycursor+self.distance, self.windowleftxcoordinate+self.windowwidth-2*self.lineseparatorthickness, self.ycursor+self.distance)
+        line = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate+1.5*self.windowframethickness, self.ycursor+self.distance, self.windowleftxcoordinate+self.windowwidth-1.5*self.windowframethickness, self.ycursor+self.distance)
         line.setPen(pen)
         line.setParentItem(self)
     
@@ -746,6 +451,7 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
             self.presentbuttonheight = self.buttonfivewidth     #self.buttonfullheight      FOR GOOD LOOKS!
         else:
             self.presentbuttonheight = self.buttonfullheight
+
         self.xcursor = self.windowleftxcoordinate + self.windowframethickness + self.distance
         if nx == 2:
             self.presentbuttinwidth = self.buttontwowidth
@@ -770,10 +476,83 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
 
     
     def fixWindow(self):
-        self.setRect(self.windowleftxcoordinate + self.windowframethickness, 
-                     self.windowframethickness, self.windowusablewidth, self.ycursor+self.distance)
         
+        delta_y = 4.0
+
+        pen = QtGui.QPen()
+        pen.setWidth(1.0)
+        pen.setColor(QtGui.QColor(111, 108, 105, 255))
+
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 1.5, self.windowframethickness, self.windowleftxcoordinate + 1.5, self.ycursor+self.distance+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 1.5, self.ycursor+self.distance+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 7.0, self.ycursor+self.distance+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + self.windowusablewidth + 7.0, self.ycursor+self.distance+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 7.0, self.windowframethickness, parent=self)
+        line_item.setPen(pen)
+
+        pen = QtGui.QPen()
+        pen.setWidth(1.0)
+        pen.setColor(QtGui.QColor(255, 255, 255, 255))
+
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 2.5, self.windowframethickness, self.windowleftxcoordinate + 2.5, self.ycursor+self.distance-1.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 2.5, self.ycursor+self.distance-1.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 6.0, self.ycursor+self.distance-1.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + self.windowusablewidth + 6.0, self.ycursor+self.distance-1.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 6.0, self.windowframethickness, parent=self)
+        line_item.setPen(pen)
+
+        pen = QtGui.QPen()
+        pen.setWidth(1.0)
+        pen.setColor(QtGui.QColor(239, 235, 231, 255))
+
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 3.5, self.windowframethickness, self.windowleftxcoordinate + 3.5, self.ycursor+self.distance-2.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 3.5, self.ycursor+self.distance-2.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 5.0, self.ycursor+self.distance-2.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + self.windowusablewidth + 5.0, self.ycursor+self.distance-2.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 5.0, self.windowframethickness, parent=self)
+        line_item.setPen(pen)
+
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 4.5, self.windowframethickness, self.windowleftxcoordinate + 4.5, self.ycursor+self.distance-3.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + 4.5, self.ycursor+self.distance-3.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 4.0, self.ycursor+self.distance-3.0+delta_y, parent=self)
+        line_item.setPen(pen)
+        line_item = QtWidgets.QGraphicsLineItem(self.windowleftxcoordinate + self.windowusablewidth + 4.0, self.ycursor+self.distance-3.0+delta_y, self.windowleftxcoordinate + self.windowusablewidth + 4.0, self.windowframethickness, parent=self)
+        line_item.setPen(pen)
+
+        # Do some work here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        #pen = QtGui.QPen()
+        #pen.setWidth(1.0)
+        #pen.setColor(QtGui.QColor(239, 235, 231, 255))
+        #pen.setColor(QtGui.QColor(239, 235, 231, 255))
+        #self.setPen(pen)
         
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 127, 255))
+        self.setBrush(brush)
+        self.setRect(self.windowleftxcoordinate + 1.5, 
+                     self.windowframethickness, self.windowusablewidth + 6.0, self.ycursor+self.distance)
+    
+
+    def fixStaticWindow(self):
+
+        # Do some work here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        pen = QtGui.QPen()
+        
+        pen.setWidth(self.windowframethickness)
+        #pen.setWidth(3.0)
+        pen.setColor(QtGui.QColor(239, 235, 231, 255))
+        self.setPen(pen)
+        
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 127, 255))
+        self.setBrush(brush)
+
+        self.setRect(self.windowleftxcoordinate + self.windowframethickness - 1.0, 
+                     2*self.windowframethickness, self.windowusablewidth + self.windowframethickness/2 + 1.0, self.ycursor + self.distance - self.windowframethickness/2)
+        
+        #path.addRoundedRect(self.windowleftxcoordinate + self.windowframethickness, self.windowframethickness/2, self.windowusablewidth - self.windowframethickness/2, self.borderthickness - self.windowframethickness, self.windowcornerradius, self.windowcornerradius)
+
+
     def putWindowAtBottom(self):
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         h = self.boundingRect().height()
@@ -789,16 +568,26 @@ class StatusWindowArea(WindowArea):
         super(StatusWindowArea, self).__init__()
         self.dynamictextitems = {}
 
-    def newTextRowLeft(self, text, dynamic=False, identifier=''):
+    def newTextRowLeft(self, text, dynamic=False, identifier='', size='narrow'):
 
         self.presentbuttonheight = self.textrowheight
         textitem = QtWidgets.QGraphicsSimpleTextItem(text, parent=self)
+
+        
         
         if dynamic and identifier:
             self.dynamictextitems[identifier] = textitem
         
-        font = QtGui.QFont("Helvetica", 10)
+        font = QtGui.QFont("Helvetica", 11)
         textitem.setFont(font)
+
+        if size == 'wide':
+            textitem.setFont(self.text_row_wide_font)
+        elif size == 'narrow':
+            textitem.setFont(self.text_row_narrow_font)
+        else:
+            raise ValueError('Size in Windowarea.newTextRow must be either wide or narrow.')
+
         textitem.setBrush(QtCore.Qt.yellow)
         wtext = int(textitem.boundingRect().width())
         htext = int(textitem.boundingRect().height())

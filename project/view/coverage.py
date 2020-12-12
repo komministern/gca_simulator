@@ -3,6 +3,12 @@ from PySide2 import QtCore, QtWidgets, QtGui
 
 import numpy as np
 
+
+
+
+
+
+
 class ElevationCoverage(QtWidgets.QGraphicsItemGroup):
     
     def __init__(self, scene):

@@ -16,7 +16,7 @@ class Button(QtCore.QObject, QtWidgets.QGraphicsRectItem):
     buttonexpandedframewidth = 2
 
 
-    def __init__(self, text, value=None):
+    def __init__(self, text, value=None, parent=None):
         
         QtCore.QObject.__init__(self)
         QtWidgets.QGraphicsRectItem.__init__(self)
@@ -168,6 +168,8 @@ class Button(QtCore.QObject, QtWidgets.QGraphicsRectItem):
             self.setPen(pen)
         
     def mousePressEvent(self, event):
+        if self.parentItem() and self.parentItem().parentItem():
+            self.parentItem().parentItem().setFocused()
         self.pressed.emit(self)
         
         

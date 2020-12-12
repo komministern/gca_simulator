@@ -2,6 +2,18 @@
 from PySide2 import QtCore, QtWidgets, QtGui
 
 
+class AntiAliasedPathItem(QtWidgets.QGraphicsPathItem):
+
+    def __init__(self, path, parent):
+        super(AntiAliasedPathItem, self).__init__(path, parent)
+
+    def paint(self, painter, option, widget):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        super(AntiAliasedPathItem, self).paint(painter, option, widget)
+
+
+
+
 class ElevationRunway(QtWidgets.QGraphicsItemGroup):
     
     def __init__(self, scene):
@@ -63,7 +75,7 @@ class ElevationRunway(QtWidgets.QGraphicsItemGroup):
             painterpath.addEllipse(self.scene.threshold_elevation_point.x() - 3.0, self.scene.threshold_elevation_point.y(), 6.0, 20.0)
             painterpath.addEllipse(self.scene.threshold_elevation_point.x() - 3.0, self.scene.threshold_elevation_point.y() - 20.0, 6.0, 20.0)
         
-            self.path_item = QtWidgets.QGraphicsPathItem(painterpath, parent=self.elevation_runway_item)
+            self.path_item = AntiAliasedPathItem(painterpath, parent=self.elevation_runway_item)
             self.path_item.setPen(self.scene.runway_pen)
             
             self.addToGroup(self.elevation_runway_item)
@@ -129,7 +141,7 @@ class AzimuthRunway(QtWidgets.QGraphicsItemGroup):
             painterpath.addEllipse(self.scene.threshold_azimuth_point.x() - 3.0, self.scene.threshold_azimuth_point.y(), 6.0, 20.0)
             painterpath.addEllipse(self.scene.threshold_azimuth_point.x() - 3.0, self.scene.threshold_azimuth_point.y() - 20.0, 6.0, 20.0)
         
-            self.path_item = QtWidgets.QGraphicsPathItem(painterpath, parent=self.azimuth_runway_item)
+            self.path_item = AntiAliasedPathItem(painterpath, parent=self.azimuth_runway_item)
             self.path_item.setPen(self.scene.runway_pen)
             
             self.addToGroup(self.azimuth_runway_item)
