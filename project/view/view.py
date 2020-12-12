@@ -124,6 +124,9 @@ class MyView(QtWidgets.QGraphicsView):
         self.scene.addItem(self.colorlegend_window_topborder)
         self.scene.registerWindowTopBorder(self.colorlegend_window_topborder)
         self.colorlegend_window_area.attachTo(self.colorlegend_window_topborder)
+
+        self.colorlegend_window_area.setBrush(QtGui.QColor(20, 20, 30, 255))
+
         return self.colorlegend_window_topborder
 
 

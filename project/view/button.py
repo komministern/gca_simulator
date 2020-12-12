@@ -168,13 +168,11 @@ class Button(QtCore.QObject, QtWidgets.QGraphicsRectItem):
             self.setPen(pen)
         
     def mousePressEvent(self, event):
+        
         if self.parentItem() and self.parentItem().parentItem():
-            self.parentItem().parentItem().setFocused()
+            if not isinstance(self, ExpandingButton) and not self.expanded:
+                self.parentItem().parentItem().setFocused()
         self.pressed.emit(self)
-        
-        
-        
-        #self.parentItem().setFocused()  # Buttons has no parents?!?
         
         
         
