@@ -15,6 +15,7 @@ import numpy as np
 from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
 
 from .airport import Airport
+from .tracker import Tracker
 from mycommonfunctions import path as mypath
 
 class MyModel(QtCore.QObject):
@@ -35,6 +36,8 @@ class MyModel(QtCore.QObject):
 
     def __init__(self):
         super(MyModel, self).__init__()
+
+        self.tracker = Tracker(self)
 
         self.working_directory = mypath.current_working_directory()
         print(self.working_directory)
@@ -72,6 +75,7 @@ class MyModel(QtCore.QObject):
         self.connected = False
         self.recording = False
         self.demo_mode = False
+        self.demo_has_restarted = False
 
         self.record_file = None
         self.latest_airport_filename = None
@@ -89,7 +93,9 @@ class MyModel(QtCore.QObject):
         self.elantazim = None
 
         self.rain_mode = False
-        #self.ant
+        
+
+        self.wf_counter = 0
 
 
 
@@ -212,6 +218,7 @@ class MyModel(QtCore.QObject):
                 self.demo_file.seek(0)
                 discard_message = self.demo_file.readline()
                 next_message = self.demo_file.readline().replace('\n', '')
+                self.demo_has_restarted = True
                 self.demo_loop.emit()
 
             #print 'sending message'
@@ -378,7 +385,7 @@ class MyModel(QtCore.QObject):
                     # positive w-direction is directed up
                     
                     orthonormal_vectors['u'] = (eor - thr) / np.linalg.norm(eor - thr)
-                    orthonormal_vectors['w'] = np.array([0.0, 1.0, 0.0])                                        # Hmmmm, is this vector actually pointing straight upwards???????
+                    orthonormal_vectors['w'] = np.array([0.0, 1.0, 0.0])                                        # Hmmmm, is this vector actually pointing straight upwards??????? YES IT IS!!!!
                     orthonormal_vectors['v'] = np.cross(orthonormal_vectors['w'], orthonormal_vectors['u'])
 
                     td = thr + orthonormal_vectors['u'] * self.airport.runways[self.active_runway]['td']
@@ -414,11 +421,11 @@ class MyModel(QtCore.QObject):
                         gca_az_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 5.0])      # The centre of the az elevation antenna is about 5m from the ground
 
 
-                    plot_coordinates = {}
+                    target_coordinates = {}
 
-                    mti_coordinate = gca_coordinate + np.array([-900.0, 0.0, 0.5])      # MTI 900m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
+                    mti_coordinate = gca_coordinate + np.array([-800.0, 0.0, 0.5])      # MTI 900m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
 
-                    plot_coordinates['mti'] = self.scramble_coordinate(mti_coordinate)
+                    target_coordinates['mti'] = self.scramble_coordinate(mti_coordinate)
 
                     for aircraft_name in aircrafts:
                         plane_relative_to_td = aircrafts[aircraft_name] - td
@@ -428,15 +435,67 @@ class MyModel(QtCore.QObject):
                         aircraft_coordinate = np.array([x, y, z])
                         #print('aircraft coordinate:')
                         #print(aircraft_coordinate)
-                        plot_coordinates[aircraft_name] = self.scramble_coordinate(aircraft_coordinate)
+                        target_coordinates[aircraft_name] = self.scramble_coordinate(aircraft_coordinate)
 
 
-                    plot_hits = {}
+                    target_hits = {}
+                    filtered_target_coordinates = {}
 
-                    for aircraft_name in plot_coordinates:
-                        plot_hits[aircraft_name] = (self.elevation_hit( plot_coordinates[aircraft_name], gca_el_coordinate ), self.azimuth_hit( plot_coordinates[aircraft_name], gca_az_coordinate ))     # el, az
+                    for aircraft_name in target_coordinates:
 
-                    self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, plot_coordinates, plot_hits)
+                        coord_rel_to_gca = target_coordinates[aircraft_name] - gca_coordinate
+
+                        if coord_rel_to_gca[0] < 0:     # Only bother if the target is in front of the radar
+                            
+                            distance_to_aircraft = np.linalg.norm(coord_rel_to_gca)         # Unit: m
+                            distance_to_aircraft_nm = self.nm(distance_to_aircraft)
+                            d = distance_to_aircraft_nm
+
+                            target_in_waveform_range = False
+
+                            #print(coord_rel_to_gca)
+
+                            if self.wf_counter == 0:
+                                if d > 3.0 and d < 20.0:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 1:
+                                if d > 2.0 and d < 7.5:
+                                    target_in_waveform_range = True
+                                elif d > 10.5 and d < 16.0:
+                                    target_in_waveform_range = True
+                                elif d > 19.0 and d < 24.5:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 2:
+                                if d > 3.0 and d < 11.0:
+                                    target_in_waveform_range = True
+                                elif d > 17.0 and d < 25.0:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 3:
+                                if d > 0.1 and d < 5.5:
+                                    target_in_waveform_range = True
+                                elif d > 6.0 and d < 11.5:
+                                    target_in_waveform_range = True
+
+                            if target_in_waveform_range:
+                                el_hit = self.elevation_hit( target_coordinates[aircraft_name], gca_el_coordinate )
+                                az_hit = self.azimuth_hit( target_coordinates[aircraft_name], gca_az_coordinate )
+
+                                # if el_hit or az_hit:
+                                target_hits[aircraft_name] = (el_hit, az_hit)     # el, az
+                                filtered_target_coordinates[aircraft_name] = target_coordinates[aircraft_name]
+                            # else:
+                            #     target_hits[aircraft_name] = (False, False)
+                            #     if aircraft_name == 'mti':
+                            #         print('------------------------------------------')
+
+                    
+                    #if len(filtered_target_coordinates) > 0:
+                    self.tracker.process_hits(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
+                    # self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
+                    
 
                 if not self.recording and self.record_file != None:
                     self.record_file.close()
@@ -453,7 +512,9 @@ class MyModel(QtCore.QObject):
                     #self.record_file.write(datagram + '\n')
                     #print(datagram + '\n')
 
-                
+                self.wf_counter += 1
+                if self.wf_counter > 3:
+                    self.wf_counter = 0
                     
 
 

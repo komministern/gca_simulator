@@ -11,6 +11,9 @@ class AlertsField(QtCore.QObject):
     # This works and will do.
     # The field is not movable, but could easily be made so. Should it?
     #
+
+    sound_alarm_on = QtCore.Signal()
+    sound_alarm_off = QtCore.Signal()
     
     def __init__(self, scene):
         super(AlertsField, self).__init__()
@@ -30,7 +33,7 @@ class AlertsField(QtCore.QObject):
                     self.alerts.append(Alert(text, self, scene=self.scene))
                 else:
                     self.alerts.append(CriticalAlert(text, self, scene=self.scene))
-                    self.scene.sound_alarm_on.emit()
+                    self.sound_alarm_on.emit()
                 self.draw()
         elif delay > 0.0:
             laterAlert = functools.partial(self.addAlert, text, critical=critical)
@@ -82,7 +85,7 @@ class AlertsField(QtCore.QObject):
         
         # Are there any critical alerts still unacknowledged?
         if not (False in [each.acknowledged for each in self.alerts]):
-            self.scene.sound_alarm_off.emit()
+            self.sound_alarm_off.emit()
 
 
 class Alert(QtWidgets.QGraphicsTextItem):
@@ -138,7 +141,7 @@ class CriticalAlert(Alert):
             self.revertText()
         else:
             self.obsolete = True
-            self.field.draw()
+        self.field.draw()
 
 class NonClickableAlert(Alert):
     def __init__(self, text, field, scene):

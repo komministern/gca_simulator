@@ -8,7 +8,7 @@ from PySide2 import QtWidgets, QtGui, QtCore
 import numpy as np
 import time
 
-from .track import Track
+from .track import VisualTrack
 
 from .coverage import ElevationCoverage, AzimuthCoverage
 from .glideslope import GlideSlope
@@ -180,7 +180,7 @@ class MyScene(QtWidgets.QGraphicsScene):
         # **** GLIDESLOPE
         self.glideslope_color = QtGui.QColor(123, 178, 100, 255)
         self.glideslope_pen = QtGui.QPen(self.glideslope_color)
-        self.glideslope_pen.setWidth(2)
+        self.glideslope_pen.setWidthF(1.5)
         
         # **** DECISION HEIGHT MARKER
         self.decisionheight_pen = QtGui.QPen(self.glideslope_pen)
@@ -235,7 +235,9 @@ class MyScene(QtWidgets.QGraphicsScene):
         #self.passive_label_font.setBold(True)
         
         self.active_leader_pen = QtGui.QPen(self.active_label_color)
+        self.active_leader_pen.setWidthF(1.5)
         self.passive_leader_pen = QtGui.QPen(self.passive_label_color)
+        self.passive_leader_pen.setWidthF(1.5)
         
         # **** ALERTS
         self.alerts_color = QtGui.QColor(62, 170, 110, 255)
@@ -325,6 +327,8 @@ class MyScene(QtWidgets.QGraphicsScene):
 
         self.az_offset = 0
 
+        self.max_available_historic_tracks = 0
+
 
         # States
         self.radiating = False
@@ -408,12 +412,12 @@ class MyScene(QtWidgets.QGraphicsScene):
 
 
         # Tracks
-        self.tracks = {}
+        self.visualtracks = {}
         #self.airplane_track = Track(self)
         #self.mti_1_track = Track(self)
         #self.mti_2_track = Track(self)
         
-        #self.tracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
+        #self.visualtracks = [self.airplane_track, self.mti_1_track, self.mti_2_track]
         self.designated_tracks = []
 
         
@@ -470,9 +474,90 @@ class MyScene(QtWidgets.QGraphicsScene):
 
 
 
+    def processTracks(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, active_tracks, passive_tracks):
+
+        self.new_time_stamp = new_time_stamp
+        self.thr_coordinate = thr_coordinate
+        self.eor_coordinate = eor_coordinate
+        self.gca_coordinate = gca_coordinate
+        self.active_tracks = active_tracks
+        self.passive_plots = passive_tracks
+
+        self.updateTracks(new_time_stamp, active_tracks)
+
+        self.updateUncorrelatedPlots(new_time_stamp, passive_tracks)
+
+        self.updateHistoricPlots(new_time_stamp, active_tracks, passive_tracks)
+
+        self.drawElevationGraphics()
+        self.drawAzimuthGraphics()
+
+        self.drawWhiPlot()
+
+        self.drawTextInfo()
+
+        # if self.max_available_historic_tracks < 15:
+        #     self.max_available_historic_tracks += 1
+
+
+    def updateUncorrelatedPlots(self, new_time_stamp, passive_tracks):
+        pass
+
+
+    def updateHistoricPlots(self, new_time_stamp, active_tracks, passive_tracks):
+        pass
 
 
 
+
+    def updateTracks(self, new_time_stamp, active_tracks):
+        
+        for name in active_tracks:
+
+            if not name in self.visualtracks:
+                self.visualtracks[name] = VisualTrack(self)
+
+            self.visualtracks[name].update(new_time_stamp, tracks[name])
+        
+        visualtracks_to_be_removed = list(set(self.visualtracks.keys()) - set(tracks.keys()))
+
+        for name in visualtracks_to_be_removed:
+            self.visualtracks[name].destroy()
+            del self.visualtracks[name]
+
+        
+
+        #print self.visualtracks
+
+        # if 'mti' in self.visualtracks:
+        #     if (not True in self.visualtracks['mti'].list_of_el_hits[0:3]) or (not True in self.visualtracks['mti'].list_of_az_hits[0:3]):
+        #         self.mti_lost.emit()
+        #         #print 'lost mti'
+
+        # tracks_to_be_removed = []
+        # for track_name in self.visualtracks:
+        #     s = set(self.visualtracks[track_name].list_of_el_hits[0:3]) | set(self.visualtracks[track_name].list_of_az_hits[0:3])   # union 
+        #     if len(s) == 1 and (False in s):
+        #         tracks_to_be_removed.append(track_name)
+
+
+        # for track_name in tracks_to_be_removed:
+        #     self.visualtracks[track_name].destroy()
+        #     del self.visualtracks[track_name]
+
+        # for track_name in self.aircraft_coordinates:
+        #     (el_hit, az_hit) = self.aircraft_hits[track_name]
+        #     if not track_name in self.visualtracks and (el_hit and az_hit):
+        #         self.visualtracks[track_name] = Track(self)
+            
+        # for track_name in self.visualtracks:
+        #     if track_name in self.aircraft_coordinates:
+        #         self.visualtracks[track_name].update(self.aircraft_coordinates[track_name], self.aircraft_hits[track_name])
+
+
+
+
+    #def processReceivedTracks(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, tracks):
 
     def processReceivedPlots(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, aircraft_coordinates, aircraft_hits):
 
@@ -500,26 +585,27 @@ class MyScene(QtWidgets.QGraphicsScene):
 
 
     def resetAllHistoryPlots(self):
-        for track_name in self.tracks:
-            self.tracks[track_name].resetHistoryPlots()
+        #self.max_available_historic_tracks = 0
+        for track_name in self.visualtracks:
+            self.visualtracks[track_name].resetHistoryPlots()
 
     def drawAllElevationTracks(self):
-        for track_name in self.tracks:
-            self.tracks[track_name].draw(elevation=True, azimuth=False)
+        for track_name in self.visualtracks:
+            self.visualtracks[track_name].draw(elevation=True, azimuth=False)
 
     def drawAllAzimuthTracks(self):
-        for track_name in self.tracks:
-            self.tracks[track_name].draw(elevation=False, azimuth=True)
+        for track_name in self.visualtracks:
+            self.visualtracks[track_name].draw(elevation=False, azimuth=True)
     
     def removeAllTracks(self):
-        for track_name in self.tracks:
-            self.tracks[track_name].destroy()
-        self.tracks = {}
-        #self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
+        for track_name in self.visualtracks:
+            self.visualtracks[track_name].destroy()
+        self.visualtracks = {}
+        #self.visualtracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
 
     def drawAllTracks(self):
-        for track_name in self.tracks:
-            self.tracks[track_name].draw(elevation=True, azimuth=True, whi=True)
+        for track_name in self.visualtracks:
+            self.visualtracks[track_name].draw(elevation=True, azimuth=True, whi=True)
 
 
 
@@ -527,33 +613,34 @@ class MyScene(QtWidgets.QGraphicsScene):
 
         
 
-    def updateAllTracks(self):
+    def updateAllTracks_(self):
         
-        #print self.tracks
+        #print self.visualtracks
 
-        if 'mti' in self.tracks:
-            if (not True in self.tracks['mti'].list_of_el_hits[0:3]) or (not True in self.tracks['mti'].list_of_az_hits[0:3]):
+        if 'mti' in self.visualtracks:
+            if (not True in self.visualtracks['mti'].list_of_el_hits[0:3]) or (not True in self.visualtracks['mti'].list_of_az_hits[0:3]):
                 self.mti_lost.emit()
                 #print 'lost mti'
 
         tracks_to_be_removed = []
-        for track_name in self.tracks:
-            s = set(self.tracks[track_name].list_of_el_hits[0:3]) | set(self.tracks[track_name].list_of_az_hits[0:3])   # union 
+        for track_name in self.visualtracks:
+            s = set(self.visualtracks[track_name].list_of_el_hits[0:3]) | set(self.visualtracks[track_name].list_of_az_hits[0:3])   # union 
             if len(s) == 1 and (False in s):
                 tracks_to_be_removed.append(track_name)
 
 
         for track_name in tracks_to_be_removed:
-            self.tracks[track_name].destroy()
-            del self.tracks[track_name]
+            self.visualtracks[track_name].destroy()
+            del self.visualtracks[track_name]
 
         for track_name in self.aircraft_coordinates:
             (el_hit, az_hit) = self.aircraft_hits[track_name]
-            if not track_name in self.tracks and (el_hit and az_hit):
-                self.tracks[track_name] = Track(self)
+            if not track_name in self.visualtracks and (el_hit and az_hit):
+                self.visualtracks[track_name] = Track(self)
             
-        for track_name in self.tracks:
-            self.tracks[track_name].update(self.aircraft_coordinates[track_name], self.aircraft_hits[track_name])
+        for track_name in self.visualtracks:
+            if track_name in self.aircraft_coordinates:
+                self.visualtracks[track_name].update(self.aircraft_coordinates[track_name], self.aircraft_hits[track_name])
 
 
 
@@ -651,7 +738,7 @@ class MyScene(QtWidgets.QGraphicsScene):
     # Coordinate transformations
 
     def getElevationPoint(self, np_coord):
-        if len(np_coord) == 3 and (self.elevationscale != None):
+        if (not isinstance(np_coord, type(None))) and len(np_coord) == 3 and (self.elevationscale != None):
             
             range_m = np_coord[0]
             altitude_m = np_coord[2]
@@ -669,7 +756,8 @@ class MyScene(QtWidgets.QGraphicsScene):
             return None
         
     def getAzimuthPoint(self, np_coord):
-        if len(np_coord) == 3 and (self.azimuthscale != None):
+        #if len(np_coord) == 3 and (self.azimuthscale != None):
+        if (not isinstance(np_coord, type(None))) and len(np_coord) == 3 and (self.azimuthscale != None):
             
             range_m = np_coord[0]
             altitude_m = np_coord[2]

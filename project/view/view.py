@@ -12,9 +12,10 @@
 from PySide2 import QtCore, QtWidgets, QtGui
 from .scene import MyScene
 from .window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
-from .button import Button, InvertingButton, ExpandingButton, FlashingButton, PendingButton
+from .button import Button, InvertingButton, ExpandingButton, ExpandingWidgetButton, FlashingButton, PendingButton
 #from .mygraphicstextitem import MyGraphicsTextItem
 from .mylineeditproxywidget import MyLineEditProxyWidget
+from .aboutwidget import AboutWidget
 
 
 
@@ -32,6 +33,8 @@ class MyView(QtWidgets.QGraphicsView):
         self.setScene(self.scene)
 
         # **** CREATE ALL THE BUTTON WINDOWS WITH ALL THEIR BUTTONS
+
+        self.aboutwidget = AboutWidget()
 
         self.leaddir_window = self.createLeadDirWindow()
         self.status_window = self.createStatusWindow()
@@ -65,7 +68,7 @@ class MyView(QtWidgets.QGraphicsView):
         #self.colorlegend_window = self.createColorLegendWindow()
 
         self.main_window = self.createMainWindow()
-        
+
         self.main_window.setZValue(self.scene.getNewZVal())
 
         self.fullscreen = False
@@ -428,7 +431,7 @@ class MyView(QtWidgets.QGraphicsView):
         self.button_status_fullscreen = InvertingButton('Fullscreen')                  #
         self.status_window_area.registerNextButton(self.button_status_fullscreen)  #
         
-        self.button_status_about = Button('About')
+        self.button_status_about = ExpandingWidgetButton('About', self.aboutwidget)
         self.status_window_area.registerNextButton(self.button_status_about)
 
         self.status_window_area.endRow()

@@ -8,7 +8,7 @@
 
 import functools
 from PySide2 import QtCore, QtWidgets, QtGui
-
+import simpleaudio
 from functools import partial
 from view.myipdialog import MyIPDialog
 
@@ -26,6 +26,14 @@ class MyPresenter(QtCore.QObject):
         self.radiate_pending = False
         self.ant_drive_pending = False
         self.pending_active_runway = None
+
+
+        # Alarm beep stuff
+        self.alarm_on = False
+        self.beep_timer = QtCore.QTimer()
+        self.beep_timer.setInterval(1100)
+        self.beep_timer.timeout.connect(self.play_beep)
+        self.beep = simpleaudio.WaveObject.from_wave_file('./resources/sounds/beep.wav')
 
 
         # Setup all signals.
@@ -49,6 +57,26 @@ class MyPresenter(QtCore.QObject):
         # ...more to follow
         
         self.trying_to_connect = False
+
+
+    def about_closed(self):
+        self.view.button_status_about.mousePressEvent(None)
+
+
+    def sound_alarm(self):
+        if not self.alarm_on:
+            self.play_beep()
+            self.alarm_on = True
+            self.beep_timer.start()
+
+    def play_beep(self):
+        self.beep.play()
+
+    def stop_alarm(self):
+        if self.alarm_on:
+            self.alarm_on = False
+            self.beep_timer.stop()
+
 
     def connectSignals(self):
         self.view.quit.connect(self.model.quit)
@@ -131,7 +159,9 @@ class MyPresenter(QtCore.QObject):
         self.view.scene.az_offset_pressed.connect(self.handle_az_offset)
 
         #self.model.new_plot_extracted.connect(self.view.scene.processReceivedPlot)
-        self.model.new_plots_extracted.connect(self.view.scene.processReceivedPlots)
+        #self.model.new_plots_extracted.connect(self.view.scene.processReceivedPlots)
+        #self.model.new_plots_extracted.connect(self.model.tracker.processTargetHits)
+        self.model.tracker.report_tracks.connect(self.view.scene.processTracks)
 
         self.model.new_airport.connect(self.setupNewRunwaySelectWindow)
         self.model.new_airport.connect(self.setupNewStatusWindow)
@@ -145,13 +175,17 @@ class MyPresenter(QtCore.QObject):
         
         self.model.connection_lost.connect(self.connectionLost)
 
-        self.view.scene.mti_lost.connect(self.mtiLost)
+        #self.view.scene.mti_lost.connect(self.mtiLost)
+        self.model.tracker.mti_lost.connect(self.mtiLost)
 
         self.model.demo_loop.connect(self.flickerRadiate)
         self.model.demo_init.connect(self.initializeDemoMode)
 
-    def kuk(self):
-        print('fita')
+        self.view.scene.alerts_field.sound_alarm_on.connect(self.sound_alarm)
+        self.view.scene.alerts_field.sound_alarm_off.connect(self.stop_alarm)
+
+        self.view.aboutwidget.my_close.connect(self.about_closed)
+
 
 
     def connectLeadDirButtons(self):
@@ -210,7 +244,7 @@ class MyPresenter(QtCore.QObject):
         
         self.view.button_status_fullscreen.pressed.connect(self.fullScreen)
 
-        self.view.button_status_about.pressed.connect(self.about)
+        #self.view.button_status_about.pressed.connect(self.about)
         
 
     def connectAzAntElevButtons(self):
@@ -313,18 +347,6 @@ class MyPresenter(QtCore.QObject):
         self.view.button_select_azscale_32000.pressed.connect(self.newAzimuthScaleChosen)
 
 
-    def about(self):
-
-        self.mywindow = QtWidgets.QWidget() 
-  
-        # resize window to 550 * 400 
-        #self.mywindow.resize(400, 400) 
-        
-        # set title to the window frame 
-        self.mywindow.setWindowTitle('About GCA Simulator') 
-        
-        # invoke show function
-        self.mywindow.show()
 
 
     def connectToXPlane(self):
@@ -397,6 +419,9 @@ class MyPresenter(QtCore.QObject):
                 self.view.acid_error_text_item.setText('')
 
                 self.view.acid_entry_window.hideWindow()
+
+                self.view.button_acid_entry.mousePressEvent(None)
+
             else:
                 self.view.acid_error_text_item.setText('No target selected')
                 self.view.acid_response_text_item.setText('')

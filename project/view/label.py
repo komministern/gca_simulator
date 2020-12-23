@@ -8,6 +8,8 @@
 from PySide2 import QtCore, QtWidgets, QtGui
 import numpy as np
 
+from .antialiasedlineitem import AntiAliasedLineItem
+
 class Label(QtWidgets.QGraphicsItemGroup):
 #class Label(QtCore.QObject):
     
@@ -198,23 +200,23 @@ class Label(QtWidgets.QGraphicsItemGroup):
         # Set visibility True or False to the three lines
         # Update the contents in the three lines, always
         
-        if len(self.parent_track.list_of_el_coords) > 0:
+        #if len(self.parent_track.list_of_el_coords) > 0:
         
-            self.updatePlotPoint()
-        
-            self.updateCallsign()
-        
-            self.updateSize()
-        
-            self.updateVelocity()
-        
-            self.updateDistance()
-        
-            self.updateDeviation()
-        
-            self.updateLabelPosition()
-        
-            self.drawLeader()
+        self.updatePlotPoint()
+    
+        self.updateCallsign()
+    
+        self.updateSize()
+    
+        self.updateVelocity()
+    
+        self.updateDistance()
+    
+        self.updateDeviation()
+    
+        self.updateLabelPosition()
+    
+        self.drawLeader()
         
 
     def setPassiveColors(self):
@@ -252,7 +254,12 @@ class Label(QtWidgets.QGraphicsItemGroup):
 
     def updateVelocity(self):
         
-        velocity_string = str(int(round(self.parent_track.velocity)))
+        #velocity_string = str(int(round(self.parent_track.velocity)))
+        velocity = self.parent_track.track.targets[0].filtered_velocity
+        if velocity == None:
+            velocity_string = '0'
+        else:
+            velocity_string = str(int(self.parent_track.track.targets[0].filtered_velocity))
         
         if len(velocity_string) == 1:
             velocity_string = '00' + velocity_string
@@ -328,7 +335,7 @@ class ElevationLabel(Label):
 
     
     def updatePlotPoint(self):
-        self.plot_point = self.scene.getElevationPoint(self.parent_track.list_of_el_coords[0])
+        self.plot_point = self.scene.getElevationPoint(self.parent_track.track.targets[0].el_coordinate)#            list_of_el_coords[0])
 
 
     def updateDeviation(self):
@@ -395,7 +402,13 @@ class ElevationLabel(Label):
             end_x = end_point.x()
             end_y = end_point.y()
 
-            self.leader_line_item = QtWidgets.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None)
+            #self.leader_line_item = AntiAliasedLineItem(QtWidgets.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None))
+            
+            line = QtCore.QLineF(self.plot_point.x(), self.plot_point.y(), end_x, end_y)
+            self.leader_line_item = AntiAliasedLineItem(line)
+            
+            #self.leader_line_item = QtWidgets.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None)
+            
             self.scene.addItem(self.leader_line_item)
         
             self.leader_line_item.setPen(pen)
@@ -441,7 +454,8 @@ class AzimuthLabel(Label):
 
 
     def updatePlotPoint(self):
-        self.plot_point = self.scene.getAzimuthPoint(self.parent_track.list_of_az_coords[0])
+        #self.plot_point = self.scene.getAzimuthPoint(self.parent_track.list_of_az_coords[0])
+        self.plot_point = self.scene.getAzimuthPoint(self.parent_track.track.targets[0].az_coordinate)# list_of_az_coords[0])
 
 
     def updateDeviation(self):
@@ -515,7 +529,10 @@ class AzimuthLabel(Label):
             end_x = end_point.x()
             end_y = end_point.y()
 
-            self.leader_line_item = QtWidgets.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None)
+            line = QtCore.QLineF(self.plot_point.x(), self.plot_point.y(), end_x, end_y)
+            self.leader_line_item = AntiAliasedLineItem(line)
+
+            #self.leader_line_item = QtWidgets.QGraphicsLineItem(self.plot_point.x(), self.plot_point.y(), end_x, end_y, parent=None)
             self.scene.addItem(self.leader_line_item)
         
             self.leader_line_item.setPen(pen)

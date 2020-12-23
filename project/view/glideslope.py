@@ -5,16 +5,17 @@ from PySide2 import QtCore, QtWidgets, QtGui
 
 import numpy as np
 
+from .antialiasedlineitem import AntiAliasedLineItem
 
 
-class AntiAliasedLineItem(QtWidgets.QGraphicsLineItem):
+# class AntiAliasedLineItem(QtWidgets.QGraphicsLineItem):
 
-    def __init__(self, line):
-        super(AntiAliasedLineItem, self).__init__(line)
+#     def __init__(self, line):
+#         super(AntiAliasedLineItem, self).__init__(line)
 
-    def paint(self, painter, option, widget):
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        super(AntiAliasedLineItem, self).paint(painter, option, widget)
+#     def paint(self, painter, option, widget):
+#         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+#         super(AntiAliasedLineItem, self).paint(painter, option, widget)
 
 #class GlideSlope(QtWidgets.QGraphicsItemGroup):
 class GlideSlope(QtCore.QObject):
@@ -111,7 +112,9 @@ class GlideSlope(QtCore.QObject):
                 x = self.scene.elevationrangeaxiszero_x + c * delta_x
                 y = self.scene.elevationrangeaxis_y + c * delta_y
                 if y > self.scene.elevationgraphicsareatopleft_y:
-                    lineitem = QtWidgets.QGraphicsLineItem(x, y + self.scene.glideslopemarkinglength / 2, x, y - self.scene.glideslopemarkinglength / 2, parent=self.glideslope_item)
+                    line = QtCore.QLineF(x, y + self.scene.glideslopemarkinglength / 2, x, y - self.scene.glideslopemarkinglength / 2)
+                    lineitem = AntiAliasedLineItem(line, parent=self.glideslope_item)
+                    #lineitem = QtWidgets.QGraphicsLineItem(x, y + self.scene.glideslopemarkinglength / 2, x, y - self.scene.glideslopemarkinglength / 2, parent=self.glideslope_item)
                     lineitem.setPen(self.scene.glideslope_pen)
         
             self.glideslope_item.setZValue(self.scene.glideslope_zvalue)

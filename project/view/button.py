@@ -253,6 +253,31 @@ class ExpandingButton(Button):
         
 
 
+class ExpandingWidgetButton(Button):
+    
+    def __init__(self, text, widget):
+        super(ExpandingWidgetButton, self).__init__(text)
+        
+        self.widget = widget
+
+        self.temporary_window = None
+
+    def mousePressEvent(self, event):
+        
+        self.toggleExpanded()
+        
+        if self.expanded: 
+            
+            self.widget.show()
+
+        else:
+
+            self.widget.close()
+            
+        Button.mousePressEvent(self, event)
+
+
+
 class FlashingButton(Button):
     
     def __init__(self, text, value=None):

@@ -28,6 +28,27 @@ class PlotItem(QtWidgets.QGraphicsEllipseItem):
         self.scene.removeItem(self)
 
 
+class CorrelatedTrackedPlotItem(PlotItem):
+    def __init__(self, x, y, parent, scene, parent_track, visible=True):
+        super(CorrelatedTrackedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
+        self.setBrush(self.scene.plot_brush)
+        self.setPen(self.scene.plot_pen)
+        self.setZValue(self.scene.plot_zvalue)
+
+    def mousePressEvent(self, event):
+        self.parent_track.toggleDesignated()
+    
+class UnCorrelatedTrackedPlotItem(PlotItem):
+    def __init__(self, x, y, parent, scene, parent_track, visible=True):
+        super(UnCorrelatedTrackedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
+        self.setBrush(self.scene.plot_brush)
+        self.setPen(self.scene.plot_pen)
+        self.setZValue(self.scene.plot_zvalue)
+
+    def mousePressEvent(self, event):
+        self.parent_track.toggleDesignated()
+
+
 class CorrelatedPlotItem(PlotItem):
     def __init__(self, x, y, parent, scene, parent_track, visible=True):
         super(CorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
@@ -73,4 +94,7 @@ class WhiPlotItem(PlotItem):
         self.setBrush(self.scene.plot_brush)
         self.setPen(self.scene.plot_pen)
         self.setZValue(self.scene.plot_zvalue)
+
+
+
         
