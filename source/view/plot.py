@@ -27,6 +27,9 @@ class PlotItem(QtWidgets.QGraphicsEllipseItem):
     def remove(self):
         self.scene.removeItem(self)
 
+    def getItemPoint(self):
+        return QtCore.QPointF(self.rect().x() + self.scene.plot_radius, self.rect().y() + self.scene.plot_radius)
+
 
 class CorrelatedTrackedPlotItem(PlotItem):
     def __init__(self, x, y, parent, scene, parent_track, visible=True):
@@ -45,31 +48,31 @@ class UnCorrelatedTrackedPlotItem(PlotItem):
         self.setPen(self.scene.plot_pen)
         self.setZValue(self.scene.plot_zvalue)
 
-    def mousePressEvent(self, event):
-        self.parent_track.toggleDesignated()
+    # def mousePressEvent(self, event):
+    #     self.parent_track.toggleDesignated()
 
 
 class CorrelatedPlotItem(PlotItem):
-    def __init__(self, x, y, parent, scene, parent_track, visible=True):
-        super(CorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
+    def __init__(self, x, y, parent, scene, visible=True):
+        super(CorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, visible=visible)
         self.setBrush(self.scene.plot_brush)
         self.setPen(self.scene.plot_pen)
         self.setZValue(self.scene.plot_zvalue)
 
-    def mousePressEvent(self, event):
-        self.parent_track.toggleDesignated()
+    # def mousePressEvent(self, event):
+    #     self.parent_track.toggleDesignated()
 
 
 class UnCorrelatedPlotItem(PlotItem):
-    def __init__(self, x, y, parent, scene, parent_track, visible=True):
-        super(UnCorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
+    def __init__(self, x, y, parent, scene, visible=True):
+        super(UnCorrelatedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=None, visible=visible)
         self.setBrush(QtCore.Qt.red)
         self.setBrush(self.scene.uncorrelated_plot_brush)
         self.setPen(self.scene.uncorrelated_plot_pen)     
         self.setZValue(self.scene.plot_zvalue)
 
-    def mousePressEvent(self, event):
-        self.parent_track.toggleDesignated()
+    # def mousePressEvent(self, event):
+    #     self.parent_track.toggleDesignated()
 
 
 class InvisiblePlotItem(PlotItem):

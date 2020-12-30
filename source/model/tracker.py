@@ -52,11 +52,11 @@ class Target(QtCore.QObject):
         self.velocity = None
         self.filtered_velocity = None
         
-        @property
+        #@property
         def az_extrapolated(self):
             return not self.az_hit
         
-        @property
+        #@property
         def el_extrapolated(self):
             return not self.el_hit
 
@@ -250,15 +250,17 @@ class Tracker(QtCore.QObject):
                 self.passive_tracks[name].register_new_target(new_time_stamp, aircraft_coordinates[name], az_hit, el_hit)
                 print('added ' + name + ' to passive tracks')
 
-        if 'mti' in self.active_tracks:
-            if len(self.active_tracks['mti'].targets) > 2:
+        # if 'mti' in self.active_tracks:
+        #     if len(self.active_tracks['mti'].targets) > 2:
                 
-                if not (self.active_tracks['mti'].targets[0].az_hit or self.active_tracks['mti'].targets[1].az_hit or self.active_tracks['mti'].targets[2].az_hit):
-                    #print('az mti lost')
-                    self.mti_lost.emit()
-                if not (self.active_tracks['mti'].targets[0].el_hit or self.active_tracks['mti'].targets[1].el_hit or self.active_tracks['mti'].targets[2].el_hit):
-                    #print('el mti lost')
-                    self.mti_lost.emit()
+        #         if not (self.active_tracks['mti'].targets[0].az_hit or self.active_tracks['mti'].targets[1].az_hit or self.active_tracks['mti'].targets[2].az_hit):
+        #             #print('az mti lost')
+        #             self.mti_lost.emit()
+        #         if not (self.active_tracks['mti'].targets[0].el_hit or self.active_tracks['mti'].targets[1].el_hit or self.active_tracks['mti'].targets[2].el_hit):
+        #             #print('el mti lost')
+        #             self.mti_lost.emit()
+
+        
 
         tracks_which_have_become_null_and_void = []
         
@@ -272,6 +274,12 @@ class Tracker(QtCore.QObject):
             #self.passive_tracks[name] = self.active_tracks[name]
             del self.active_tracks[name]
             print('deleted ' + name + ' from active tracks')
+        
+        print(time.time() - self.model.time_stamp_radiate_on)
+
+        if ('mti' not in self.active_tracks) and (time.time() - self.model.time_stamp_radiate_on) > 4.0:
+            self.mti_lost.emit()
+            # This is the way to go with the mti alarm.....
 
         if self.model.demo_has_restarted:
             print('all active and passive tracks deleted due to demo loop')

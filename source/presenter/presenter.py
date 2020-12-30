@@ -7,10 +7,11 @@
 #    This file is part of GCA Simulator.
 
 import functools
+import time
 from PySide2 import QtCore, QtWidgets, QtGui
 import simpleaudio
 from functools import partial
-from view.myipdialog import MyIPDialog
+from ..view.myipdialog import MyIPDialog
 
 
 class MyPresenter(QtCore.QObject):
@@ -700,7 +701,7 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Demo', self.model.default_recordings_directory, 'Demo Files (*.txt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rec)')
             if filename:
                 self.model.initDemoMode(filename)
             
@@ -944,7 +945,7 @@ class MyPresenter(QtCore.QObject):
     def loadAirport(self):
         if not self.connected:
         # This method is called when user wants to load a new airport
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', self.model.default_airports_directory, 'Airport Files (*.apt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', self.model.local_data_airports_directory, 'Airport Files (*.apt)')
             if filename:
                 self.model.readNewAirport(filename)
 
@@ -1207,13 +1208,17 @@ class MyPresenter(QtCore.QObject):
         self.view.scene.drawElevationAxis()
         self.view.scene.drawElevationGraphics()
         self.view.scene.drawAllElevationTracks()
-
+        self.view.scene.resetAllUncorrelatedHistoryPlots()
+        self.view.scene.drawAllUncorrelatedPlots()
+        
 
     def newAzimuthScaleChosen(self, button):
         self.view.scene.azimuthscale = button.value
         self.view.scene.drawAzimuthAxis()
         self.view.scene.drawAzimuthGraphics()
         self.view.scene.drawAllAzimuthTracks()
+        self.view.scene.resetAllUncorrelatedHistoryPlots()
+        self.view.scene.drawAllUncorrelatedPlots()
 
 
     def newRangeScaleChosen(self, button):
@@ -1290,19 +1295,19 @@ class MyPresenter(QtCore.QObject):
         #print 'toggle line 1'
         self.view.scene.line_1_visible = button.inverted
         self.view.scene.drawAllTracks()
-        self.view.scene.drawWhiPlot()
+        self.view.scene.drawWhiTrack()
         
     def toggleLine2(self, button):
         #print 'toggle line 2'
         self.view.scene.line_2_visible = button.inverted
         self.view.scene.drawAllTracks()
-        self.view.scene.drawWhiPlot()
+        self.view.scene.drawWhiTrack()
 
     def toggleLine3(self, button):
         #print 'toggle line 3'
         self.view.scene.line_3_visible = button.inverted
         self.view.scene.drawAllTracks()
-        self.view.scene.drawWhiPlot()
+        self.view.scene.drawWhiTrack()
 
     def toggleLeader(self, button):
         #print 'toggle leader'
@@ -1345,14 +1350,19 @@ class MyPresenter(QtCore.QObject):
             # If radiate just was turned off, clear the tracks
             self.view.scene.removeAllTracks()
             #print 'removing all tracks'
-        
+        if self.radiating:
+            self.markRadiateStartTime()
+            
+
         self.view.scene.removeAllTracks()   # This due to the pending_active_runway
         #print 'removing all tracks'
 
         self.view.scene.radiating = self.radiating
 
 
+    def markRadiateStartTime(self):
 
+        self.model.time_stamp_radiate_on = time.time()
             
             
 
@@ -1399,7 +1409,7 @@ class MyPresenter(QtCore.QObject):
         self.view.scene.whi_active = button.inverted
         self.view.scene.drawWhiAxis()
         
-        self.view.scene.drawWhiPlot()
+        self.view.scene.drawWhiTrack()
 
     def toggleRadarCover(self, button):
         self.view.scene.radarcover_active = button.inverted

@@ -1,0 +1,1 @@
+See the text file batumi.apt for information on how to add your own airports to the GCA Simulator.

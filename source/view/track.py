@@ -6,12 +6,12 @@
 
 from PySide2 import QtCore, QtWidgets, QtGui
 import numpy as np
-from .plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem, UnCorrelatedPlotItem, InvisiblePlotItem
+from .plot import CorrelatedPlotItem, HistoricPlotItem, WhiPlotItem, UnCorrelatedPlotItem, InvisiblePlotItem, UnCorrelatedTrackedPlotItem, CorrelatedTrackedPlotItem
 from .label import ElevationLabel, AzimuthLabel, WhiLabel
 
 class VisualTrack(QtCore.QObject):
     
-    max_historic_tracks = 15
+    # max_historic_tracks = 15
     
     ELEVATION = 0
     AZIMUTH = 1
@@ -48,10 +48,15 @@ class VisualTrack(QtCore.QObject):
         self.azimuth_deviation = 0.0
         self.distance_to_td = 0.0
 
-        self.inactive_due_to_no_updates = False
+        #self.inactive_due_to_no_updates = False
 
         #self.max_historic_az_plots = 0
         self.max_historic_plots = 0
+
+        self.az_coordinate = None
+        self.el_coordinate = None
+        self.az_extrapolated = False
+        self.el_extrapolated = False
 
 
     def designated(self):
@@ -104,16 +109,16 @@ class VisualTrack(QtCore.QObject):
         #self.scene.active_designated_track_changed.emit()
     
 
-    def extrapolate(self, new_coord, historic_coord_list):
-        if len(historic_coord_list) > 1:
+    # def extrapolate(self, new_coord, historic_coord_list):
+    #     if len(historic_coord_list) > 1:
             
-            delta = historic_coord_list[0] - historic_coord_list[1]
-            extrapolated_coord = historic_coord_list[0] + delta
-            return extrapolated_coord
+    #         delta = historic_coord_list[0] - historic_coord_list[1]
+    #         extrapolated_coord = historic_coord_list[0] + delta
+    #         return extrapolated_coord
 
-        else:
+    #     else:
 
-            return []
+    #         return []
 
 
 
@@ -276,10 +281,16 @@ class VisualTrack(QtCore.QObject):
 
         # Draw new plots
         #for i in range(self.scene.nhist):
-        for i in range(len(self.track.targets)):
+
+        for i in range(self.scene.nhist):
+            
+            if i < len(self.track.targets):
+
+
+        #for i in range(len(self.track.targets)):
             
             
-            if i < len(self.track.targets) and historic_plots_drawn < self.scene.nhist:   # 1 + nhist
+            #if i < len(self.track.targets):# and historic_plots_drawn < self.scene.nhist:   # 1 + nhist
             
                 # elevation_point = self.scene.getElevationPoint(self.list_of_el_coords[i])
                 elevation_point = self.scene.getElevationPoint(self.track.historic_coordinate(i, 'el'))
@@ -296,9 +307,9 @@ class VisualTrack(QtCore.QObject):
                             # This is a ordinary plot
                             if self.track.targets[0].el_hit:
                                 if self.track.targets[0].az_hit:
-                                    self.elevation_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                    self.elevation_plot_items.append(CorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 else:
-                                    self.elevation_plot_items.append(UnCorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                    self.elevation_plot_items.append(UnCorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                             else:
                                 self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
@@ -362,9 +373,9 @@ class VisualTrack(QtCore.QObject):
                             #if self.list_of_az_hits[0]:
                             if self.track.targets[0].az_hit:
                                 if self.track.targets[0].el_hit:
-                                    self.azimuth_plot_items.append(CorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                    self.azimuth_plot_items.append(CorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 else:
-                                    self.azimuth_plot_items.append(UnCorrelatedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                                    self.azimuth_plot_items.append(UnCorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                             else:
                                 self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 

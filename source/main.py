@@ -8,13 +8,14 @@
 
 
 import sys
+
 from PySide2 import QtWidgets
-from view.view import MyView
-from presenter.presenter import MyPresenter
-from model.model import MyModel
+from .view.view import MyView
+from .presenter.presenter import MyPresenter
+from .model.model import MyModel
 
 
-if __name__ == '__main__':
+def main():
     
     app = QtWidgets.QApplication(sys.argv)
 
@@ -23,7 +24,6 @@ if __name__ == '__main__':
     presenter = MyPresenter(model, view)
     
     view.show()
-#    view.showFullScreen()
 
 
     sys.exit(app.exec_())

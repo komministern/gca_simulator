@@ -10,12 +10,15 @@ import os
 import sys
 import time
 import random
+import shutil
 
 import numpy as np
 from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
 
 from .airport import Airport
 from .tracker import Tracker
+
+
 from mycommonfunctions import path as mypath
 
 class MyModel(QtCore.QObject):
@@ -34,8 +37,70 @@ class MyModel(QtCore.QObject):
     demo_end = QtCore.Signal()
 
 
+    def initFileIO(self):
+
+        self.application_directory = mypath.current_working_directory()
+        self.user_home_directory = mypath.user_home_directory()
+
+        # Try to find the Documents directory
+        self.user_documents_directory = None
+
+        if os.path.exists(os.path.join(self.user_home_directory, 'Documents')):
+            self.user_documents_directory = os.path.join(self.user_home_directory, 'Documents')
+        elif os.path.exists(os.path.join(self.user_home_directory, 'Dokument')):
+            self.user_documents_directory = os.path.join(self.user_home_directory, 'Dokument')
+
+        if self.user_documents_directory != None:
+            self.local_data_root_directory = os.path.join(self.user_documents_directory, 'GCA Simulator Data')
+        else:
+            self.local_data_root_directory = os.path.join(self.user_home_directory, 'GCA Simulator Data')
+
+        # self.local_data_config_directory = self.local_data_root_directory
+        # self.local_data_log_directory = os.path.join(self.local_data_root_directory, 'logs')
+        self.local_data_recordings_directory = os.path.join(self.local_data_root_directory, 'recordings')
+        self.local_data_airports_directory = os.path.join(self.local_data_root_directory, 'airports')
+        self.local_data_plugins_directory = os.path.join(self.local_data_root_directory, 'plugins')
+        self.local_data_dcs_plugin_directory = os.path.join(self.local_data_plugins_directory, 'dcs')
+
+        self.default_resources_directory = os.path.join(self.application_directory, 'resources')
+        self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
+        self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
+        self.default_plugins_directory = os.path.join(self.default_resources_directory, 'plugins')
+
+        # Initialize directories and stuff
+        
+        if not os.path.exists(self.local_data_root_directory):
+            os.mkdir(self.local_data_root_directory)
+
+        # if not os.path.exists(self.local_data_log_directory):
+        #     os.mkdir(self.local_data_log_directory)
+
+        # RECORDINGS
+        if not os.path.exists(self.local_data_recordings_directory):
+            os.mkdir(self.local_data_recordings_directory)
+        shutil.copyfile(os.path.join(self.default_recordings_directory, 'demo.rec'), os.path.join(self.local_data_recordings_directory, 'demo.rec'))
+
+        # AIRPORTS
+        if not os.path.exists(self.local_data_airports_directory):
+            os.mkdir(self.local_data_airports_directory)
+        shutil.copyfile(os.path.join(self.default_airports_directory, 'batumi.apt'), os.path.join(self.local_data_airports_directory, 'batumi.apt'))
+        shutil.copyfile(os.path.join(self.default_airports_directory, 'readme.txt'), os.path.join(self.local_data_airports_directory, 'readme.txt'))
+
+        # PLUGINS
+        if os.path.exists(self.local_data_plugins_directory):
+            shutil.rmtree(self.local_data_plugins_directory)
+        shutil.copytree(self.default_plugins_directory, self.local_data_plugins_directory)
+
+        # if not os.path.exists(self.local_data_dcs_plugin_directory):
+        #     os.mkdir(self.local_data_dcs_plugin_directory)
+
+        # Copy the necessary basic files to their respective directories
+
+
     def __init__(self):
         super(MyModel, self).__init__()
+
+        self.initFileIO()
 
         self.tracker = Tracker(self)
 
@@ -47,7 +112,7 @@ class MyModel(QtCore.QObject):
 
 
         self.runway_password = 'plt'
-        self.radar_mode_password = 'smc'
+        self.radar_mode_password = 'plt'
         self.radar_control_password = 'plt'
         self.ppi_password = 'plt'
 
@@ -94,17 +159,11 @@ class MyModel(QtCore.QObject):
 
         self.rain_mode = False
         
-
         self.wf_counter = 0
 
+        self.time_stamp_radiate_on = 0.0
 
 
-
-
-        #self.tracks = {}
-
-        #if self.sim == 'dcs':
-        #    self.startCommunicatingWithXPlanePlugin()
         
 
     def readNewAirport(self, filename):
@@ -236,7 +295,7 @@ class MyModel(QtCore.QObject):
 
         #print airport_filename
 
-        self.readNewAirport(os.path.join(self.default_airports_directory, airport_filename))
+        self.readNewAirport(os.path.join(self.local_data_airports_directory, airport_filename))
         
         self.demo_mode = True
         
@@ -246,6 +305,8 @@ class MyModel(QtCore.QObject):
 
         #self.startCommunicatingWithXPlanePlugin()
         self.UDP_IP = '127.0.0.1'
+
+        self.time_stamp_radiate_on = time.time()
 
         self.demo_init.emit()
 
@@ -502,7 +563,9 @@ class MyModel(QtCore.QObject):
                     self.record_file = None
 
                 elif self.recording and self.record_file == None:
-                    self.record_file = open('./resources/recordings/new_recording.txt', 'w')
+                    #self.record_file = open('./resources/recordings/new_recording.txt', 'w')
+                    self.record_file = open(os.path.join(self.local_data_recordings_directory, 'newrecord.rec', 'w'))
+                    
 
                     head, tail = os.path.split(self.airport.filename)
                     self.record_file.write(tail + '\n')         # Save ONLY the actual filename, not the complete path!!!!!!!!!!!!!!
@@ -521,8 +584,8 @@ class MyModel(QtCore.QObject):
 
     def scramble_coordinate(self, coordinate):
         
-        std_dev_theta = 0.00010     # Side angle
-        std_dev_fi = 0.00005        # Vertical angle
+        std_dev_theta = 0.0003     # Side angle
+        std_dev_fi = 0.0002        # Vertical angle
 
         delta_theta = np.random.normal(scale=std_dev_theta)
         delta_fi = np.random.normal(scale=std_dev_fi)
@@ -554,10 +617,10 @@ class MyModel(QtCore.QObject):
             r_zero_prb = 19.0      
         
         fi_up_full_prb = 7.0
-        fi_up_zero_prb = 7.1
+        fi_up_zero_prb = 7.2
         
         fi_down_full_prb = -1.0
-        fi_down_zero_prb = -1.1
+        fi_down_zero_prb = -1.2
         
         theta_left_full_prb = 14.0 + elantazim
         theta_left_zero_prb = 19.0 + elantazim
@@ -606,14 +669,14 @@ class MyModel(QtCore.QObject):
         elantazim = -self.elantazim
         azantelev = self.azantelev
 
-        p_normal = 0.995
+        p_normal = 0.997
         
         if self.rain_mode:
             r_full_prb = 12.0
-            r_zero_prb = 15.0
+            r_zero_prb = 22.0
         else:   
             r_full_prb = 15.0
-            r_zero_prb = 18.0      
+            r_zero_prb = 22.0      
         
         #fi_up_full_prb = azantelev + 5.0
         #fi_up_zero_prb = azantelev + 10.1
@@ -624,13 +687,13 @@ class MyModel(QtCore.QObject):
         fi_up_full_prb = azantelev + 5.0
         fi_up_zero_prb = azantelev + 10.0
         
-        fi_down_full_prb = azantelev - 1.8
+        fi_down_full_prb = azantelev - 1.95
         fi_down_zero_prb = azantelev - 10.0
 
-        theta_left_full_prb = 14.8 + elantazim
+        theta_left_full_prb = 15.0 + elantazim
         theta_left_zero_prb = 15.2 + elantazim
 
-        theta_right_full_prb = -14.8 + elantazim
+        theta_right_full_prb = -15.0 + elantazim
         theta_right_zero_prb = -15.2 + elantazim
 
         coord_rel_to_gca = coord - gca_coord
