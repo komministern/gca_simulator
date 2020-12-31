@@ -51,19 +51,21 @@ class UncorrelatedPlots(QtCore.QObject):
         #     for item in ttl_item_list:
         #         self.addToGroup(item)
 
-        for track in self.passive_tracks:
-            el_coord = self.passive_tracks[track].historic_coordinate(0, 'el')
-            az_coord = self.passive_tracks[track].historic_coordinate(0, 'az')
-            if not isinstance(el_coord, type(None)):
-                el_point = self.scene.getElevationPoint(el_coord)
-                el_item = UnCorrelatedPlotItem(el_point.x(), el_point.y(), None, self.scene)
-                self.uncorrelated_plot_items.append(el_item)
-                #self.addToGroup(el_item)
-            if not isinstance(az_coord, type(None)):
-                az_point = self.scene.getAzimuthPoint(az_coord)
-                az_item = UnCorrelatedPlotItem(az_point.x(), az_point.y(), None, self.scene)
-                self.uncorrelated_plot_items.append(az_item)
-                #self.addToGroup(az_item)
+        if self.scene.radiating:
 
-        #self.scene.addItem(self)
+            for track in self.passive_tracks:
+                el_coord = self.passive_tracks[track].historic_coordinate(0, 'el')
+                az_coord = self.passive_tracks[track].historic_coordinate(0, 'az')
+                if not isinstance(el_coord, type(None)):
+                    el_point = self.scene.getElevationPoint(el_coord)
+                    el_item = UnCorrelatedPlotItem(el_point.x(), el_point.y(), None, self.scene)
+                    self.uncorrelated_plot_items.append(el_item)
+                    #self.addToGroup(el_item)
+                if not isinstance(az_coord, type(None)):
+                    az_point = self.scene.getAzimuthPoint(az_coord)
+                    az_item = UnCorrelatedPlotItem(az_point.x(), az_point.y(), None, self.scene)
+                    self.uncorrelated_plot_items.append(az_item)
+                    #self.addToGroup(az_item)
+
+            #self.scene.addItem(self)
 

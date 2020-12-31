@@ -61,11 +61,15 @@ class MyModel(QtCore.QObject):
         self.local_data_airports_directory = os.path.join(self.local_data_root_directory, 'airports')
         self.local_data_plugins_directory = os.path.join(self.local_data_root_directory, 'plugins')
         self.local_data_dcs_plugin_directory = os.path.join(self.local_data_plugins_directory, 'dcs')
+        self.local_data_xplane_plugin_directory = os.path.join(self.local_data_plugins_directory, 'xplane')
 
         self.default_resources_directory = os.path.join(self.application_directory, 'resources')
         self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
         self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
         self.default_plugins_directory = os.path.join(self.default_resources_directory, 'plugins')
+        self.default_dcs_plugin_directory = os.path.join(self.default_plugins_directory, 'dcs')
+        self.default_xplane_plugin_directory = os.path.join(self.default_plugins_directory, 'xplane')
+        self.default_sounds_directory = os.path.join(self.default_resources_directory, 'sounds')
 
         # Initialize directories and stuff
         
@@ -87,14 +91,17 @@ class MyModel(QtCore.QObject):
         shutil.copyfile(os.path.join(self.default_airports_directory, 'readme.txt'), os.path.join(self.local_data_airports_directory, 'readme.txt'))
 
         # PLUGINS
-        if os.path.exists(self.local_data_plugins_directory):
-            shutil.rmtree(self.local_data_plugins_directory)
-        shutil.copytree(self.default_plugins_directory, self.local_data_plugins_directory)
+        if not os.path.exists(self.local_data_plugins_directory):
+            os.mkdir(self.local_data_plugins_directory)
+        
+        if os.path.exists(self.local_data_dcs_plugin_directory):
+            shutil.rmtree(self.local_data_dcs_plugin_directory)
+        shutil.copytree(self.default_dcs_plugin_directory, self.local_data_dcs_plugin_directory)
+        # if os.path.exists(self.local_data_xplane_plugin_directory):
+        #     shutil.rmtree(self.local_data_xplane_plugin_directory)
+        # shutil.copytree(self.default_xplane_plugin_directory, self.local_data_xplane_plugin_directory)
 
-        # if not os.path.exists(self.local_data_dcs_plugin_directory):
-        #     os.mkdir(self.local_data_dcs_plugin_directory)
-
-        # Copy the necessary basic files to their respective directories
+       
 
 
     def __init__(self):
@@ -142,6 +149,8 @@ class MyModel(QtCore.QObject):
         self.demo_mode = False
         self.demo_has_restarted = False
 
+
+
         self.record_file = None
         self.latest_airport_filename = None
         
@@ -158,6 +167,8 @@ class MyModel(QtCore.QObject):
         self.elantazim = None
 
         self.rain_mode = False
+
+        self.radiating = False
         
         self.wf_counter = 0
 

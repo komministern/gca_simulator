@@ -42,22 +42,18 @@ class HistoricUncorrelatedPlots(QtCore.QObject):
 
 
     def draw(self):
-        #self.calculate()
-        # self.create()
-        # self.setVisible(self.scene.obs_active)
-        pass
-        #print self.scene.active_airport
-        #if self.scene.active_airport != None:
-        #    print int( self.scene.active_airport.runways[self.scene.active_runway]['thr_lon'] * 10000 )
+        
 
         for item in self.historic_plot_items:
             item.remove()
         self.historic_plot_items = []
     
-        if self.scene.nhist != None:
-            i = 0
-            for points in self.historic_plot_points_ttl_list:
-                if i < self.scene.nhist:
-                    for point in points:
-                        self.historic_plot_items.append(HistoricPlotItem(point.x(), point.y(), None, self.scene, None))
-                    i += 1
+        if self.scene.radiating:
+
+            if self.scene.nhist != None:
+                i = 0
+                for points in self.historic_plot_points_ttl_list:
+                    if i < self.scene.nhist:
+                        for point in points:
+                            self.historic_plot_items.append(HistoricPlotItem(point.x(), point.y(), None, self.scene, None))
+                        i += 1

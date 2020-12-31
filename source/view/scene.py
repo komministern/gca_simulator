@@ -615,6 +615,7 @@ class MyScene(QtWidgets.QGraphicsScene):
         for track_name in self.visualtracks:
             self.visualtracks[track_name].destroy()
         self.visualtracks = {}
+        self.historic_uncorrelated_plots_item.resetHistoryPlots()
         #self.visualtracks[track_name].draw(elevation=True, azimuth=True, whi=True, only_remove=True)
 
     def drawAllTracks(self):

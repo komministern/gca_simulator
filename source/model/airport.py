@@ -18,7 +18,6 @@ class Airport(object):
 
         self.dostuff(filename)
 
-
     def dostuff(self, filename):
 
         with open(filename) as f:

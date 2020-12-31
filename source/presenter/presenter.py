@@ -8,6 +8,7 @@
 
 import functools
 import time
+import os
 from PySide2 import QtCore, QtWidgets, QtGui
 import simpleaudio
 from functools import partial
@@ -34,7 +35,8 @@ class MyPresenter(QtCore.QObject):
         self.beep_timer = QtCore.QTimer()
         self.beep_timer.setInterval(1100)
         self.beep_timer.timeout.connect(self.play_beep)
-        self.beep = simpleaudio.WaveObject.from_wave_file('./resources/sounds/beep.wav')
+        #self.beep = simpleaudio.WaveObject.from_wave_file('./resources/sounds/beep.wav')
+        self.beep = simpleaudio.WaveObject.from_wave_file(os.path.join(self.model.default_sounds_directory, 'beep.wav'))
 
 
         # Setup all signals.
@@ -1342,6 +1344,8 @@ class MyPresenter(QtCore.QObject):
     
     def toggleRadiation(self, button):
         #print 'radiate pressed'
+        self.model.tracker.reset_tracks()
+
         if (not self.antenna_drive_on) and self.radiating:
             # If antenna drive is off, turn radiation off as well
             button.toggleInverted()
@@ -1352,6 +1356,9 @@ class MyPresenter(QtCore.QObject):
             #print 'removing all tracks'
         if self.radiating:
             self.markRadiateStartTime()
+        
+        self.model.radiating = self.radiating
+        
             
 
         self.view.scene.removeAllTracks()   # This due to the pending_active_runway

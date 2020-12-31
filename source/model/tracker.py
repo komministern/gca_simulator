@@ -225,6 +225,14 @@ class Tracker(QtCore.QObject):
         self.active_tracks = {}
         self.passive_tracks = {}
 
+    def reset_tracks(self):
+        self.active_tracks = {}
+        self.passive_tracks = {}
+        # for name in tracks_which_have_become_null_and_void:
+        #     #self.passive_tracks[name] = self.active_tracks[name]
+        #     del self.active_tracks[name]
+        #     print('deleted ' + name + ' from active tracks')
+
     def process_hits(self, new_time_stamp, thr_coordinate, eor_coordinate, gca_coordinate, aircraft_coordinates, aircraft_hits):
         
         for name in aircraft_coordinates:
@@ -275,9 +283,9 @@ class Tracker(QtCore.QObject):
             del self.active_tracks[name]
             print('deleted ' + name + ' from active tracks')
         
-        print(time.time() - self.model.time_stamp_radiate_on)
+        # print(time.time() - self.model.time_stamp_radiate_on)
 
-        if ('mti' not in self.active_tracks) and (time.time() - self.model.time_stamp_radiate_on) > 4.0:
+        if ('mti' not in self.active_tracks) and (time.time() - self.model.time_stamp_radiate_on) > 4.0 and self.model.radiating:
             self.mti_lost.emit()
             # This is the way to go with the mti alarm.....
 
@@ -294,4 +302,3 @@ class Tracker(QtCore.QObject):
     
         # Should get some signal when a demo file resets, so that all targets are dropped.
         # Targets behind the radar should never get to send hits!!!!!
-         
