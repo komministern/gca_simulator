@@ -282,7 +282,7 @@ class VisualTrack(QtCore.QObject):
         # Draw new plots
         #for i in range(self.scene.nhist):
 
-        for i in range(self.scene.nhist):
+        for i in range(self.scene.nhist + 1):
             
             if i < len(self.track.targets):
 
@@ -310,17 +310,17 @@ class VisualTrack(QtCore.QObject):
                                     self.elevation_plot_items.append(CorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 else:
                                     self.elevation_plot_items.append(UnCorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
-                            else:
-                                self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            # else:
+                            #     self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
 
-                        elif self.scene.hist_active and historic_plots_drawn < self.max_historic_plots:
+                        elif self.scene.hist_active and (historic_plots_drawn < self.max_historic_plots):
                             # This is a historic plot
                             if self.track.targets[i].el_hit:
                                 self.elevation_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 historic_plots_drawn += 1
-                            else:
-                                self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            # else:
+                            #     self.elevation_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
         
 
@@ -342,7 +342,7 @@ class VisualTrack(QtCore.QObject):
 
         historic_plots_drawn = 0
 
-        for i in range(self.scene.nhist):
+        for i in range(self.scene.nhist + 1):
             
             if i < len(self.track.targets):   # 1 + nhist
 
@@ -376,8 +376,8 @@ class VisualTrack(QtCore.QObject):
                                     self.azimuth_plot_items.append(CorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 else:
                                     self.azimuth_plot_items.append(UnCorrelatedTrackedPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
-                            else:
-                                self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            # else:
+                            #     self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
 
                         elif self.scene.hist_active and historic_plots_drawn < self.max_historic_plots:
@@ -385,8 +385,8 @@ class VisualTrack(QtCore.QObject):
                             if self.track.targets[i].az_hit:
                                 self.azimuth_plot_items.append(HistoricPlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
                                 historic_plots_drawn += 1
-                            else:
-                                self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
+                            # else:
+                            #     self.azimuth_plot_items.append(InvisiblePlotItem(x, y, parent=None, scene=self.scene, parent_track=self))
 
 
 

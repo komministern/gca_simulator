@@ -44,12 +44,16 @@ class CorrelatedTrackedPlotItem(PlotItem):
 class UnCorrelatedTrackedPlotItem(PlotItem):
     def __init__(self, x, y, parent, scene, parent_track, visible=True):
         super(UnCorrelatedTrackedPlotItem, self).__init__(x, y, parent=parent, scene=scene, parent_track=parent_track, visible=visible)
-        self.setBrush(self.scene.plot_brush)
-        self.setPen(self.scene.plot_pen)
+        # self.setBrush(self.scene.plot_brush)
+        # self.setPen(self.scene.plot_pen)
+
+        self.setBrush(self.scene.uncorrelated_plot_brush)
+        self.setPen(self.scene.uncorrelated_plot_pen)   
+
         self.setZValue(self.scene.plot_zvalue)
 
-    # def mousePressEvent(self, event):
-    #     self.parent_track.toggleDesignated()
+    def mousePressEvent(self, event):
+        self.parent_track.toggleDesignated()
 
 
 class CorrelatedPlotItem(PlotItem):

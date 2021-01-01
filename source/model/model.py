@@ -575,7 +575,7 @@ class MyModel(QtCore.QObject):
 
                 elif self.recording and self.record_file == None:
                     #self.record_file = open('./resources/recordings/new_recording.txt', 'w')
-                    self.record_file = open(os.path.join(self.local_data_recordings_directory, 'newrecord.rec', 'w'))
+                    self.record_file = open(os.path.join(self.local_data_recordings_directory, 'newrecord.rec'), 'w')
                     
 
                     head, tail = os.path.split(self.airport.filename)

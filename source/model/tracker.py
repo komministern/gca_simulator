@@ -77,10 +77,10 @@ class Track(QtCore.QObject):
 
 
     def qualify_for_active(self):
-        if len(self.targets) < 2:
+        if len(self.targets) < 3:
             return False
         else:
-            return (self.targets[0].az_hit and self.targets[1].az_hit) and (self.targets[0].el_hit and self.targets[1].el_hit)
+            return (self.targets[0].az_hit and self.targets[1].az_hit and self.targets[2].az_hit) and (self.targets[0].el_hit and self.targets[1].el_hit and self.targets[2].el_hit)
 
 
     def register_new_target(self, time_stamp, coordinate, az_hit, el_hit):
