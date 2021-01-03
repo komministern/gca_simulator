@@ -280,7 +280,7 @@ class Label(QtWidgets.QGraphicsItemGroup):
     def mousePressEvent(self, event):
         super(Label, self).mousePressEvent(event)
         
-        self.scene.selectAsFirstDesignatedTarget(self.parent_track)
+        # self.scene.selectAsFirstDesignatedTarget(self.parent_track)
         
         self.label_currently_pressed = True
 

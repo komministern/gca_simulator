@@ -691,6 +691,7 @@ class MyPresenter(QtCore.QObject):
         #self.view.button_ant_drive.mousePressEvent(None)
         #self.view.button_radiate.mousePressEvent(None)
 
+        self.view.button_select_rangescale_15.mousePressEvent(None)
         self.radiate_pending = True
         delayed_function = partial(self.view.button_ant_drive.mousePressEvent, None)
         self.ant_drive_timer = QtCore.QTimer.singleShot(1100.0, delayed_function)
@@ -703,7 +704,7 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rec)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rcd)')
             if filename:
                 self.model.initDemoMode(filename)
             

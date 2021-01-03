@@ -116,7 +116,8 @@ class Track(QtCore.QObject):
             new_coordinate = (new_az_coordinate + new_el_coordinate) / 2
             delta_distance = new_coordinate - last_coordinate
             delta_time = target.time_stamp - self.targets[0].time_stamp
-            velocity = np.linalg.norm(delta_distance / delta_time)
+            velocity = np.linalg.norm(delta_distance) / delta_time
+            velocity *= 1.943844
         else:
             velocity = None
         return velocity
@@ -194,7 +195,7 @@ class Track(QtCore.QObject):
                 velocity_sum += v
                 velocity_counter += 1
         if velocity_counter > 0:
-            mean_velocity = velocity_sum / velocity_counter
+            mean_velocity = velocity_sum / velocity_counter# * 1.943844  # Knots
         else:
             mean_velocity = None
         return mean_velocity
@@ -206,7 +207,7 @@ class Track(QtCore.QObject):
         momentous_velocity = self.calculate_velocity(target)
         mean_velocity = self.mean_velocity(0, self.velocity_window_size)
         if momentous_velocity != None and mean_velocity != None:
-            filtered_velocity = self.velocity_alpha * momentous_velocity + (1.0 - self.velocity_alpha) * mean_velocity
+            filtered_velocity = self.velocity_alpha * momentous_velocity + (1.0 - self.velocity_alpha) * mean_velocity# * 1.943844   # Knots
         else:
             filtered_velocity = None
         return filtered_velocity

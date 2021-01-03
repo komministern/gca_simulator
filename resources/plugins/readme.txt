@@ -1,0 +1,1 @@
+These are the plugins used to connect the gca simulator to different flight simulators.

@@ -59,6 +59,7 @@ class MyModel(QtCore.QObject):
         # self.local_data_log_directory = os.path.join(self.local_data_root_directory, 'logs')
         self.local_data_recordings_directory = os.path.join(self.local_data_root_directory, 'recordings')
         self.local_data_airports_directory = os.path.join(self.local_data_root_directory, 'airports')
+        self.local_data_videos_directory = os.path.join(self.local_data_root_directory, 'videos')
         self.local_data_plugins_directory = os.path.join(self.local_data_root_directory, 'plugins')
         self.local_data_dcs_plugin_directory = os.path.join(self.local_data_plugins_directory, 'dcs')
         self.local_data_xplane_plugin_directory = os.path.join(self.local_data_plugins_directory, 'xplane')
@@ -66,6 +67,7 @@ class MyModel(QtCore.QObject):
         self.default_resources_directory = os.path.join(self.application_directory, 'resources')
         self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
         self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
+        self.default_videos_directory = os.path.join(self.default_resources_directory, 'videos')
         self.default_plugins_directory = os.path.join(self.default_resources_directory, 'plugins')
         self.default_dcs_plugin_directory = os.path.join(self.default_plugins_directory, 'dcs')
         self.default_xplane_plugin_directory = os.path.join(self.default_plugins_directory, 'xplane')
@@ -82,13 +84,20 @@ class MyModel(QtCore.QObject):
         # RECORDINGS
         if not os.path.exists(self.local_data_recordings_directory):
             os.mkdir(self.local_data_recordings_directory)
-        shutil.copyfile(os.path.join(self.default_recordings_directory, 'demo.rec'), os.path.join(self.local_data_recordings_directory, 'demo.rec'))
+        shutil.copyfile(os.path.join(self.default_recordings_directory, 'demo.rcd'), os.path.join(self.local_data_recordings_directory, 'demo.rcd'))
+        shutil.copyfile(os.path.join(self.default_recordings_directory, 'readme.txt'), os.path.join(self.local_data_recordings_directory, 'readme.txt'))
 
         # AIRPORTS
         if not os.path.exists(self.local_data_airports_directory):
             os.mkdir(self.local_data_airports_directory)
         shutil.copyfile(os.path.join(self.default_airports_directory, 'batumi.apt'), os.path.join(self.local_data_airports_directory, 'batumi.apt'))
         shutil.copyfile(os.path.join(self.default_airports_directory, 'readme.txt'), os.path.join(self.local_data_airports_directory, 'readme.txt'))
+
+        # VIDEOS
+        if not os.path.exists(self.local_data_videos_directory):
+            os.mkdir(self.local_data_videos_directory)
+        shutil.copyfile(os.path.join(self.default_videos_directory, 'demo.mp4'), os.path.join(self.local_data_videos_directory, 'demo.mp4'))  # Too large?
+        shutil.copyfile(os.path.join(self.default_videos_directory, 'readme.txt'), os.path.join(self.local_data_videos_directory, 'readme.txt'))
 
         # PLUGINS
         if not os.path.exists(self.local_data_plugins_directory):
@@ -97,6 +106,8 @@ class MyModel(QtCore.QObject):
         if os.path.exists(self.local_data_dcs_plugin_directory):
             shutil.rmtree(self.local_data_dcs_plugin_directory)
         shutil.copytree(self.default_dcs_plugin_directory, self.local_data_dcs_plugin_directory)
+        shutil.copyfile(os.path.join(self.default_plugins_directory, 'readme.txt'), os.path.join(self.local_data_plugins_directory, 'readme.txt'))
+
         # if os.path.exists(self.local_data_xplane_plugin_directory):
         #     shutil.rmtree(self.local_data_xplane_plugin_directory)
         # shutil.copytree(self.default_xplane_plugin_directory, self.local_data_xplane_plugin_directory)
@@ -111,11 +122,11 @@ class MyModel(QtCore.QObject):
 
         self.tracker = Tracker(self)
 
-        self.working_directory = mypath.current_working_directory()
-        print(self.working_directory)
-        self.default_resources_directory = os.path.join(self.working_directory, 'resources')
-        self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
-        self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
+        # self.working_directory = mypath.current_working_directory()
+        # print(self.working_directory)
+        # self.default_resources_directory = os.path.join(self.working_directory, 'resources')
+        # self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
+        # self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
 
 
         self.runway_password = 'plt'
@@ -292,6 +303,11 @@ class MyModel(QtCore.QObject):
                 self.demo_loop.emit()
 
             #print 'sending message'
+
+            self.c0 += 1
+            print('Send time: %f' % (time.time() - self.t0 - self.c0*0.250))
+            
+
             self.udp_send_socket.writeDatagram(next_message.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT)
 
         self.latest_send_timestamp = time.time()
@@ -320,6 +336,9 @@ class MyModel(QtCore.QObject):
         self.time_stamp_radiate_on = time.time()
 
         self.demo_init.emit()
+
+        self.t0 = time.time()
+        self.c0 = 0
 
         self.startSendingToPlugin()
 
@@ -402,6 +421,11 @@ class MyModel(QtCore.QObject):
                         self.new_connected_state.emit(self.connected)
 
                     time_stamp = float(strings[1])
+
+                    if self.c0 == 1:
+                        self.rt0 = time_stamp
+                    else:
+                        print('Rec time: %f' % (time_stamp - self.rt0 - (self.c0 - 1) * 0.250))
 
                     thr_rwy = {}
                     eor_rwy = {}
@@ -575,7 +599,7 @@ class MyModel(QtCore.QObject):
 
                 elif self.recording and self.record_file == None:
                     #self.record_file = open('./resources/recordings/new_recording.txt', 'w')
-                    self.record_file = open(os.path.join(self.local_data_recordings_directory, 'newrecord.rec'), 'w')
+                    self.record_file = open(os.path.join(self.local_data_recordings_directory, 'newrecord.rcd'), 'w')
                     
 
                     head, tail = os.path.split(self.airport.filename)
