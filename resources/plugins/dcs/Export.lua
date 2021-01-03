@@ -1075,4 +1075,4 @@ To be continued...
 
 --load the DCS ExportScript for the GCA
 
-dofile(lfs.writedir()..[[Scripts\GCA-ExportScript\ExportScript.lua]])
+dofile(lfs.writedir()..[[Scripts\GCA\ExportScript.lua]])

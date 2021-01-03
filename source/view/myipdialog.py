@@ -14,21 +14,23 @@ import os
 class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
 
 
-    def __init__(self, parent=None):
+    def __init__(self, filename, parent=None):
         super(MyIPDialog, self).__init__(parent)
+
+        self.filename = filename
 
         self.setupUi(self)
 
         self.comboBox.currentIndexChanged.connect(self.indexChanged)
 
-        user_path = os.path.expanduser('~')
-        file_name = 'ipaddresses.txt'
-        self.file_path = os.path.join(user_path, file_name)
+        # user_path = os.path.expanduser('~')
+        # file_name = 'ipaddresses.txt'
+        # self.file_path = os.path.join(user_path, file_name)
 
-        if not os.path.exists(self.file_path):
-            self.save_ip_adresses(self.file_path, ['127.0.0.1'])
+        if not os.path.exists(self.filename):
+            self.save_ip_adresses(self.filename, ['127.0.0.1'])
         
-        self.list_of_ip_adresses = self.read_ip_adresses(self.file_path)
+        self.list_of_ip_adresses = self.read_ip_adresses(self.filename)
 
         self.comboBox.clear()
         self.comboBox.addItems(self.list_of_ip_adresses)

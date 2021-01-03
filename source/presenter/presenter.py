@@ -361,7 +361,7 @@ class MyPresenter(QtCore.QObject):
         if self.view.scene.active_airport != None and not self.demo_mode:
             if (not self.model.connected) and (not self.trying_to_connect):
 
-                self.dialog = MyIPDialog(self.view)
+                self.dialog = MyIPDialog(self.model.ip_filename, self.view)
                 ok = self.dialog.exec_()
                 if ok:
                 

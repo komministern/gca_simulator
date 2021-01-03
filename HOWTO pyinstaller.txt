@@ -1,3 +1,11 @@
 Run this command from within the project catalouge (Windows):
 
-pyinstaller --windowed --icon=gca.ico --name="GCA Analysis Tool" main.py
+The "GCA Simulator.spec" is created with the following command:
+
+pyi-makespec --icon=resources/images/icon.ico --name="GCA Simulator" --add-data "resources\images\icon.ico;resources\images" --add-data "resources\airports\*;resources\airports" --add-data "resources\plugins\readme.txt;resources\plugins" --add-data "resources\plugins\dcs\Export.lua;resources\plugins\dcs" --add-data "resources\plugins\dcs\readme.txt;resources\plugins\dcs" --add-data "resources\plugins\dcs\GCA-ExportScript\ExportScript.lua;resources\plugins\dcs\GCA-ExportScript" --add-data "resources\plugins\dcs\GCA-ExportScript\lib\*;resources\plugins\dcs\GCA-ExportScript\lib" --add-data "resources\recordings\*;resources\recordings" --add-data "resources\sounds\*;resources\sounds" --add-data "resources\videos\*;resources\videos" --windowed start.py
+
+With the .spec file generated, just run:
+
+pyinstaller "GCA Simulator.spec"
+
+and voila!

@@ -7,9 +7,12 @@
 
 
 
-
+import os
 #from PySide import QtGui, QtCore
 from PySide2 import QtCore, QtWidgets, QtGui
+
+from mycommonfunctions import path as mypath
+
 from .scene import MyScene
 from .window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
 from .button import Button, InvertingButton, ExpandingButton, ExpandingWidgetButton, FlashingButton, PendingButton
@@ -25,6 +28,12 @@ class MyView(QtWidgets.QGraphicsView):
 
     def __init__(self):
         super(MyView, self).__init__()
+
+        resources_directory = os.path.join(mypath.current_working_directory(), 'resources')
+        images_directory = os.path.join(resources_directory, 'images')
+        icon_path = os.path.join(images_directory, 'icon.ico')
+
+        self.setWindowIcon(QtGui.QIcon(icon_path))
 
         self.setStyleSheet("border: 0px")
 

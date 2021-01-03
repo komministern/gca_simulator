@@ -497,6 +497,8 @@ class VisualTrack(QtCore.QObject):
         deviation_from_glideslope_in_feet = deviation_from_glideslope_in_m * 3.28084
         self.elevation_deviation = deviation_from_glideslope_in_feet
 
+        
+
         # if len(self.list_of_el_coords) > 0:
         #     plot_x = self.list_of_el_coords[0][0]
         #     plot_z = self.list_of_el_coords[0][2]

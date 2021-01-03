@@ -120,6 +120,8 @@ class MyModel(QtCore.QObject):
 
         self.initFileIO()
 
+        self.ip_filename = os.path.join(self.local_data_root_directory, 'ip.txt')
+
         self.tracker = Tracker(self)
 
         # self.working_directory = mypath.current_working_directory()
