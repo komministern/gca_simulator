@@ -20,19 +20,19 @@ class Ui_About(object):
         About.resize(548, 448)
         self.gridLayout = QGridLayout(About)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.label_3 = QLabel(About)
-        self.label_3.setObjectName(u"label_3")
+        self.label_version = QLabel(About)
+        self.label_version.setObjectName(u"label_version")
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
-        self.label_3.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.label_version.sizePolicy().hasHeightForWidth())
+        self.label_version.setSizePolicy(sizePolicy)
         font = QFont()
         font.setPointSize(14)
-        self.label_3.setFont(font)
-        self.label_3.setAlignment(Qt.AlignCenter)
+        self.label_version.setFont(font)
+        self.label_version.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout.addWidget(self.label_3, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.label_version, 1, 0, 1, 1)
 
         self.label_2 = QLabel(About)
         self.label_2.setObjectName(u"label_2")
@@ -81,7 +81,7 @@ class Ui_About(object):
 
     def retranslateUi(self, About):
         About.setWindowTitle(QCoreApplication.translate("About", u"About GCA Simulator", None))
-        self.label_3.setText(QCoreApplication.translate("About", u"v0.9b", None))
+        self.label_version.setText(QCoreApplication.translate("About", u"v0.9b", None))
         self.label_2.setText(QCoreApplication.translate("About", u"GCA Simulator", None))
         self.textEdit.setHtml(QCoreApplication.translate("About", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

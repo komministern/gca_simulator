@@ -1,0 +1,5 @@
+
+# PASSWORDS
+radarcontrolpwd     plt
+runwaypwd           plt
+radarmodepwd        plt

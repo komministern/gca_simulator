@@ -5,11 +5,14 @@
 #    This file is part of GCA Analysis Tool.
 
 
+import os
 
 from PySide2 import QtCore, QtWidgets, QtGui
 
 from .ui_ipdialog import Ui_Dialog
-import os
+import mycommonfunctions.basicconfig as myconf
+
+globalvars = myconf.getGlobals()
 
 class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
 
@@ -17,7 +20,7 @@ class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self, filename, parent=None):
         super(MyIPDialog, self).__init__(parent)
 
-        self.filename = filename
+        self.filename = globalvars['ip_file']
 
         self.setupUi(self)
 
@@ -75,7 +78,7 @@ class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
             self.comboBox.clear()
             self.comboBox.addItems(self.list_of_ip_adresses)
             self.comboBox.setCurrentIndex(0)
-            self.save_ip_adresses(self.file_path, self.list_of_ip_adresses)
+            self.save_ip_adresses(self.filename, self.list_of_ip_adresses)
         
         self.accept()
 

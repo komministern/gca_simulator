@@ -18,8 +18,10 @@ from PySide2 import QtCore, QtWidgets, QtGui, QtNetwork
 from .airport import Airport
 from .tracker import Tracker
 
-
 from mycommonfunctions import path as mypath
+from mycommonfunctions import basicconfig as myconf
+
+config = myconf.getConfig('config')
 
 class MyModel(QtCore.QObject):
 
@@ -37,90 +39,10 @@ class MyModel(QtCore.QObject):
     demo_end = QtCore.Signal()
 
 
-    def initFileIO(self):
-
-        self.application_directory = mypath.current_working_directory()
-        self.user_home_directory = mypath.user_home_directory()
-
-        # Try to find the Documents directory
-        self.user_documents_directory = None
-
-        if os.path.exists(os.path.join(self.user_home_directory, 'Documents')):
-            self.user_documents_directory = os.path.join(self.user_home_directory, 'Documents')
-        elif os.path.exists(os.path.join(self.user_home_directory, 'Dokument')):
-            self.user_documents_directory = os.path.join(self.user_home_directory, 'Dokument')
-
-        if self.user_documents_directory != None:
-            self.local_data_root_directory = os.path.join(self.user_documents_directory, 'GCA Simulator Data')
-        else:
-            self.local_data_root_directory = os.path.join(self.user_home_directory, 'GCA Simulator Data')
-
-        # self.local_data_config_directory = self.local_data_root_directory
-        # self.local_data_log_directory = os.path.join(self.local_data_root_directory, 'logs')
-        self.local_data_recordings_directory = os.path.join(self.local_data_root_directory, 'recordings')
-        self.local_data_airports_directory = os.path.join(self.local_data_root_directory, 'airports')
-        self.local_data_videos_directory = os.path.join(self.local_data_root_directory, 'videos')
-        self.local_data_plugins_directory = os.path.join(self.local_data_root_directory, 'plugins')
-        self.local_data_dcs_plugin_directory = os.path.join(self.local_data_plugins_directory, 'dcs')
-        self.local_data_xplane_plugin_directory = os.path.join(self.local_data_plugins_directory, 'xplane')
-
-        self.default_resources_directory = os.path.join(self.application_directory, 'resources')
-        self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
-        self.default_airports_directory = os.path.join(self.default_resources_directory, 'airports')
-        self.default_videos_directory = os.path.join(self.default_resources_directory, 'videos')
-        self.default_plugins_directory = os.path.join(self.default_resources_directory, 'plugins')
-        self.default_dcs_plugin_directory = os.path.join(self.default_plugins_directory, 'dcs')
-        self.default_xplane_plugin_directory = os.path.join(self.default_plugins_directory, 'xplane')
-        self.default_sounds_directory = os.path.join(self.default_resources_directory, 'sounds')
-
-        # Initialize directories and stuff
-        
-        if not os.path.exists(self.local_data_root_directory):
-            os.mkdir(self.local_data_root_directory)
-
-        # if not os.path.exists(self.local_data_log_directory):
-        #     os.mkdir(self.local_data_log_directory)
-
-        # RECORDINGS
-        if not os.path.exists(self.local_data_recordings_directory):
-            os.mkdir(self.local_data_recordings_directory)
-        shutil.copyfile(os.path.join(self.default_recordings_directory, 'demo.rcd'), os.path.join(self.local_data_recordings_directory, 'demo.rcd'))
-        shutil.copyfile(os.path.join(self.default_recordings_directory, 'readme.txt'), os.path.join(self.local_data_recordings_directory, 'readme.txt'))
-
-        # AIRPORTS
-        if not os.path.exists(self.local_data_airports_directory):
-            os.mkdir(self.local_data_airports_directory)
-        shutil.copyfile(os.path.join(self.default_airports_directory, 'batumi.apt'), os.path.join(self.local_data_airports_directory, 'batumi.apt'))
-        shutil.copyfile(os.path.join(self.default_airports_directory, 'readme.txt'), os.path.join(self.local_data_airports_directory, 'readme.txt'))
-
-        # VIDEOS
-        if not os.path.exists(self.local_data_videos_directory):
-            os.mkdir(self.local_data_videos_directory)
-        shutil.copyfile(os.path.join(self.default_videos_directory, 'demo.mp4'), os.path.join(self.local_data_videos_directory, 'demo.mp4'))  # Too large?
-        shutil.copyfile(os.path.join(self.default_videos_directory, 'readme.txt'), os.path.join(self.local_data_videos_directory, 'readme.txt'))
-
-        # PLUGINS
-        if not os.path.exists(self.local_data_plugins_directory):
-            os.mkdir(self.local_data_plugins_directory)
-        
-        if os.path.exists(self.local_data_dcs_plugin_directory):
-            shutil.rmtree(self.local_data_dcs_plugin_directory)
-        shutil.copytree(self.default_dcs_plugin_directory, self.local_data_dcs_plugin_directory)
-        shutil.copyfile(os.path.join(self.default_plugins_directory, 'readme.txt'), os.path.join(self.local_data_plugins_directory, 'readme.txt'))
-
-        # if os.path.exists(self.local_data_xplane_plugin_directory):
-        #     shutil.rmtree(self.local_data_xplane_plugin_directory)
-        # shutil.copytree(self.default_xplane_plugin_directory, self.local_data_xplane_plugin_directory)
-
-       
-
-
     def __init__(self):
         super(MyModel, self).__init__()
 
-        self.initFileIO()
-
-        self.ip_filename = os.path.join(self.local_data_root_directory, 'ip.txt')
+        
 
         self.tracker = Tracker(self)
 
@@ -131,16 +53,16 @@ class MyModel(QtCore.QObject):
         # self.default_recordings_directory = os.path.join(self.default_resources_directory, 'recordings')
 
 
-        self.runway_password = 'plt'
-        self.radar_mode_password = 'plt'
-        self.radar_control_password = 'plt'
-        self.ppi_password = 'plt'
+        self.runway_password = config['runwaypwd']
+        self.radar_mode_password = config['radarmodepwd']
+        self.radar_control_password = config['radarcontrolpwd']     # Here?
+        #self.ppi_password = 'plt'
 
 
         #self.UDP_IP = '172.20.10.2'
         #self.UDP_IP = '127.0.0.1'
         #self.UDP_IP = '192.168.1.88'
-        self.UDP_SENDPORT = 5005
+        self.UDP_SENDPORT = 5005        # Choosable ports?
         self.UDP_RECEIVEPORT = 5006
 
         self.udp_receive_socket = QtNetwork.QUdpSocket(self)

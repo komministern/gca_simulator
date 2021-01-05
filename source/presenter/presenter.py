@@ -14,6 +14,10 @@ import simpleaudio
 from functools import partial
 from ..view.myipdialog import MyIPDialog
 
+import mycommonfunctions.basicconfig as myconf
+globalvars = myconf.getGlobals()
+config = myconf.getConfig('config')
+
 
 class MyPresenter(QtCore.QObject):
 
@@ -36,7 +40,7 @@ class MyPresenter(QtCore.QObject):
         self.beep_timer.setInterval(1100)
         self.beep_timer.timeout.connect(self.play_beep)
         #self.beep = simpleaudio.WaveObject.from_wave_file('./resources/sounds/beep.wav')
-        self.beep = simpleaudio.WaveObject.from_wave_file(os.path.join(self.model.default_sounds_directory, 'beep.wav'))
+        self.beep = simpleaudio.WaveObject.from_wave_file(globalvars['beep_file'])
 
 
         # Setup all signals.

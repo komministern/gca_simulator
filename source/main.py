@@ -8,23 +8,16 @@
 
 
 import sys
-
 from PySide2 import QtWidgets
 from .view.view import MyView
-from .presenter.presenter import MyPresenter
+from .presenter.presenter import MyPresenter    # Order?? presenter-model
 from .model.model import MyModel
 
-
 def main():
-    
     app = QtWidgets.QApplication(sys.argv)
-
     view = MyView() 
     model = MyModel()
     presenter = MyPresenter(model, view)
-    
     view.show()
-
-
     sys.exit(app.exec_())
 
