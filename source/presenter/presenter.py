@@ -61,6 +61,12 @@ class MyPresenter(QtCore.QObject):
         self.view.button_map.mousePressEvent(None)
         self.view.button_obs.mousePressEvent(None)
 
+        if globalvars['rds_install']:
+            # self.view.button_status_fullscreen.setInverted(True)
+            # self.fullScreen()
+            self.view.button_status_fullscreen.mousePressEvent(None)
+            self.view.button_status_fullscreen.setEnabled(False)
+
         # ...more to follow
         
         self.trying_to_connect = False
@@ -68,9 +74,11 @@ class MyPresenter(QtCore.QObject):
 
     def shutdown_app(self):
         if globalvars['rds_install']:
-            pass
-        else:
-            self.model.quit()
+            modifiers = QtWidgets.QApplication.keyboardModifiers()
+            if modifiers != QtCore.Qt.ControlModifier:
+                print('Trying to run script.')
+                os.system('~/Desktop/quit.sh')  # Does not work in Windows
+        self.model.quit()
 
 
     def about_closed(self):
@@ -119,7 +127,8 @@ class MyPresenter(QtCore.QObject):
         self.view.button_clear_hist.pressed.connect(self.clearHist)
         self.view.button_radarcover.pressed.connect(self.toggleRadarCover)
         self.view.button_syn_video.pressed.connect(self.toggleSynVideo)
-        self.view.button_shutdown.pressed.connect(self.model.quit)
+        #self.view.button_shutdown.pressed.connect(self.model.quit)
+        self.view.button_shutdown.pressed.connect(self.shutdown_app)
 
         # Acid entry buttons
         self.view.button_acid_accept.pressed.connect(self.acid_accept)

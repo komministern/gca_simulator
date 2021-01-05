@@ -382,6 +382,7 @@ class MyView(QtWidgets.QGraphicsView):
 
         self.status_window_area = StatusWindowArea()
         self.scene.addItem(self.status_window_area)
+
         
         if airport:
         
@@ -438,8 +439,12 @@ class MyView(QtWidgets.QGraphicsView):
         self.status_window_area.newHalfButtonRow(3)                     # TEMPORARY
         self.button_record = Button('Record')                  #
         self.status_window_area.registerNextButton(self.button_record)  #
+
         self.button_status_fullscreen = InvertingButton('Fullscreen')                  #
         self.status_window_area.registerNextButton(self.button_status_fullscreen)  #
+
+        if globalvars['rds_install']:
+            self.button_status_fullscreen.setEnabled(False)
         
         self.button_status_about = ExpandingWidgetButton('About', self.aboutwidget)
         self.status_window_area.registerNextButton(self.button_status_about)
