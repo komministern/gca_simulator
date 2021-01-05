@@ -13,19 +13,12 @@ from .scene import MyScene
 
 
 
-
-
-
-
-
-
-
 class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
 
     windowleftxcoordinate = MyScene.buttonwindowareatopleft_x
-    print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
+    # print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
     windowwidth = MyScene.buttonwindowareawidth
-    print('windowwidth: ' + str(windowwidth))
+    # print('windowwidth: ' + str(windowwidth))
 
     #windowframethickness = 3
     windowframethickness = 1.0
@@ -33,7 +26,7 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
     windowcornerradius = 7.0
 
     windowusablewidth = windowwidth - windowframethickness
-    print('windowusablewidth: ' + str(windowusablewidth))
+    # print('windowusablewidth: ' + str(windowusablewidth))
     
     borderthickness = 23.0
     
@@ -297,9 +290,9 @@ class WindowTopBorder(QtCore.QObject, QtWidgets.QGraphicsPathItem):
             #if value.y() > 761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness:
             #    value.setY(761.0 - self.boundingRect().height() - self.childrenBoundingRect().height() + self.windowframethickness)
             if value.y() > c  - self.childrenBoundingRect().height() - 2*self.windowframethickness:
-                print('Before:' + str(value.y()))
+                # print('Before:' + str(value.y()))
                 value.setY( round(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness))
-                print('After: ' + str(round(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)))
+                # print('After: ' + str(round(c  - self.childrenBoundingRect().height() - 2*self.windowframethickness)))
                 #self.update()
 
         return super(WindowTopBorder, self).itemChange(change, value)  # <<<<< Must return the result !!!
@@ -346,9 +339,9 @@ class WindowArea(QtCore.QObject, QtWidgets.QGraphicsRectItem):
     lineseparatorthickness = 2.0
     lineseparatorheight = distance
 
-    print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
-    print('windowwidth: ' + str(windowwidth))
-    print('windowusablewidth: ' + str(windowusablewidth))
+    # print('windowleftxcoordinate: ' + str(windowleftxcoordinate))
+    # print('windowwidth: ' + str(windowwidth))
+    # print('windowusablewidth: ' + str(windowusablewidth))
 
     def __init__(self):
         

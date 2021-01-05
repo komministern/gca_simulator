@@ -21,6 +21,7 @@ from .tracker import Tracker
 from mycommonfunctions import path as mypath
 from mycommonfunctions import basicconfig as myconf
 
+globalvars = myconf.getGlobals()
 config = myconf.getConfig('config')
 
 class MyModel(QtCore.QObject):
@@ -228,8 +229,8 @@ class MyModel(QtCore.QObject):
 
             #print 'sending message'
 
-            self.c0 += 1
-            print('Send time: %f' % (time.time() - self.t0 - self.c0*0.250))
+            # self.c0 += 1
+            # print('Send time: %f' % (time.time() - self.t0 - self.c0*0.250))
             
 
             self.udp_send_socket.writeDatagram(next_message.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_RECEIVEPORT)
@@ -246,7 +247,7 @@ class MyModel(QtCore.QObject):
 
         #print airport_filename
 
-        self.readNewAirport(os.path.join(self.local_data_airports_directory, airport_filename))
+        self.readNewAirport(os.path.join(globalvars['local_data_airports_directory'], airport_filename))
         
         self.demo_mode = True
         
@@ -261,8 +262,8 @@ class MyModel(QtCore.QObject):
 
         self.demo_init.emit()
 
-        self.t0 = time.time()
-        self.c0 = 0
+        # self.t0 = time.time()
+        # self.c0 = 0
 
         self.startSendingToPlugin()
 
@@ -346,10 +347,10 @@ class MyModel(QtCore.QObject):
 
                     time_stamp = float(strings[1])
 
-                    if self.c0 == 1:
-                        self.rt0 = time_stamp
-                    else:
-                        print('Rec time: %f' % (time_stamp - self.rt0 - (self.c0 - 1) * 0.250))
+                    # if self.c0 == 1:
+                    #     self.rt0 = time_stamp
+                    # else:
+                    #     print('Rec time: %f' % (time_stamp - self.rt0 - (self.c0 - 1) * 0.250))
 
                     thr_rwy = {}
                     eor_rwy = {}

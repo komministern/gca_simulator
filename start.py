@@ -127,6 +127,7 @@ def initFileStructure():
 
 myconfig.initGlobals()
 globalvars = myconfig.getGlobals()
+globalvars['rds_install'] = False
 
 initFileStructure()
 

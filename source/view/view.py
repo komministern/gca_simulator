@@ -12,6 +12,7 @@ import os
 from PySide2 import QtCore, QtWidgets, QtGui
 
 from mycommonfunctions import path as mypath
+from mycommonfunctions import basicconfig as myconf
 
 from .scene import MyScene
 from .window import WindowArea, WindowTopBorder, StatusWindowArea, InputWindowArea, LegendWindowArea
@@ -20,7 +21,7 @@ from .button import Button, InvertingButton, ExpandingButton, ExpandingWidgetBut
 from .mylineeditproxywidget import MyLineEditProxyWidget
 from .aboutwidget import AboutWidget
 
-
+globalvars = myconf.getGlobals()
 
 class MyView(QtWidgets.QGraphicsView):
 
@@ -29,11 +30,11 @@ class MyView(QtWidgets.QGraphicsView):
     def __init__(self):
         super(MyView, self).__init__()
 
-        resources_directory = os.path.join(mypath.current_working_directory(), 'resources')
-        images_directory = os.path.join(resources_directory, 'images')
-        icon_path = os.path.join(images_directory, 'icon.ico')
+        # resources_directory = os.path.join(mypath.current_working_directory(), 'resources')
+        # images_directory = os.path.join(resources_directory, 'images')
+        # icon_path = os.path.join(images_directory, 'icon.ico')
 
-        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.setWindowIcon(QtGui.QIcon(globalvars['icon_file']))
 
         self.setStyleSheet("border: 0px")
 

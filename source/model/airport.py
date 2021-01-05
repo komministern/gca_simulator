@@ -32,7 +32,7 @@ class Airport(object):
 
         for line in lines:
 
-            print(line)
+            # print(line)
 
             strings = line.split()
             

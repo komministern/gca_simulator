@@ -66,6 +66,13 @@ class MyPresenter(QtCore.QObject):
         self.trying_to_connect = False
 
 
+    def shutdown_app(self):
+        if globalvars['rds_install']:
+            pass
+        else:
+            self.model.quit()
+
+
     def about_closed(self):
         self.view.button_status_about.mousePressEvent(None)
 
@@ -365,7 +372,7 @@ class MyPresenter(QtCore.QObject):
         if self.view.scene.active_airport != None and not self.demo_mode:
             if (not self.model.connected) and (not self.trying_to_connect):
 
-                self.dialog = MyIPDialog(self.model.ip_filename, self.view)
+                self.dialog = MyIPDialog(self.view)
                 ok = self.dialog.exec_()
                 if ok:
                 
@@ -708,7 +715,10 @@ class MyPresenter(QtCore.QObject):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rcd)')
+            
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', globalvars['local_data_recordings_directory'], 'Record Files (*.rcd)')
+            #filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rcd)')
+            
             if filename:
                 self.model.initDemoMode(filename)
             
@@ -952,7 +962,7 @@ class MyPresenter(QtCore.QObject):
     def loadAirport(self):
         if not self.connected:
         # This method is called when user wants to load a new airport
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', self.model.local_data_airports_directory, 'Airport Files (*.apt)')
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Airport', globalvars['local_data_airports_directory'], 'Airport Files (*.apt)')
             if filename:
                 self.model.readNewAirport(filename)
 

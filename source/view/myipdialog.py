@@ -17,7 +17,7 @@ globalvars = myconf.getGlobals()
 class MyIPDialog(QtWidgets.QDialog, Ui_Dialog):
 
 
-    def __init__(self, filename, parent=None):
+    def __init__(self, parent=None):
         super(MyIPDialog, self).__init__(parent)
 
         self.filename = globalvars['ip_file']

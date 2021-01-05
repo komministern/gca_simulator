@@ -48,7 +48,7 @@ class Label(QtWidgets.QGraphicsItemGroup):
         self.fictive_distance_text_item = QtWidgets.QGraphicsSimpleTextItem('99.9')
         self.fictive_distance_text_item.setFont(self.scene.active_label_font)
         
-        self.fictive_az_deviation_text_item = QtWidgets.QGraphicsSimpleTextItem('+9999 \u2190')
+        self.fictive_az_deviation_text_item = QtWidgets.QGraphicsSimpleTextItem('>+9999 \u2190')
         self.fictive_az_deviation_text_item.setFont(self.scene.active_label_font)
         
         self.max_callsign_text_item_width = self.fictive_callsign_text_item.boundingRect().width()
@@ -598,12 +598,13 @@ class WhiLabel(Label):
             sign_string = u''
             arrow = ' \u2191'
         
-        if self.parent_track.elevation_deviation < -9999.0:
-            elevation_deviation_string = '-9999' + arrow
-        elif self.parent_track.elevation_deviation > 9999.0:
-            elevation_deviation_string = '+9999' + arrow
-        else:
-            elevation_deviation_string = sign_string + str(int(self.parent_track.elevation_deviation)) + arrow
+        # if self.parent_track.elevation_deviation < -500.0:
+        #     elevation_deviation_string = '<-9999' + arrow
+        # elif self.parent_track.elevation_deviation > 500.0:
+        #     elevation_deviation_string = '>+9999' + arrow
+        # else:
+        
+        elevation_deviation_string = sign_string + str(int(self.parent_track.elevation_deviation)) + arrow
         
         self.el_deviation_text_item.setText(elevation_deviation_string)
         self.el_deviation_text_item.setVisible(self.scene.line_3_visible)
@@ -615,12 +616,13 @@ class WhiLabel(Label):
             sign_string = ''
             arrow = u' \u2192'
         
-        if self.parent_track.azimuth_deviation < -9999.0:
-            azimuth_deviation_string = '-9999' + arrow
-        elif self.parent_track.azimuth_deviation > 9999.0:
-            azimuth_deviation_string = '+9999' + arrow
-        else:
-            azimuth_deviation_string = sign_string + str(int(self.parent_track.azimuth_deviation)) + arrow
+        # if self.parent_track.azimuth_deviation < -9999.0:
+        #     azimuth_deviation_string = '<-9999' + arrow
+        # elif self.parent_track.azimuth_deviation > 9999.0:
+        #     azimuth_deviation_string = '>+9999' + arrow
+        # else:
+        
+        azimuth_deviation_string = sign_string + str(int(self.parent_track.azimuth_deviation)) + arrow
         
         self.az_deviation_text_item.setText(azimuth_deviation_string)
         self.az_deviation_text_item.setVisible(self.scene.line_3_visible)
