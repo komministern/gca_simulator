@@ -385,6 +385,9 @@ class MyView(QtWidgets.QGraphicsView):
 
         
         if airport:
+
+            self.status_window_area.newTextRowLeft('Airport: ' + os.path.basename(airport.filename))
+            self.status_window_area.endRow()
         
             self.status_window_area.newTextRowLeft('ICAO/IATA: ' + airport.icao + '/' + airport.iata)
             self.status_window_area.endRow()
@@ -405,6 +408,8 @@ class MyView(QtWidgets.QGraphicsView):
             #self.status_window_area.endRow()
         
         else:
+            self.status_window_area.newTextRowLeft('Airport: ')
+            self.status_window_area.endRow()
             self.status_window_area.newTextRowLeft('ICAO/IATA: ')
             self.status_window_area.endRow()
 
@@ -413,10 +418,19 @@ class MyView(QtWidgets.QGraphicsView):
         self.status_window_area.newWhiteLineSeparator()
         self.status_window_area.endRow()
 
-        self.status_window_area.newTextRowLeft('Flightsim local coordinate: ')
+        self.status_window_area.newTextRowLeft('Flightsimulator LOCAL coordinate: ')
         self.status_window_area.endRow()
 
         self.status_window_area.newTextRowLeft('', dynamic=True, identifier='local_coord')
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('Flightsimulator GLOBAL coordinate: ')
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('', dynamic=True, identifier='global_coord_row_1')
+        self.status_window_area.endRow()
+
+        self.status_window_area.newTextRowLeft('', dynamic=True, identifier='global_coord_row_2')
         self.status_window_area.endRow()
 
         self.status_window_area.newWhiteLineSeparator()

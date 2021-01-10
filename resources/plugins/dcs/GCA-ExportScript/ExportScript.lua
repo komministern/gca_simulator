@@ -143,7 +143,7 @@ end
 
 function LuaExportActivityNextEvent(t)
 
-	local tNext = t + 0.05
+	local tNext = t + 0.01
 
 	local data, msg_or_ip, port_or_nil
 
@@ -163,9 +163,9 @@ function LuaExportActivityNextEvent(t)
 
 	if data then
 
-		if default_output_file then
-			default_output_file:write(string.format("t = %.2f, Received: %s\n", t, data))
-		end
+		--if default_output_file then
+		--	default_output_file:write(string.format("t = %.2f, Received: %s\n", t, data))
+		--end
 
 		mytable = ExportScript.Tools.split(data,',')
 		size_of_mytable = ExportScript.Tools.tablelength(mytable)
@@ -204,9 +204,15 @@ function LuaExportActivityNextEvent(t)
 		end
 
 		o = LoGetWorldObjects()
+		local first = true
 		for k,v in pairs(o) do
 			
 			if (v.Type.level1 == 1) then	-- if the object is an flying one
+				if first == true then
+					s_global_coord = string.format("%f", v.LatLongAlt.Lat)..','..string.format("%f", v.LatLongAlt.Long)..','..string.format("%.1f", v.LatLongAlt.Alt)
+					s_final = s_final..','..s_global_coord
+					first = false
+				end
 
 				plane_xyz_coords = LoGeoCoordinatesToLoCoordinates(v.LatLongAlt.Long,v.LatLongAlt.Lat)
 				plane_x = plane_xyz_coords.x
@@ -227,6 +233,79 @@ function LuaExportActivityNextEvent(t)
 		end
 
 	end
+
+	--[[
+	Coordinates convertion :
+	{x,y,z}				  = LoGeoCoordinatesToLoCoordinates(longitude_degrees,latitude_degrees)
+	{latitude,longitude}  = LoLoCoordinatesToGeoCoordinates(x,z);
+
+	LoGetObjectById() -- (args - 1 (number), results - 1 (table))
+	Returned object table structure:
+	{ 
+	   Name = 
+	   Type =  {level1,level2,level3,level4},  ( see Scripts/database/wsTypes.lua) Subtype is absent  now
+	   Country   =   number ( see Scripts/database/db_countries.lua
+	   Coalition = 
+	   CoalitionID = number ( 1 or 2 )
+	   LatLongAlt = { Lat = , Long = , Alt = }
+	   Heading =   radians
+	   Pitch      =   radians
+	   Bank      =  radians
+	   Position = {x,y,z} -- in internal DCS coordinate system ( see convertion routnes below)
+	   -- only for units ( Planes,Hellicopters,Tanks etc)
+	   UnitName    = unit name from mission (UTF8)  
+	   GroupName = unit name from mission (UTF8)
+		   Flags = {
+		   RadarActive = true if the unit has its radar on
+		   Human = true if the unit is human-controlled
+		   Jamming = true if the unit uses EMI jamming
+		   IRJamming = -- same for IR jamming
+		   Born = true if the unit is born (activated)
+		   AI_ON = true if the unit's AI is active
+		   Invisible = true if the unit is invisible
+		   Static - true if the unit is a static object
+		   }
+	}
+   
+   
+   LoGetWorldObjects() -- (args - 0- 1, results - 1 (table of object tables))  arg can be
+	   "units" (default)
+	   "ballistic" - for different type of unguided munition ()bombs,shells,rockets)
+	   "airdromes" - to get airdrome objects
+	Returned table index = object identificator
+	Returned object table structure (see LoGetObjectById())
+
+	]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- Put your event code here and increase tNext for the next event

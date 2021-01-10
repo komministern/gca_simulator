@@ -1,0 +1,1 @@
+Place the directory GCASimulatorPlugin in the "X-Plane 11/Resources/plugins/".

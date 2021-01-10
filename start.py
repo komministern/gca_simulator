@@ -17,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Mil i-ATC Eavesdropper.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import os
 import shutil
 from mycommonfunctions import path as mypath
@@ -48,7 +49,7 @@ def initFileStructure():
     local_data_videos_directory = os.path.join(local_data_root_directory, 'videos')
     local_data_plugins_directory = os.path.join(local_data_root_directory, 'plugins')
     local_data_dcs_plugin_directory = os.path.join(local_data_plugins_directory, 'dcs')
-    local_data_xplane_plugin_directory = os.path.join(local_data_plugins_directory, 'xplane')
+    local_data_xplane_plugin_directory = os.path.join(local_data_plugins_directory, 'xpl')
 
     default_resources_directory = os.path.join(application_directory, 'resources')
     default_misc_directory = os.path.join(default_resources_directory, 'misc')
@@ -57,7 +58,7 @@ def initFileStructure():
     default_videos_directory = os.path.join(default_resources_directory, 'videos')
     default_plugins_directory = os.path.join(default_resources_directory, 'plugins')
     default_dcs_plugin_directory = os.path.join(default_plugins_directory, 'dcs')
-    default_xplane_plugin_directory = os.path.join(default_plugins_directory, 'xplane')
+    default_xplane_plugin_directory = os.path.join(default_plugins_directory, 'xpl')
     default_sounds_directory = os.path.join(default_resources_directory, 'sounds')
     default_images_directory = os.path.join(default_resources_directory, 'images')
     default_config_directory = os.path.join(default_resources_directory, 'config')
@@ -83,7 +84,8 @@ def initFileStructure():
     # airports
     if not os.path.exists(local_data_airports_directory):
         os.mkdir(local_data_airports_directory)
-    shutil.copyfile(os.path.join(default_airports_directory, 'batumi.apt'), os.path.join(local_data_airports_directory, 'batumi.apt'))
+    shutil.copyfile(os.path.join(default_airports_directory, 'dcs_batumi.apt'), os.path.join(local_data_airports_directory, 'dcs_batumi.apt'))
+    shutil.copyfile(os.path.join(default_airports_directory, 'xpl_batumi.apt'), os.path.join(local_data_airports_directory, 'xpl_batumi.apt'))
     shutil.copyfile(os.path.join(default_airports_directory, 'readme.txt'), os.path.join(local_data_airports_directory, 'readme.txt'))
 
     # videos
@@ -99,11 +101,11 @@ def initFileStructure():
     if os.path.exists(local_data_dcs_plugin_directory):
         shutil.rmtree(local_data_dcs_plugin_directory)
     shutil.copytree(default_dcs_plugin_directory, local_data_dcs_plugin_directory)
-    # if os.path.exists(self.local_data_xplane_plugin_directory):
-    #     shutil.rmtree(self.local_data_xplane_plugin_directory)
-    # shutil.copytree(self.default_xplane_plugin_directory, self.local_data_xplane_plugin_directory)
+    if os.path.exists(local_data_xplane_plugin_directory):
+        shutil.rmtree(local_data_xplane_plugin_directory)
+    shutil.copytree(default_xplane_plugin_directory, local_data_xplane_plugin_directory)
     shutil.copyfile(os.path.join(default_plugins_directory, 'readme.txt'), os.path.join(local_data_plugins_directory, 'readme.txt'))
-    
+
     # config
     config_file = os.path.join(local_data_root_directory, 'config.txt')
     if not os.path.exists(config_file):
@@ -115,7 +117,9 @@ def initFileStructure():
 
     beep_file = os.path.join(default_sounds_directory, 'beep.wav')
 
-    globalvars['version'] = 'v0.91b'
+    #copying_file = os.path.join(application_directory, 'COPYING.rtf')
+
+    globalvars['version'] = 'v0.92b'
     globalvars['local_data_root_directory'] = local_data_root_directory
     globalvars['local_data_airports_directory'] = local_data_airports_directory
     globalvars['local_data_recordings_directory'] = local_data_recordings_directory
@@ -123,7 +127,6 @@ def initFileStructure():
     globalvars['config_file'] = config_file
     globalvars['icon_file'] = icon_file
     globalvars['beep_file'] = beep_file
-
 
 myconfig.initGlobals()
 globalvars = myconfig.getGlobals()

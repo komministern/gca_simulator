@@ -193,6 +193,7 @@ class MyPresenter(QtCore.QObject):
         self.model.new_communication_data.connect(self.updateStatusWindow)
 
         self.model.new_flightsim_local_coord.connect(self.updateFlightsimLocalCoordinate)
+        self.model.new_flightsim_global_coord.connect(self.updateFlightsimGlobalCoordinate)
         
         self.model.new_connected_state.connect(self.updateConnectedState)
         
@@ -830,6 +831,11 @@ class MyPresenter(QtCore.QObject):
     def updateFlightsimLocalCoordinate(self, coord):
         x, y, z = coord
         self.view.status_window_area.updateDynamicTextItem('local_coord', 'x={0:.1f}, y={1:.1f}, z={2:.1f}'.format(x, y, z) )
+
+    def updateFlightsimGlobalCoordinate(self, coord):
+        lat, lon, el = coord
+        self.view.status_window_area.updateDynamicTextItem('global_coord_row_1', 'lat={0:f} lon={1:f}'.format(lat, lon))
+        self.view.status_window_area.updateDynamicTextItem('global_coord_row_2', 'el={0:.1f}'.format(el))
 
     def updateConnectedState(self, new_connected_state):
 

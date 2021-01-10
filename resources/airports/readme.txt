@@ -1,1 +1,1 @@
-See the text file batumi.apt for information on how to add your own airports to the GCA Simulator.
+See the text file dcs_batumi.apt or xpl_batumi.apt for information on how to add your own airports to the GCA Simulator.

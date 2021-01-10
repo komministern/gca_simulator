@@ -26,13 +26,14 @@ config = myconf.getConfig('config')
 
 class MyModel(QtCore.QObject):
 
-    sim = 'dcs'
-    #sim = 'xpl'
+    #sim = 'dcs'
+    sim = 'xpl'
 
     new_plots_extracted = QtCore.Signal(object, object, object, object, object, object)
     new_airport = QtCore.Signal(object)
     new_communication_data = QtCore.Signal(object, object, object, object, object)
     new_flightsim_local_coord = QtCore.Signal(object)
+    new_flightsim_global_coord = QtCore.Signal(object)
     new_connected_state = QtCore.Signal(object)
     connection_lost = QtCore.Signal()
     demo_loop = QtCore.Signal()
@@ -178,21 +179,22 @@ class MyModel(QtCore.QObject):
         
             if self.sim == 'xpl':
 
+                #print(self.airport.runways)
+                #print(self.active_runway)
+
                 list_of_strings = []
 
-                if self.record == True:
-                    list_of_strings.append('record')
-                    list_of_strings.append(str(self.active_runway))
-        
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lat']))
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_lon']))            # This is the threshold coordinate for each runway
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['thr_el'] * 0.3048))    # El should be in meters, not feet.
-        
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lat']))
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_lon']))            # This is the threshold coordinate for each runway
-                list_of_strings.append(str(self.airport.runways[self.active_runway]['eor_el'] * 0.3048))    # El should be in meters, not feet.
+                for runway_number in self.airport.runways:  # Order??????!!!!!!!!!!!
+                    list_of_strings.append(str(self.airport.runways[runway_number]['thr_lat']))
+                    list_of_strings.append(str(self.airport.runways[runway_number]['thr_lon']))              # This is the threshold coordinate for each runway
+                    list_of_strings.append( format(self.airport.runways[runway_number]['thr_el'], '.1f') )      # El should be in meters!
+
+                    list_of_strings.append(str(self.airport.runways[runway_number]['eor_lat']))
+                    list_of_strings.append(str(self.airport.runways[runway_number]['eor_lon']))              # This is the threshold coordinate for each runway
+                    list_of_strings.append(format(self.airport.runways[runway_number]['eor_el'], '.1f'))      # El should be in meters!
 
                 string_to_send = ','.join(list_of_strings)
+                #print('s: ' + string_to_send)
                 self.udp_send_socket.writeDatagram(string_to_send.encode(), QtNetwork.QHostAddress(self.UDP_IP), self.UDP_SENDPORT)  # TCP instead?
 
             elif self.sim == 'dcs':
@@ -373,6 +375,9 @@ class MyModel(QtCore.QObject):
                             eor_rwy[runway_number] = np.array([float(coord) for coord in strings[i+3:i+6]])
 
                         i += 6
+                    
+                    player_global_coord = np.array([float(coord) for coord in strings[i:i+3]])
+                    i += 3
 
                     aircrafts = {}
                     while i < len(strings):
@@ -385,6 +390,7 @@ class MyModel(QtCore.QObject):
                     if len(aircrafts) == 1 and not self.demo_mode:
                         # Show coordinates in status window, but only if there is only one aircraft in range (to avoid ambiguity)!!!
                         self.new_flightsim_local_coord.emit(aircrafts[strings[i - 4]])
+                        self.new_flightsim_global_coord.emit(player_global_coord)
                         
                     
 
@@ -516,7 +522,189 @@ class MyModel(QtCore.QObject):
                     #if len(filtered_target_coordinates) > 0:
                     self.tracker.process_hits(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
                     # self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
+
+                elif strings[0] == 'xpl':
+
+                    # for each in strings:
+                    #     print(each)
+
+                    if not self.connected:
+                        self.connected = True
+                        self.new_connected_state.emit(self.connected)
+
+                    time_stamp = float(strings[1])
+
+                    # if self.c0 == 1:
+                    #     self.rt0 = time_stamp
+                    # else:
+                    #     print('Rec time: %f' % (time_stamp - self.rt0 - (self.c0 - 1) * 0.250))
+
+                    thr_rwy = {}
+                    eor_rwy = {}
+
+                    i = 2
+                    for runway_number in self.airport.runways:
+
+                        # if 'dcs_thr_x' in self.airport.runways[runway_number]:
+                        #     thr_rwy[runway_number] = np.array((self.airport.runways[runway_number]['dcs_thr_x'], self.airport.runways[runway_number]['dcs_thr_y'], self.airport.runways[runway_number]['dcs_thr_z']))
+                        #     eor_rwy[runway_number] = np.array((self.airport.runways[runway_number]['dcs_eor_x'], self.airport.runways[runway_number]['dcs_eor_y'], self.airport.runways[runway_number]['dcs_eor_z']))
+                        #     # This dirty solution must be applied as the accurace in the DCS coordinate conversion functions is too poor.
+
+                        # else:
+
+                        thr_rwy[runway_number] = np.array([float(coord) for coord in strings[i:i+3]])
+                        eor_rwy[runway_number] = np.array([float(coord) for coord in strings[i+3:i+6]])
+
+                        i += 6
+
+                    player_global_coord = np.array([float(coord) for coord in strings[i:i+3]])
+                    i += 3
+
+                    aircrafts = {}
+                    while i < len(strings):
+                        #aircrafts[strings[i]] = np.array(map(float, strings[i+1:i+4])) #Every track starts with an identifier string named by the flight simulator, followed by three coordinates
+                        #print('aircraft_xyz:')
+                        #print(np.array([float(coord) for coord in strings[i+1:i+4]]))
+                        aircrafts[strings[i]] = np.array([float(coord) for coord in strings[i+1:i+4]])
+                        i += 4
+
+                    #if len(aircrafts) == 1 and not self.demo_mode:
+                        # Show coordinates in status window, but only if there is only one aircraft in range (to avoid ambiguity)!!!
+                    if not self.demo_mode:
+                        self.new_flightsim_local_coord.emit(aircrafts['player'])
+                        self.new_flightsim_global_coord.emit(player_global_coord)
+
+                    # x is north
+                    # y is up
+                    # z is east
+
+                    thr = thr_rwy[self.active_runway]
+                    eor = eor_rwy[self.active_runway]
+
+                    #print(thr)
+                    #print(type(thr))
+
+                    orthonormal_vectors = {}
+
+                    # Unit vectors for the active runway:
+                    # positive u-direction is directed from thr to eor
+                    # positive v-direction is directed to the left when landing
+                    # positive w-direction is directed up
                     
+                    orthonormal_vectors['u'] = (eor - thr) / np.linalg.norm(eor - thr)
+                    orthonormal_vectors['w'] = np.array([0.0, 1.0, 0.0])                                        # Hmmmm, is this vector actually pointing straight upwards??????? YES IT IS!!!!
+                    orthonormal_vectors['v'] = np.cross(orthonormal_vectors['w'], orthonormal_vectors['u'])
+
+                    td = thr + orthonormal_vectors['u'] * self.airport.runways[self.active_runway]['td']
+
+                    # Now calculate all relevant points as coordinates relative to the touchdown point
+
+                    thr_relative_to_td = thr - td
+                    x = np.dot(orthonormal_vectors['u'], thr_relative_to_td)
+                    y = np.dot(orthonormal_vectors['v'], thr_relative_to_td)
+                    z = np.dot(orthonormal_vectors['w'], thr_relative_to_td)
+                    thr_coordinate = np.array([x, y, z])
+                    #print('thr coordinate:')
+                    #print(thr_coordinate)
+
+                    eor_relative_to_td = eor - td
+                    x = np.dot(orthonormal_vectors['u'], eor_relative_to_td)
+                    y = np.dot(orthonormal_vectors['v'], eor_relative_to_td)
+                    z = np.dot(orthonormal_vectors['w'], eor_relative_to_td)
+                    eor_coordinate = np.array([x, y, z])
+                    #print('eor coordinate:')
+                    #print(eor_coordinate)
+
+                    # We will place the GCA right of runway when looking in the moving direction of the landing aircraft when landing on runway 1 (or 3 or 5).
+                    # It is placed some 100.0 meters from the centre of the airstrip.
+                    
+                    if self.active_runway % 2 == 0:
+                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 4.0])         # The centre of the elevation antenna is about 4m from the ground 
+                        gca_el_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 3.0])      # The centre of the el elevation antenna is about 3m from the ground
+                        gca_az_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, 75.0, 5.0])      # The centre of the az elevation antenna is about 5m from the ground
+                    else:
+                        gca_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 4.0])
+                        gca_el_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 3.0])      # The centre of the el elevation antenna is about 3m from the ground
+                        gca_az_coordinate = (thr_coordinate + eor_coordinate)/2 + np.array([0, -75.0, 5.0])      # The centre of the az elevation antenna is about 5m from the ground
+
+
+                    target_coordinates = {}
+
+                    mti_coordinate = gca_coordinate + np.array([-800.0, 0.0, 0.5])      # MTI 900m from GCA, and the dish on 4.5m height (GCA height is 4.0m)
+
+                    target_coordinates['mti'] = self.scramble_coordinate(mti_coordinate)
+
+                    for aircraft_name in aircrafts:
+                        plane_relative_to_td = aircrafts[aircraft_name] - td
+                        x = np.dot(orthonormal_vectors['u'], plane_relative_to_td)
+                        y = np.dot(orthonormal_vectors['v'], plane_relative_to_td)
+                        z = np.dot(orthonormal_vectors['w'], plane_relative_to_td)
+                        aircraft_coordinate = np.array([x, y, z])
+                        #print('aircraft coordinate:')
+                        #print(aircraft_coordinate)
+                        target_coordinates[aircraft_name] = self.scramble_coordinate(aircraft_coordinate)
+
+
+                    target_hits = {}
+                    filtered_target_coordinates = {}
+
+                    for aircraft_name in target_coordinates:
+
+                        coord_rel_to_gca = target_coordinates[aircraft_name] - gca_coordinate
+
+                        if coord_rel_to_gca[0] < 0:     # Only bother if the target is in front of the radar
+                            
+                            distance_to_aircraft = np.linalg.norm(coord_rel_to_gca)         # Unit: m
+                            distance_to_aircraft_nm = self.nm(distance_to_aircraft)
+                            d = distance_to_aircraft_nm
+
+                            target_in_waveform_range = False
+
+                            #print(coord_rel_to_gca)
+
+                            if self.wf_counter == 0:
+                                if d > 3.0 and d < 20.0:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 1:
+                                if d > 2.0 and d < 7.5:
+                                    target_in_waveform_range = True
+                                elif d > 10.5 and d < 16.0:
+                                    target_in_waveform_range = True
+                                elif d > 19.0 and d < 24.5:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 2:
+                                if d > 3.0 and d < 11.0:
+                                    target_in_waveform_range = True
+                                elif d > 17.0 and d < 25.0:
+                                    target_in_waveform_range = True
+
+                            elif self.wf_counter == 3:
+                                if d > 0.1 and d < 5.5:
+                                    target_in_waveform_range = True
+                                elif d > 6.0 and d < 11.5:
+                                    target_in_waveform_range = True
+
+                            if target_in_waveform_range:
+                                el_hit = self.elevation_hit( target_coordinates[aircraft_name], gca_el_coordinate )
+                                az_hit = self.azimuth_hit( target_coordinates[aircraft_name], gca_az_coordinate )
+
+                                # if el_hit or az_hit:
+                                target_hits[aircraft_name] = (el_hit, az_hit)     # el, az
+                                filtered_target_coordinates[aircraft_name] = target_coordinates[aircraft_name]
+                            # else:
+                            #     target_hits[aircraft_name] = (False, False)
+                            #     if aircraft_name == 'mti':
+                            #         print('------------------------------------------')
+
+                    
+                    #if len(filtered_target_coordinates) > 0:
+                    self.tracker.process_hits(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
+                    # self.new_plots_extracted.emit(time_stamp, thr_coordinate, eor_coordinate, gca_el_coordinate, filtered_target_coordinates, target_hits)
+
+                
+                   
 
                 if not self.recording and self.record_file != None:
                     self.record_file.close()

@@ -1,0 +1,83 @@
+
+iata BUS
+icao UGSB
+
+rwy1 13
+thr_lat 41.617062
+thr_lon 41.588860
+thr_el 33.0
+eor_lat 41.602268
+eor_lon 41.611668
+eor_el 33.0
+td 300			
+gs 2.9
+true 125.2
+
+rwy2 31
+thr_lat 41.602268
+thr_lon 41.611668
+thr_el 33.0
+eor_lat 41.617062
+eor_lon 41.588860
+eor_el 33.0
+td 300
+gs 2.9
+true 305.2
+
+# Explanation of the entries above:
+
+# iata, icao:
+# These are the IATA and ICAO names of the airport. These names can be obtained
+# from airport charts.
+
+# An airport must contain at least one runway, and at most six. They must
+# be named rwy1, rwy2, .., or rwy6. All entries after an rwy entry are
+# data for that specific runway. The value is the "name" of the runway. It is
+# actually often the rounded value of the magnetic direction divided by 10, but 
+# not always. Obtained from airport charts.
+
+# thr_lat, thr_lon, thr_el:
+# These are the coordinates for the threshold of the runway. The threshold
+# is the end point of the runway in the direction of the landing aircraft.
+# The format is decimal degrees, and the elevation is in meters. In a perfect world,
+# these values can be taken directly from an airport chart, but it is safer to
+# actually tax your flight sim aircraft to the point and note the values given
+# by the simulator instead. (In DCS, even this is not always enough. See the dcs
+# specific entries below.)
+
+# eor_lat, eor_lon, eor_el:
+# The eor (end of runway) point is the point where the runway ends, seen from
+# the landing aircraft.
+
+# td:
+# The value of td is the distance from the threshold to the touchdown point on 
+# the runway. The unit is meters. This value differs, but a typical value is 
+# in the vicinity of 300 meters.
+
+# gs:
+# This is the initial glideslope angle that the PAR simulator will use when this
+# runway is selected.
+ 
+# true:
+# This is the runway's true heading.
+
+# IF YOU ARE USING DCS (see the dcs_batumi.apt for example):
+# dcs_thr_x/y/z and dcs_eor_x/y/z:
+# It seems that using the approach with the lon-lat coordinats for placing the thr 
+# and eor points is not good enough in the case with DCS. The precision of the local
+# coordinates given by the DCS coordinate conversion functions just isn't good enough, 
+# resulting in a skewed approach in the simulation. My solution is to use the DCS's local 
+# coordinates directly, instead of obtaining them through passsing the lon-lat coordinates
+# of the thr and eor to the API functions. This is by no means an elegant approach, as we
+# cannot knew when DCS decides to, for example, reposition origo of the local coordinate
+# system. If we are unlucky, this happens near our current airport, with potentially 
+# disastrous results. It is however the only approach I can think of that does the trick. 
+# To obtain the local coordinates, you have to create a mission in which there is only one 
+# aircraft present. The local and global coordinate of that plane will then be presented 
+# in the STATUS window in the PAR simulator. Then tax your plane to the points of interest, 
+# and make a note of the coordinate.
+# These dcs-entries are optional, but if they exist and DCS is the data source, they will 
+# override the lon-lat coordinates entered earlier.
+# In DCS, try creating a mission in which an aircraft lands. The aircraft will, after it 
+# has extracted its landing gear, be on a perfect approach sidewise. If it isn't, go for 
+# the dcs_thr_x/y/z and dcs_eor_x/y/z approach instead of the lon-lat one. 
