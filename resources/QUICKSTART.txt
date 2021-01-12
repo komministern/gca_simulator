@@ -1,0 +1,47 @@
+Install
+
+To install the GCA Simulator, just copy the folder GCA Simulator to anywhere on you computer. The
+executable resides inside.
+
+Quick start
+
+Start the GCA Simulator. Upon execution the program will create the directory 
+~/Documents/GCA Simulator Data, and copy some essential files here. This directory will hereafter be 
+called the data folder. All new data will be saved in this location.
+
+Demo Mode
+
+After starting the GCA Simulator, press the Status button and then Demo Mode. This will open a file 
+selector dialog, in which the file demo.txt should be choosable. Doubleclick the demo.txt to start 
+the demonstration. This demo will send plot information to the simulator that was recorded when two
+fighter jets and a slower transport aircraft lands on an airport in DCS. The Status window only
+contains information and buttons that are related to the simulator, and can now be closed.
+
+Some buttons will demand a password due to the use of that functionality may compromise flight 
+security. The default password in this simulation is pwd, but this can be changed in the config
+file found in the data directory.
+
+To accompany the demo mode file, you will find a video file, demo.mp4, in the data folder. It is a 
+recording of the actual flight that provided the plots that are replayed by the demo file. Start 
+the demo mode and the video at the same time to get a feel for how a landing looks from the aircrafts 
+point of view. The demo will repeat itself after just over 10 minutes, and if you set the video on 
+repeat, they should stay in sync for some time.
+
+Connect to DCS or X-Plane
+
+Before connecting to a flight simulator of your choice, you must install a plugin. Plugins for DCS
+and X-Plane (only 64-bit) are provided in this release. You will find them in the data folder together 
+with instructions for how to install them. I may write a plugin for Microsoft Flight Simulator if I 
+ever get around to buy the damned thing. 
+
+After installing the plugin, you must load an airport from within the Status window, and then press the 
+Connect button. This will prompt you to enter the IP address to the computer on which the flight 
+simulator is being run on. The Connect button should change to a bright yellow color as the data stream 
+starts. Instructions on how to add you own airports to the GCA Simulator is found in the data folder. 
+Look at the already present dcs_batumi.apt or xpl_batumi.apt (ordinary text files) for further 
+instructions.
+
+Uninstall
+
+Just delete the GCA Simulator directory. Also delete the data folder (~/Documents/GCA Simulator Data/) 
+with all its contents if you do not want to keep any saved data. 

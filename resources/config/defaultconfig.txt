@@ -1,4 +1,4 @@
 # PASSWORDS
-radarcontrolpwd     plt
-runwaypwd           plt
-radarmodepwd        plt
+radarcontrolpwd     pwd
+runwaypwd           pwd
+radarmodepwd        pwd
