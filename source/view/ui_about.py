@@ -1,12 +1,21 @@
-# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2021 Oscar Franzén <oscarfranzen@protonmail.com>
 
-################################################################################
-## Form generated from reading UI file 'about.ui'
-##
-## Created by: Qt User Interface Compiler version 5.15.1
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
+This file is part of GCA Simulator.
+
+GCA Simulator is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GCA Simulator is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GCA Simulator.  If not, see <https://www.gnu.org/licenses/>.
+"""
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
