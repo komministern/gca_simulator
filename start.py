@@ -85,6 +85,7 @@ def initFileStructure():
         os.mkdir(local_data_airports_directory)
     shutil.copyfile(os.path.join(default_airports_directory, 'dcs_batumi.apt'), os.path.join(local_data_airports_directory, 'dcs_batumi.apt'))
     shutil.copyfile(os.path.join(default_airports_directory, 'xpl_batumi.apt'), os.path.join(local_data_airports_directory, 'xpl_batumi.apt'))
+    shutil.copyfile(os.path.join(default_airports_directory, 'xpl_van_nuys.apt'), os.path.join(local_data_airports_directory, 'xpl_van_nuys.apt'))
     shutil.copyfile(os.path.join(default_airports_directory, 'readme.txt'), os.path.join(local_data_airports_directory, 'readme.txt'))
 
     # videos
@@ -124,7 +125,7 @@ def initFileStructure():
 
     #copying_file = os.path.join(application_directory, 'COPYING.rtf')
 
-    globalvars['version'] = 'v0.94b'
+    globalvars['version'] = 'v0.95b'
     globalvars['local_data_root_directory'] = local_data_root_directory
     globalvars['local_data_airports_directory'] = local_data_airports_directory
     globalvars['local_data_recordings_directory'] = local_data_recordings_directory

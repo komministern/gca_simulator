@@ -1,28 +1,56 @@
 
-iata BUS
-icao UGSB
+iata VNY
+icao KVNY
 
-rwy1 13
-thr_lat 41.617062
-thr_lon 41.588860
-thr_el 33.0
-eor_lat 41.602268
-eor_lon 41.611668
-eor_el 33.0
-td 300			
-gs 2.9
-true 125.2
+rwy1 16R
+thr_lat 34.218929
+thr_lon -118.491249
+thr_el 246.1
+eor_lat 34.197002
+eor_lon -118.489136
+eor_el 246.1
+td 250			
+gs 3.5
+true 176.0
 
-rwy2 31
-thr_lat 41.602268
-thr_lon 41.611668
-thr_el 33.0
-eor_lat 41.617062
-eor_lon 41.588860
-eor_el 33.0
-td 300
-gs 2.9
-true 305.2
+rwy2 34L
+thr_lat 34.197002
+thr_lon -118.489136
+thr_el 246.1
+eor_lat 34.218929
+eor_lon -118.491249
+eor_el 246.1
+td 250
+gs 3.0
+true 356.0
+
+# The runways 16L and 34R are a very short. So short, in fact, that the virtual
+# GCA (which by default is placed 75.0 m from the centerline in the middle of
+# the runway) cannot see any plots near the touchdown points, let alone the MRC
+# points. Still, they are there as an example of how to implement more than two 
+# runways per airport.
+
+rwy3 16L
+thr_lat 34.215103
+thr_lon -118.489632
+thr_el 246.1
+eor_lat 34.208088
+eor_lon -118.488976
+eor_el 246.1
+td 150			
+gs 3.5
+true 176.0
+
+rwy4 34R
+thr_lat 34.208088
+thr_lon -118.488976
+thr_el 246.1
+eor_lat 34.215103
+eor_lon -118.489632
+eor_el 246.1
+td 150
+gs 3.0
+true 356.0
 
 # Explanation of the entries above:
 

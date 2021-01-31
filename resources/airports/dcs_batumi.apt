@@ -53,9 +53,9 @@ dcs_eor_z 616430.1
 # is the end point of the runway in the direction of the landing aircraft.
 # The format is decimal degrees, and the elevation is in meters. In a perfect world,
 # these values can be taken directly from an airport chart, but it is safer to
-# actually tax your flight sim aircraft to the point and note the values given
-# by the simulator instead. (In DCS, even this is not always enough. See the dcs
-# specific entries below.)
+# actually tax your flightsim aircraft to the point and note the values as seen in
+# the gca simulator STATUS window instead. (In DCS, even this is not always enough. 
+# See the dcs specific entries below.)
 
 # eor_lat, eor_lon, eor_el:
 # The eor (end of runway) point is the point where the runway ends, seen from
@@ -81,12 +81,12 @@ dcs_eor_z 616430.1
 # resulting in a skewed approach in the simulation. My solution is to use the DCS's local 
 # coordinates directly, instead of obtaining them through passsing the lon-lat coordinates
 # of the thr and eor to the API functions. This is by no means an elegant approach, as we
-# cannot knew when DCS decides to, for example, reposition origo of the local coordinate
+# cannot know when DCS decides to, for example, reposition origo of the local coordinate
 # system. If we are unlucky, this happens near our current airport, with potentially 
 # disastrous results. It is however the only approach I can think of that does the trick. 
 # To obtain the local coordinates, you have to create a mission in which there is only one 
 # aircraft present. The local and global coordinate of that plane will then be presented 
-# in the STATUS window in the PAR simulator. Then tax your plane to the points of interest, 
+# in the STATUS window in the gca simulator. Then tax your plane to the points of interest, 
 # and make a note of the coordinate.
 # These dcs-entries are optional, but if they exist and DCS is the data source, they will 
 # override the lon-lat coordinates entered earlier.
