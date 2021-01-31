@@ -109,7 +109,12 @@ def initFileStructure():
     # config
     config_file = os.path.join(local_data_root_directory, 'config.txt')
     if not os.path.exists(config_file):
-        shutil.copyfile(os.path.join(default_config_directory, 'defaultconfig.txt'), os.path.join(local_data_root_directory, 'config.txt'))
+        shutil.copyfile(os.path.join(default_config_directory, 'defaultconfig.txt'), config_file)
+
+    # quickstart
+    quickstart_file = os.path.join(local_data_root_directory, 'QUICKSTART.txt')
+    if not os.path.exists(quickstart_file):
+        shutil.copyfile(os.path.join(default_resources_directory, 'QUICKSTART.txt'), quickstart_file)
 
     ip_file = os.path.join(local_data_sys_directory, 'ip.txt')
 
@@ -119,7 +124,7 @@ def initFileStructure():
 
     #copying_file = os.path.join(application_directory, 'COPYING.rtf')
 
-    globalvars['version'] = 'v0.93b'
+    globalvars['version'] = 'v0.94b'
     globalvars['local_data_root_directory'] = local_data_root_directory
     globalvars['local_data_airports_directory'] = local_data_airports_directory
     globalvars['local_data_recordings_directory'] = local_data_recordings_directory

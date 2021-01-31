@@ -1,3 +1,5 @@
+GCA Simulator v0.94b
+
 Install
 
 To install the GCA Simulator, just copy the folder GCA Simulator to anywhere on you computer. The
@@ -25,7 +27,7 @@ button in the Status window to get rid of the scroll bars. The program is hard c
 1920x1080 pixels, and a lower resolution than this on your monitor will be less than optimal.
 
 Some buttons will demand a password due to the use of that functionality may compromise flight 
-security. The default password in this simulation is pwd, but this can be changed in the config
+safety. The default password in this simulation is pwd, but this can be changed in the config
 file found in the data directory.
 
 To accompany the demo mode file, you will find a video file, demo.mp4, in the data folder. It is a 
@@ -39,11 +41,11 @@ Connect to DCS or X-Plane
 Before connecting to a flight simulator of your choice, you must install a plugin. Plugins for DCS
 and X-Plane (only 64-bit) are provided in this release. You will find them in the data folder together 
 with instructions for how to install them. I may write a plugin for Microsoft Flight Simulator if I 
-ever get around to buy the damned thing. 
+ever get around to buy the darn expensive thing. 
 
 After installing the plugin, you must load an airport from within the Status window, and then press the 
 Connect button. This will prompt you to enter the IP address to the computer on which the flight 
-simulator is being run on. The Connect button should change to a bright yellow color as the data stream 
+simulator is being run on. The Connect button will change to a bright yellow color as the data stream 
 starts. Instructions on how to add you own airports to the GCA Simulator is found in the data folder. 
 Look at the already present dcs_batumi.apt or xpl_batumi.apt (ordinary text files) for further 
 instructions.
