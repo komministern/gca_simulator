@@ -1,7 +1,13 @@
 Install
 
 To install the GCA Simulator, just copy the folder GCA Simulator to anywhere on you computer. The
-executable resides inside.
+executable resides inside. 
+
+Security
+
+The code is packaged into an EXE-file with pyinstaller, which will cause some antivirus programs 
+to flag it as a trojan. The program will make use ports 5005 and 5006 for data transfer when 
+displaying plots. This is the case even when using the simulation in demo mode, as described below.
 
 Quick start
 
@@ -12,10 +18,11 @@ called the data folder. All new data will be saved in this location.
 Demo Mode
 
 After starting the GCA Simulator, press the Status button and then Demo Mode. This will open a file 
-selector dialog, in which the file demo.txt should be choosable. Doubleclick the demo.txt to start 
+selection dialog, in which the file demo.txt should be choosable. Doubleclick the demo.txt to start 
 the demonstration. This demo will send plot information to the simulator that was recorded when two
-fighter jets and a slower transport aircraft lands on an airport in DCS. The Status window only
-contains information and buttons that are related to the simulator, and can now be closed.
+fighter jets and a slower transport aircraft lands on an airport in DCS. Also press the FULLSCREEN
+button in the Status window to get rid of the scroll bars. The program is hard coded to use 
+1920x1080 pixels, and a lower resolution than this on your monitor will be less than optimal.
 
 Some buttons will demand a password due to the use of that functionality may compromise flight 
 security. The default password in this simulation is pwd, but this can be changed in the config

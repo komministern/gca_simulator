@@ -18,12 +18,16 @@ along with GCA Simulator.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import sys
-from PySide2 import QtWidgets
+from PySide2 import QtCore, QtWidgets
 from .view.view import MyView
 from .presenter.presenter import MyPresenter    # Order?? presenter-model
 from .model.model import MyModel
 
 def main():
+    # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling)
+    # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_Use96Dpi)
+    
     app = QtWidgets.QApplication(sys.argv)
     view = MyView() 
     model = MyModel()
