@@ -90,7 +90,8 @@ def initFileStructure():
     # videos
     if not os.path.exists(local_data_videos_directory):
         os.mkdir(local_data_videos_directory)
-        shutil.copyfile(os.path.join(default_videos_directory, 'demo.mp4'), os.path.join(local_data_videos_directory, 'demo.mp4'))  # Too large?
+        if os.path.exists(os.path.join(default_videos_directory, 'demo.mp4')):
+            shutil.copyfile(os.path.join(default_videos_directory, 'demo.mp4'), os.path.join(local_data_videos_directory, 'demo.mp4'))  # Too large?
     shutil.copyfile(os.path.join(default_videos_directory, 'readme.txt'), os.path.join(local_data_videos_directory, 'readme.txt'))
 
     # plugins
