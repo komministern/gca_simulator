@@ -119,7 +119,7 @@ def initFileStructure():
 
     #copying_file = os.path.join(application_directory, 'COPYING.rtf')
 
-    globalvars['version'] = 'v0.92b'
+    globalvars['version'] = 'v0.93b'
     globalvars['local_data_root_directory'] = local_data_root_directory
     globalvars['local_data_airports_directory'] = local_data_airports_directory
     globalvars['local_data_recordings_directory'] = local_data_recordings_directory
