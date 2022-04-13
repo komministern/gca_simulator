@@ -83,6 +83,23 @@ class MyPresenter(QtCore.QObject):
         self.trying_to_connect = False
 
 
+        # OK. Here we shall enable the demo mode, and make sure that the app starts in fullscreen mode...
+        # 
+        # Perhaps best to use the original method here!!!!!
+
+        self.view.button_status_fullscreen.mousePressEvent(None)
+        self.view.button_status_fullscreen.setEnabled(False)
+
+        local_data_recordings_directory = globalvars['local_data_recordings_directory']
+        demo_filename = os.path.join(local_data_recordings_directory, 'demo.rcd')
+
+        self.toggleDemoMode(demo_filename)
+
+        self.view.status_window.hideWindow()
+
+        # print(demo_filename)
+
+
     def shutdown_app(self):
         if globalvars['rds_install']:
             modifiers = QtWidgets.QApplication.keyboardModifiers()
@@ -732,13 +749,15 @@ class MyPresenter(QtCore.QObject):
 
 
 
-    def toggleDemoMode(self):
+    def toggleDemoMode(self, filename=None):
         # button_demo is a normal Button
         if not self.demo_mode and not self.connected:
             #if not self.view.button_demo.inverted:
             
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', globalvars['local_data_recordings_directory'], 'Record Files (*.rcd)')
-            #filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rcd)')
+            if filename == None:
+                filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', globalvars['local_data_recordings_directory'], 'Record Files (*.rcd)')
+                #filename, _ = QtWidgets.QFileDialog.getOpenFileName(None, 'Open Recording', self.model.local_data_recordings_directory, 'Record Files (*.rcd)')
+                print(filename)
             
             if filename:
                 self.model.initDemoMode(filename)

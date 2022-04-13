@@ -105,6 +105,9 @@ class MyModel(QtCore.QObject):
         self.initTimeDelays()
         
         self.timer_senddata = QtCore.QTimer()
+
+        self.timer_senddata.setTimerType(QtCore.Qt.PreciseTimer)
+
         self.timer_senddata.timeout.connect(self.sendDatagram)
 
         self.timer_connection_active = QtCore.QTimer()
