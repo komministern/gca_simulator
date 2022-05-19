@@ -90,10 +90,25 @@ class MyPresenter(QtCore.QObject):
         self.view.button_status_fullscreen.mousePressEvent(None)
         self.view.button_status_fullscreen.setEnabled(False)
 
-        local_data_recordings_directory = globalvars['local_data_recordings_directory']
-        demo_filename = os.path.join(local_data_recordings_directory, 'demo.rcd')
+        # local_data_recordings_directory = globalvars['local_data_recordings_directory']
+        # demo_filename = os.path.join(local_data_recordings_directory, 'demo.rcd')
 
-        self.toggleDemoMode(demo_filename)
+        # self.toggleDemoMode(demo_filename)
+
+        import os.path
+        filename = os.path.join(globalvars['local_data_airports_directory'], 'dcs_batumi.apt')
+        self.model.readNewAirport(filename)
+
+        self.model.UDP_IP = '192.168.100.100'
+        # self.model.UDP_IP = '127.0.0.1'
+
+        self.model.startSendingToPlugin()
+        self.view.button_connect.setPending(True)
+        self.trying_to_connect = True
+
+
+
+
 
         self.view.status_window.hideWindow()
 
@@ -877,6 +892,8 @@ class MyPresenter(QtCore.QObject):
             self.view.button_connect.setPending(False)
             self.view.button_connect.setInverted(True)
 
+            
+
         elif new_connected_state == False:
 
             self.view.button_connect.setInverted(False)
@@ -896,8 +913,17 @@ class MyPresenter(QtCore.QObject):
 
         if self.connected:
             self.view.scene.alerts_field.addAlert('RADAR READY FOR USE')
-            self.view.scene.connected = True                                            # ????????????????????
+            self.view.scene.connected = True                          
         
+            self.view.button_ant_drive.mousePressEvent(None)
+            
+            delayed_function = partial(self.view.button_radiate.mousePressEvent, None)
+            self.radiate_timer_2 = QtCore.QTimer.singleShot(1600.0, delayed_function)
+
+            # self.view.button_radiate.mousePressEvent(None)      # ADDED.
+
+
+
         elif not self.connected:
             self.view.status_window_area.updateDynamicTextItem('ip','IP addr:')
             self.view.status_window_area.updateDynamicTextItem('count', 'Msg count:')
@@ -918,7 +944,7 @@ class MyPresenter(QtCore.QObject):
             if self.recording:
                 self.view.button_record.mousePressEvent(None)
             
-            self.view.scene.alerts_field.addAlert('DISPLAY DISCONNECTED FROM GCA', critical=True)
+            # self.view.scene.alerts_field.addAlert('DISPLAY DISCONNECTED FROM GCA', critical=True)
             self.view.scene.connected = False
             
             # Remove all tracks
